@@ -59,6 +59,12 @@ module.exports = {
     compress: true,
     port: 8080,
     historyApiFallback: true,
+    // proxy: [{
+    //   context: ['/api', '/beds', '/doctors', '/appointments'],
+    //   target: 'http://localhost:3000',
+    //   secure: false,
+    //   changeOrigin: true
+    // }]
   },
   mode: 'development',
   devtool: 'source-map',

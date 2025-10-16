@@ -1,37 +1,61 @@
 /* eslint-disable */
-import * as antdLocale from 'antd/locale/pt_BR';
-import * as dayjsLocale from 'dayjs/locale/pt-br';
 import React, { Component } from 'react';
-
-import { DemoData, Scheduler, SchedulerData, ViewType, wrapperFun } from '../../../index';
+import { Scheduler, SchedulerData, ViewType, wrapperFun } from '../../../index';
+import axios from 'axios';
 
 class Basic extends Component {
   constructor(props) {
     super(props);
 
-    const schedulerData = new SchedulerData('2022-12-22', ViewType.Week, false, false, {
+    const schedulerData = new SchedulerData('2025-10-15', ViewType.Week, false, false, {
       besidesWidth: 300,
-      dayMaxEvents: 99,
-      weekMaxEvents: 9669,
-      monthMaxEvents: 9669,
-      quarterMaxEvents: 6599,
-      yearMaxEvents: 9956,
-      customMaxEvents: 9965,
-      eventItemPopoverTrigger: 'click',
       schedulerContentHeight: '100%',
     });
 
-    schedulerData.setSchedulerLocale(dayjsLocale);
-    schedulerData.setCalendarPopoverLocale(antdLocale);
-    schedulerData.setResources(DemoData.resources);
-    schedulerData.setEvents(DemoData.events);
     this.state = {
       viewModel: schedulerData,
+      loading: true,
     };
   }
 
-  render() {
+  async componentDidMount() {
+  try {
+
+    const bedsRes = await fetch('http://localhost:3000/beds');
+    const bedsData = await bedsRes.json();
+
+    const beds = bedsData.beds.map(bed => ({
+      id: bed._id,
+      name: bed.bedName,
+      department: bed.department,
+    }));
+
+    const apptRes = await fetch('http://localhost:3000/appointments');
+    const apptData = await apptRes.json();
+
+    const appointments = apptData.appointments.map(a => ({
+      id: a._id,
+      start: a.appointmentStartTime || a.appointmentDate,
+      end: a.appointmentEndTime || a.appointmentDate,
+      resourceId: a.bedId,
+      title: `${a.patient?.[0]?.fullName || 'Bệnh nhân không rõ'} - ${a.status}`,
+      bgColor: a.status === 'pending' ? '#faad14' : '#52c41a',
+    }));
+
     const { viewModel } = this.state;
+    viewModel.setResources(beds);
+    viewModel.setEvents(appointments);
+
+    this.setState({ viewModel, loading: false });
+  } catch (err) {
+    console.error('Error fetching data:', err);
+    this.setState({ loading: false });
+  }
+}
+
+  render() {
+    const { viewModel, loading } = this.state;
+    if (loading) return <p>Đang tải danh sách...</p>;
     return (
       <Scheduler
         schedulerData={viewModel}
