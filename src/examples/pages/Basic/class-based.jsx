@@ -10,6 +10,7 @@ class Basic extends Component {
     const schedulerData = new SchedulerData('2025-10-15', ViewType.Week, false, false, {
       besidesWidth: 300,
       schedulerContentHeight: '100%',
+      resourceName: 'Bed No.',
     });
 
     this.state = {
@@ -54,9 +55,11 @@ class Basic extends Component {
 }
 
   render() {
-    const { viewModel, loading } = this.state;
-    if (loading) return <p>Đang tải danh sách...</p>;
-    return (
+  const { viewModel, loading } = this.state;
+  if (loading) return <p>Đang tải danh sách...</p>;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <Scheduler
         schedulerData={viewModel}
         prevClick={this.prevClick}
@@ -77,8 +80,10 @@ class Basic extends Component {
         onScrollBottom={this.onScrollBottom}
         toggleExpandFunc={this.toggleExpandFunc}
       />
-    );
-  }
+    </div>
+  );
+}
+
 
   prevClick = schedulerData => {
     schedulerData.prev();
