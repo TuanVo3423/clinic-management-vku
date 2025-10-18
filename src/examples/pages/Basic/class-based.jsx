@@ -11,7 +11,19 @@ class Basic extends Component {
       besidesWidth: 300,
       schedulerContentHeight: '100%',
       resourceName: 'Bed No.',
+      dayMaxEvents: 99,
+      weekMaxEvents: 9669,
+      monthMaxEvents: 9669,
+      quarterMaxEvents: 6599,
+      yearMaxEvents: 9956,
+      customMaxEvents: 9965,
+      eventItemPopoverTrigger: 'click',
     });
+    
+    // schedulerData.setSchedulerLocale(dayjsLocale);
+    // schedulerData.setCalendarPopoverLocale(antdLocale);
+    // schedulerData.setResources(DemoData.resources);
+    // schedulerData.setEvents(DemoData.events);
 
     this.state = {
       viewModel: schedulerData,
@@ -87,20 +99,20 @@ class Basic extends Component {
 
   prevClick = schedulerData => {
     schedulerData.prev();
-    schedulerData.setEvents(DemoData.events);
+    // schedulerData.setEvents(DemoData.events);
     this.setState({ viewModel: schedulerData });
   };
 
   nextClick = schedulerData => {
     schedulerData.next();
-    schedulerData.setEvents(DemoData.events);
+    // schedulerData.setEvents(DemoData.events);
     this.setState({ viewModel: schedulerData });
   };
 
   onViewChange = (schedulerData, view) => {
     const start = new Date();
     schedulerData.setViewType(view.viewType, view.showAgenda, view.isEventPerspective);
-    schedulerData.setEvents(DemoData.events);
+    // schedulerData.setEvents(DemoData.events);
     this.setState({ viewModel: schedulerData });
     function secondsBetween(date1, date2) {
       const diff = Math.abs(date1.getTime() - date2.getTime());
@@ -112,7 +124,7 @@ class Basic extends Component {
 
   onSelectDate = (schedulerData, date) => {
     schedulerData.setDate(date);
-    schedulerData.setEvents(DemoData.events);
+    // schedulerData.setEvents(DemoData.events);
     this.setState({
       viewModel: schedulerData,
     });
