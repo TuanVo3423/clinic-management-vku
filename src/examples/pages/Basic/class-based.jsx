@@ -1,7 +1,10 @@
 /* eslint-disable */
 import React, { Component } from "react";
+import { Modal, Form, Input, DatePicker } from "antd";
 import { Scheduler, SchedulerData, ViewType, wrapperFun } from "../../../index";
 import dayjs from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
+dayjs.extend(isBetween);
 import axios from "axios";
 
 class Basic extends Component {
@@ -36,6 +39,13 @@ class Basic extends Component {
     this.state = {
       viewModel: schedulerData,
       loading: true,
+      isModalVisible: false,
+      formValues: {
+        title: "",
+        start: null,
+        end: null,
+      },
+      tempEvent: null,
     };
   }
 
@@ -80,9 +90,14 @@ class Basic extends Component {
       );
 
       const appointments = apptRes.data.appointments
-        .filter((a) =>
-          dayjs(a.appointmentEndTime || a.appointmentDate).isAfter(startDate)
-        )
+        .filter((a) => {
+          const startA = dayjs(a.appointmentStartTime || a.appointmentDate);
+          const endA = dayjs(a.appointmentEndTime || a.appointmentDate);
+          const startB = dayjs(startDate);
+          const endB = dayjs(endDate);
+          return startA.isBefore(endB) && endA.isAfter(startB);
+        })
+
         .map((a) => ({
           id: a._id,
           start: a.appointmentStartTime || a.appointmentDate,
@@ -130,6 +145,61 @@ class Basic extends Component {
           onScrollBottom={this.onScrollBottom}
           toggleExpandFunc={this.toggleExpandFunc}
         />
+        <Modal
+          title="Tạo lịch hẹn mới"
+          open={this.state.isModalVisible}
+          onCancel={() => this.setState({ isModalVisible: false })}
+          onOk={this.handleCreateEvent}
+          okText="Lưu"
+          cancelText="Hủy"
+        >
+          <Form layout="vertical">
+            <Form.Item label="Tên lịch hẹn">
+              <Input
+                value={this.state.formValues.title}
+                onChange={(e) =>
+                  this.setState({
+                    formValues: {
+                      ...this.state.formValues,
+                      title: e.target.value,
+                    },
+                  })
+                }
+                placeholder="Nhập tên bệnh nhân hoặc ghi chú"
+              />
+            </Form.Item>
+            <Form.Item label="Thời gian bắt đầu">
+              <DatePicker
+                showTime
+                value={
+                  this.state.formValues.start
+                    ? dayjs(this.state.formValues.start)
+                    : null
+                }
+                onChange={(value) =>
+                  this.setState({
+                    formValues: { ...this.state.formValues, start: value },
+                  })
+                }
+              />
+            </Form.Item>
+            <Form.Item label="Thời gian kết thúc">
+              <DatePicker
+                showTime
+                value={
+                  this.state.formValues.end
+                    ? dayjs(this.state.formValues.end)
+                    : null
+                }
+                onChange={(value) =>
+                  this.setState({
+                    formValues: { ...this.state.formValues, end: value },
+                  })
+                }
+              />
+            </Form.Item>
+          </Form>
+        </Modal>
       </div>
     );
   }
@@ -196,27 +266,58 @@ class Basic extends Component {
     );
   };
 
-  newEvent = (schedulerData, slotId, slotName, start, end, type, item) => {
-    if (
-      confirm(
-        `Do you want to create a new event? {slotId: ${slotId}, slotName: ${slotName}, start: ${start}, end: ${end}, type: ${type}, item: ${item}}`
-      )
-    ) {
-      let newFreshId = 0;
-      schedulerData.events.forEach((item) => {
-        if (item.id >= newFreshId) newFreshId = item.id + 1;
+  newEvent = (schedulerData, slotId, slotName, start, end) => {
+    this.setState({
+      isModalVisible: true,
+      tempEvent: { schedulerData, slotId, slotName, start, end },
+      formValues: { title: "", start, end },
+    });
+  };
+
+  handleCreateEvent = async () => {
+    const { tempEvent, formValues } = this.state;
+    const { schedulerData, slotId, start, end } = tempEvent;
+    const title = formValues.title.trim();
+
+    if (!title) {
+      alert("Vui lòng nhập tên lịch hẹn");
+      return;
+    }
+
+    try {
+      const payload = {
+        bedId: slotId,
+        //hard code tạm chỗ này nha
+        patientId: "68eb572c67c485c17868fe9b",
+        doctorId: "655f8c123456789012345679",
+        serviceId: "655f8c12345678901234567a",
+        //...
+        appointmentStartTime: dayjs(formValues.start || start).format(
+          "YYYY-MM-DD HH:mm:ss"
+        ),
+        appointmentEndTime: dayjs(formValues.end || end).format(
+          "YYYY-MM-DD HH:mm:ss"
+        ),
+        note: title,
+      };
+
+      await axios.post("http://localhost:3000/appointments", payload);
+
+      await this.fetchAppointmentsByRange(
+        schedulerData.startDate,
+        schedulerData.endDate
+      );
+
+      this.setState({
+        isModalVisible: false,
+        tempEvent: null,
+        formValues: { title: "", start: null, end: null },
       });
 
-      let newEvent = {
-        id: newFreshId,
-        title: "New event you just created",
-        start: start,
-        end: end,
-        resourceId: slotId,
-        bgColor: "purple",
-      };
-      schedulerData.addEvent(newEvent);
-      this.setState({ viewModel: schedulerData });
+      console.log("Appointment created successfully!");
+    } catch (err) {
+      console.error("Error creating appointment:", err);
+      alert("Tạo lịch hẹn thất bại. Vui lòng thử lại!");
     }
   };
 
@@ -254,7 +355,7 @@ class Basic extends Component {
   };
 
   onScrollRight = async (schedulerData, schedulerContent, maxScrollLeft) => {
-    if (schedulerData.ViewTypes === ViewType.Day) {
+    if (schedulerData.viewType === ViewType.Day) {
       schedulerData.next();
       await this.fetchAppointmentsByRange(
         schedulerData.startDate,
@@ -266,7 +367,7 @@ class Basic extends Component {
   };
 
   onScrollLeft = async (schedulerData, schedulerContent) => {
-    if (schedulerData.ViewTypes === ViewType.Day) {
+    if (schedulerData.viewType === ViewType.Day) {
       schedulerData.prev();
       await this.fetchAppointmentsByRange(
         schedulerData.startDate,
