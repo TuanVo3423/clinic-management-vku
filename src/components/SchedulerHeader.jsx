@@ -109,6 +109,7 @@ const SchedulerHeader = React.forwardRef(({
           </Space>
         </div>
       </Col>
+      {config.viewChangeEnabled !== false && (
       <Col>
         <Space>
           <Spin spinning={viewSpinning} />
@@ -122,6 +123,7 @@ const SchedulerHeader = React.forwardRef(({
           </RadioGroup>
         </Space>
       </Col>
+      )}
       {rightCustomHeader}
     </Row>
   );

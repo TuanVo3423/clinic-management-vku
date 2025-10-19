@@ -7,13 +7,14 @@ class Basic extends Component {
   constructor(props) {
     super(props);
 
-    const schedulerData = new SchedulerData('2025-10-15', ViewType.Week, false, false, {
+    const schedulerData = new SchedulerData('2025-10-15', ViewType.Day, false, false, {
       besidesWidth: 300,
       schedulerContentHeight: '100%',
       resourceName: 'Bed No.',
       dayMaxEvents: 99,
       weekMaxEvents: 9669,
       monthMaxEvents: 9669,
+      viewChangeEnabled: false,
       quarterMaxEvents: 6599,
       yearMaxEvents: 9956,
       customMaxEvents: 9965,
