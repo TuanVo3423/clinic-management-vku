@@ -79,7 +79,7 @@ export default {
   agendaViewHeader: 'Agenda',
   addMorePopoverHeaderFormat: 'MMM D, YYYY dddd',
   eventItemPopoverDateFormat: 'MMM D',
-  nonAgendaDayCellHeaderFormat: 'ha',
+  nonAgendaDayCellHeaderFormat: 'HH:mm',
   nonAgendaWeekCellHeaderFormat: 'ww/YYYY',
   nonAgendaMonthCellHeaderFormat: 'MMM YYYY',
   nonAgendaYearCellHeaderFormat: 'YYYY',

@@ -21,13 +21,14 @@ class Basic extends Component {
         schedulerContentHeight: "100%",
         resourceName: "Bed No.",
         dayMaxEvents: 99,
-        weekMaxEvents: 9669,
-        monthMaxEvents: 9669,
         viewChangeEnabled: false,
-        quarterMaxEvents: 6599,
-        yearMaxEvents: 9956,
-        customMaxEvents: 9965,
         eventItemPopoverTrigger: "click",
+        dayStartFrom: 16,
+        dayStopTo: 22,
+        minuteStep: 30,
+        nonAgendaDayCellHeaderFormat: "HH:mm",
+        dayCellWidth: 70,
+        schedulerContentWidth: "100%",
       }
     );
 
@@ -301,20 +302,25 @@ class Basic extends Component {
       return;
     }
 
+    const startTime = dayjs(formValues.start || start);
+    const endTime = dayjs(formValues.end || end);
+
+    const earliest = startTime.startOf("day").add(16, "hour").add(30, "minute");
+    const latest = startTime.startOf("day").add(19, "hour").add(30, "minute");
+
+    if (startTime.isBefore(earliest) || endTime.isAfter(latest)) {
+      alert("Giờ hẹn phải nằm trong khoảng 16:30 - 19:30!");
+      return;
+    }
+
     try {
       const payload = {
         bedId: slotId,
-        //hard code tạm chỗ này nha
         patientId: "68eb572c67c485c17868fe9b",
         doctorId: "655f8c123456789012345679",
         serviceId: "655f8c12345678901234567a",
-        //...
-        appointmentStartTime: dayjs(formValues.start || start).format(
-          "YYYY-MM-DD HH:mm:ss"
-        ),
-        appointmentEndTime: dayjs(formValues.end || end).format(
-          "YYYY-MM-DD HH:mm:ss"
-        ),
+        appointmentStartTime: startTime.format("YYYY-MM-DD HH:mm:ss"),
+        appointmentEndTime: endTime.format("YYYY-MM-DD HH:mm:ss"),
         note: title,
       };
 
