@@ -98,16 +98,33 @@ class Basic extends Component {
           return startA.isBefore(endB) && endA.isAfter(startB);
         })
 
-        .map((a) => ({
-          id: a._id,
-          start: a.appointmentStartTime || a.appointmentDate,
-          end: a.appointmentEndTime || a.appointmentDate,
-          resourceId: a.bedId,
-          title: `${a.patient?.[0]?.fullName || "Bệnh nhân không rõ"} - ${
-            a.status
-          }`,
-          bgColor: a.status === "pending" ? "#faad14" : "#52c41a",
-        }));
+        .map((a) => {
+          let bgColor;
+          switch (a.status) {
+            case "pending":
+              bgColor = "#faad14";
+              break;
+            case "confirmed":
+              bgColor = "#52c41a";
+              break;
+            case "cancelled":
+              bgColor = "#ff4d4f";
+              break;
+            default:
+              bgColor = "#d9d9d9";
+          }
+
+          return {
+            id: a._id,
+            start: a.appointmentStartTime || a.appointmentDate,
+            end: a.appointmentEndTime || a.appointmentDate,
+            resourceId: a.bedId,
+            title: `${a.patient?.[0]?.fullName || "Bệnh nhân không rõ"} - ${
+              a.status
+            }`,
+            bgColor,
+          };
+        });
 
       viewModel.setResources(beds);
       viewModel.setEvents(appointments);
