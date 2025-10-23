@@ -3,8 +3,12 @@ import React, { Component } from "react";
 import { Modal, Form, Input, DatePicker } from "antd";
 import { Scheduler, SchedulerData, ViewType, wrapperFun } from "../../../index";
 import dayjs from "dayjs";
-import isBetween from "dayjs/plugin/isBetween";
-dayjs.extend(isBetween);
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.tz.setDefault("Asia/Ho_Chi_Minh");
+
 import axios from "axios";
 
 class Basic extends Component {
@@ -67,7 +71,8 @@ class Basic extends Component {
         department: bed.department,
       }));
 
-      let startDate, endDate;
+      let startDate = dayjs(start).startOf("day").format("YYYY-MM-DD HH:mm:ss");
+      let endDate = dayjs(start).endOf("day").format("YYYY-MM-DD HH:mm:ss");
       if (viewModel.viewType === ViewType.Day) {
         startDate = dayjs(start).startOf("day").format("YYYY-MM-DD HH:mm:ss");
         endDate = dayjs(start).endOf("day").format("YYYY-MM-DD HH:mm:ss");
@@ -79,53 +84,47 @@ class Basic extends Component {
         endDate = dayjs(end).format("YYYY-MM-DD HH:mm:ss");
       }
 
-      const apptRes = await axios.get(
-        "http://localhost:3000/appointments/by-time-range",
-        {
-          params: { startDate, endDate },
-          paramsSerializer: (params) =>
-            `startDate=${encodeURIComponent(
-              params.startDate
-            )}&endDate=${encodeURIComponent(params.endDate)}`,
+      const url = `http://localhost:3000/appointments/by-time-range?startDate=${encodeURIComponent(
+        startDate
+      )}&endDate=${encodeURIComponent(endDate)}`;
+      
+      const apptRes = await axios.get(url);
+
+      const appointments = apptRes.data.appointments.map((a) => {
+        let bgColor;
+        switch (a.status) {
+          case "pending":
+            bgColor = "#faad14";
+            break;
+          case "confirmed":
+            bgColor = "#52c41a";
+            break;
+          case "cancelled":
+            bgColor = "#ff4d4f";
+            break;
+          default:
+            bgColor = "#d9d9d9";
         }
-      );
 
-      const appointments = apptRes.data.appointments
-        .filter((a) => {
-          const startA = dayjs(a.appointmentStartTime || a.appointmentDate);
-          const endA = dayjs(a.appointmentEndTime || a.appointmentDate);
-          const startB = dayjs(startDate);
-          const endB = dayjs(endDate);
-          return startA.isBefore(endB) && endA.isAfter(startB);
-        })
+        const dateStr = dayjs(a.appointmentDate).format("YYYY-MM-DD");
+        const start = dayjs(
+          `${dateStr} ${a.normalizedStartTime || a.appointmentStartTime}`
+        ).format("YYYY-MM-DDTHH:mm:ss");
+        const end = dayjs(
+          `${dateStr} ${a.normalizedEndTime || a.appointmentEndTime}`
+        ).format("YYYY-MM-DDTHH:mm:ss");
 
-        .map((a) => {
-          let bgColor;
-          switch (a.status) {
-            case "pending":
-              bgColor = "#faad14";
-              break;
-            case "confirmed":
-              bgColor = "#52c41a";
-              break;
-            case "cancelled":
-              bgColor = "#ff4d4f";
-              break;
-            default:
-              bgColor = "#d9d9d9";
-          }
-
-          return {
-            id: a._id,
-            start: a.appointmentStartTime || a.appointmentDate,
-            end: a.appointmentEndTime || a.appointmentDate,
-            resourceId: a.bedId,
-            title: `${a.patient?.[0]?.fullName || "Bệnh nhân không rõ"} - ${
-              a.status
-            }`,
-            bgColor,
-          };
-        });
+        return {
+          id: a._id,
+          start,
+          end,
+          resourceId: a.bedId,
+          title: `${a.patient?.[0]?.fullName || "Bệnh nhân không rõ"} - ${
+            a.status
+          }`,
+          bgColor,
+        };
+      });
 
       viewModel.setResources(beds);
       viewModel.setEvents(appointments);
