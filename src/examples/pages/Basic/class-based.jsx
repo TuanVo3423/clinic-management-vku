@@ -51,6 +51,8 @@ class Basic extends Component {
         end: null,
       },
       tempEvent: null,
+      editModalVisible: false,
+      selectedEvent: null,
     };
   }
 
@@ -148,10 +150,9 @@ class Basic extends Component {
           nextClick={this.nextClick}
           onSelectDate={this.onSelectDate}
           onViewChange={this.onViewChange}
-          viewEventClick={this.ops1}
-          viewEventText="Ops 1"
-          viewEvent2Text="Ops 2"
-          viewEvent2Click={this.ops2}
+          eventItemClick={this.eventClicked}
+          viewEventText=""
+          viewEvent2Text=""
           updateEventStart={this.updateEventStart}
           updateEventEnd={this.updateEventEnd}
           moveEvent={this.moveEvent}
@@ -183,6 +184,86 @@ class Basic extends Component {
                   })
                 }
                 placeholder="Nhập tên bệnh nhân hoặc ghi chú"
+              />
+            </Form.Item>
+            <Form.Item label="Thời gian bắt đầu">
+              <DatePicker
+                showTime
+                value={
+                  this.state.formValues.start
+                    ? dayjs(this.state.formValues.start)
+                    : null
+                }
+                onChange={(value) =>
+                  this.setState({
+                    formValues: { ...this.state.formValues, start: value },
+                  })
+                }
+              />
+            </Form.Item>
+            <Form.Item label="Thời gian kết thúc">
+              <DatePicker
+                showTime
+                value={
+                  this.state.formValues.end
+                    ? dayjs(this.state.formValues.end)
+                    : null
+                }
+                onChange={(value) =>
+                  this.setState({
+                    formValues: { ...this.state.formValues, end: value },
+                  })
+                }
+              />
+            </Form.Item>
+          </Form>
+        </Modal>
+        <Modal
+          title="Chỉnh sửa lịch hẹn"
+          open={this.state.editModalVisible}
+          onCancel={() => this.setState({ editModalVisible: false })}
+          footer={[
+            <button
+              key="delete"
+              onClick={this.handleDeleteAppointment}
+              style={{
+                backgroundColor: "#ff4d4f",
+                color: "#fff",
+                border: "none",
+                padding: "6px 12px",
+                borderRadius: "4px",
+                marginRight: "8px",
+              }}
+            >
+              Xóa
+            </button>,
+            <button
+              key="save"
+              onClick={this.handleEditAppointment}
+              style={{
+                backgroundColor: "#52c41a",
+                color: "#fff",
+                border: "none",
+                padding: "6px 12px",
+                borderRadius: "4px",
+              }}
+            >
+              Lưu
+            </button>,
+          ]}
+        >
+          <Form layout="vertical">
+            <Form.Item label="Ghi chú / tiêu đề">
+              <Input
+                value={this.state.formValues.title}
+                onChange={(e) =>
+                  this.setState({
+                    formValues: {
+                      ...this.state.formValues,
+                      title: e.target.value,
+                    },
+                  })
+                }
               />
             </Form.Item>
             <Form.Item label="Thời gian bắt đầu">
@@ -266,9 +347,19 @@ class Basic extends Component {
   };
 
   eventClicked = (schedulerData, event) => {
-    alert(
-      `You just clicked an event: {id: ${event.id}, title: ${event.title}}`
-    );
+    if (event.title.includes("pending")) {
+      this.setState({
+        editModalVisible: true,
+        selectedEvent: event,
+        formValues: {
+          title: event.title.split(" - ")[0],
+          start: dayjs(event.start),
+          end: dayjs(event.end),
+        },
+      });
+    } else {
+      alert("Chỉ có thể chỉnh sửa lịch hẹn ở trạng thái pending!");
+    }
   };
 
   ops1 = (schedulerData, event) => {
@@ -340,6 +431,63 @@ class Basic extends Component {
     } catch (err) {
       console.error("Error creating appointment:", err);
       alert("Tạo lịch hẹn thất bại. Vui lòng thử lại!");
+    }
+  };
+  handleEditAppointment = async () => {
+    const { selectedEvent, formValues } = this.state;
+    try {
+      const payload = {
+        appointmentStartTime: dayjs(formValues.start).format("HH[h]mm"),
+        appointmentEndTime: dayjs(formValues.end).format("HH[h]mm"),
+        note: formValues.title,
+      };
+
+      await axios.patch(
+        `http://localhost:3000/appointments/patient/${selectedEvent.id}`,
+        payload,
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      await this.fetchAppointmentsByRange(
+        this.state.viewModel.startDate,
+        this.state.viewModel.endDate
+      );
+
+      this.setState({
+        editModalVisible: false,
+        selectedEvent: null,
+      });
+
+      alert("Cập nhật lịch hẹn thành công!");
+    } catch (error) {
+      console.error("❌ Error editing appointment:", error);
+      alert("Không thể cập nhật lịch hẹn!");
+    }
+  };
+
+  handleDeleteAppointment = async () => {
+    const { selectedEvent } = this.state;
+    if (!window.confirm("Bạn có chắc muốn xóa lịch hẹn này không?")) return;
+
+    try {
+      await axios.delete(
+        `http://localhost:3000/appointments/${selectedEvent.id}`
+      );
+
+      await this.fetchAppointmentsByRange(
+        this.state.viewModel.startDate,
+        this.state.viewModel.endDate
+      );
+
+      this.setState({
+        editModalVisible: false,
+        selectedEvent: null,
+      });
+
+      alert("Đã xóa lịch hẹn thành công!");
+    } catch (error) {
+      console.error("❌ Error deleting appointment:", error);
+      alert("Không thể xóa lịch hẹn!");
     }
   };
 
