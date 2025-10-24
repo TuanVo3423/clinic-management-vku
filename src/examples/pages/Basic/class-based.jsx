@@ -87,7 +87,7 @@ class Basic extends Component {
       const url = `http://localhost:3000/appointments/by-time-range?startDate=${encodeURIComponent(
         startDate
       )}&endDate=${encodeURIComponent(endDate)}`;
-      
+
       const apptRes = await axios.get(url);
 
       const appointments = apptRes.data.appointments.map((a) => {
@@ -343,36 +343,73 @@ class Basic extends Component {
     }
   };
 
-  updateEventStart = (schedulerData, event, newStart) => {
-    if (
-      confirm(
-        `Do you want to adjust the start of the event? {eventId: ${event.id}, eventTitle: ${event.title}, newStart: ${newStart}}`
-      )
-    ) {
-      schedulerData.updateEventStart(event, newStart);
-    }
-    this.setState({ viewModel: schedulerData });
-  };
+  moveEvent = async (schedulerData, event, slotId, slotName, start, end) => {
+    try {
+      const payload = {
+        appointmentStartTime: dayjs(start).format("HH[h]mm"),
+        appointmentEndTime: dayjs(end).format("HH[h]mm"),
+        bedId: slotId,
+      };
 
-  updateEventEnd = (schedulerData, event, newEnd) => {
-    if (
-      confirm(
-        `Do you want to adjust the end of the event? {eventId: ${event.id}, eventTitle: ${event.title}, newEnd: ${newEnd}}`
-      )
-    ) {
-      schedulerData.updateEventEnd(event, newEnd);
-    }
-    this.setState({ viewModel: schedulerData });
-  };
+      await axios.patch(
+        `http://localhost:3000/appointments/patient/${event.id}`,
+        payload,
+        { headers: { "Content-Type": "application/json" } }
+      );
 
-  moveEvent = (schedulerData, event, slotId, slotName, start, end) => {
-    if (
-      confirm(
-        `Do you want to move the event? {eventId: ${event.id}, eventTitle: ${event.title}, newSlotId: ${slotId}, newSlotName: ${slotName}, newStart: ${start}, newEnd: ${end}`
-      )
-    ) {
-      schedulerData.moveEvent(event, slotId, slotName, start, end);
+      await this.fetchAppointmentsByRange(
+        schedulerData.startDate,
+        schedulerData.endDate
+      );
+
       this.setState({ viewModel: schedulerData });
+    } catch (error) {
+      alert("Không thể cập nhật lịch hẹn, vui lòng thử lại!");
+    }
+  };
+
+  updateEventStart = async (schedulerData, event, newStart) => {
+    try {
+      const payload = {
+        appointmentStartTime: dayjs(newStart).format("HH[h]mm"),
+      };
+
+      console.log("🟡 Resize start payload:", payload);
+
+      await axios.patch(
+        `http://localhost:3000/appointments/patient/${event.id}`,
+        payload,
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      await this.fetchAppointmentsByRange(
+        schedulerData.startDate,
+        schedulerData.endDate
+      );
+      this.setState({ viewModel: schedulerData });
+    } catch (error) {
+      alert("Không thể cập nhật thời gian bắt đầu!");
+    }
+  };
+
+  updateEventEnd = async (schedulerData, event, newEnd) => {
+    try {
+      const payload = {
+        appointmentEndTime: dayjs(newEnd).format("HH[h]mm"),
+      };
+
+      await axios.patch(
+        `http://localhost:3000/appointments/patient/${event.id}`,
+        payload,
+        { headers: { "Content-Type": "application/json" } }
+      );
+      await this.fetchAppointmentsByRange(
+        schedulerData.startDate,
+        schedulerData.endDate
+      );
+      this.setState({ viewModel: schedulerData });
+    } catch (error) {
+      alert("Không thể cập nhật thời gian kết thúc!");
     }
   };
 
