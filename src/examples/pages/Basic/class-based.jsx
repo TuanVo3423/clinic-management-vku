@@ -89,7 +89,7 @@ class Basic extends Component {
       const url = `http://localhost:3000/appointments/by-time-range?startDate=${encodeURIComponent(
         startDate
       )}&endDate=${encodeURIComponent(endDate)}`;
-
+      console.log("URL:", url);
       const apptRes = await axios.get(url);
 
       const appointments = apptRes.data.appointments.map((a) => {
@@ -108,13 +108,11 @@ class Basic extends Component {
             bgColor = "#d9d9d9";
         }
 
-        const dateStr = dayjs(a.appointmentDate).format("YYYY-MM-DD");
-        const start = dayjs(
-          `${dateStr} ${a.normalizedStartTime || a.appointmentStartTime}`
-        ).format("YYYY-MM-DDTHH:mm:ss");
-        const end = dayjs(
-          `${dateStr} ${a.normalizedEndTime || a.appointmentEndTime}`
-        ).format("YYYY-MM-DDTHH:mm:ss");
+        const start = dayjs(a.appointmentStartTime).format(
+          "YYYY-MM-DDTHH:mm:ss"
+        );
+        const end = dayjs(a.appointmentEndTime).format("YYYY-MM-DDTHH:mm:ss");
+        console.log("start:", start, "| raw:", a.appointmentStartTime);
 
         return {
           id: a._id,
@@ -127,7 +125,7 @@ class Basic extends Component {
           bgColor,
         };
       });
-
+      console.log("Final mapped appointments:", appointments);
       viewModel.setResources(beds);
       viewModel.setEvents(appointments);
 
