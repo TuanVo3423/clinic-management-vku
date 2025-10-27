@@ -435,10 +435,14 @@ class Basic extends Component {
     const { selectedEvent, formValues } = this.state;
     try {
       const payload = {
-        appointmentStartTime: dayjs(formValues.start).format("HH[h]mm"),
-        appointmentEndTime: dayjs(formValues.end).format("HH[h]mm"),
+        appointmentStartTime: dayjs(formValues.start).format(
+          "YYYY-MM-DD HH:mm:ss"
+        ),
+        appointmentEndTime: dayjs(formValues.end).format("YYYY-MM-DD HH:mm:ss"),
         note: formValues.title,
       };
+
+      console.log("Edit payload:", payload);
 
       await axios.patch(
         `http://localhost:3000/appointments/patient/${selectedEvent.id}`,
@@ -492,10 +496,12 @@ class Basic extends Component {
   moveEvent = async (schedulerData, event, slotId, slotName, start, end) => {
     try {
       const payload = {
-        appointmentStartTime: dayjs(start).format("HH[h]mm"),
-        appointmentEndTime: dayjs(end).format("HH[h]mm"),
+        appointmentStartTime: dayjs(start).format("YYYY-MM-DD HH:mm:ss"),
+        appointmentEndTime: dayjs(end).format("YYYY-MM-DD HH:mm:ss"),
         bedId: slotId,
       };
+
+      console.log("Move payload:", payload);
 
       await axios.patch(
         `http://localhost:3000/appointments/patient/${event.id}`,
@@ -510,6 +516,7 @@ class Basic extends Component {
 
       this.setState({ viewModel: schedulerData });
     } catch (error) {
+      console.error("❌ Move event error:", error);
       alert("Không thể cập nhật lịch hẹn, vui lòng thử lại!");
     }
   };
@@ -517,10 +524,10 @@ class Basic extends Component {
   updateEventStart = async (schedulerData, event, newStart) => {
     try {
       const payload = {
-        appointmentStartTime: dayjs(newStart).format("HH[h]mm"),
+        appointmentStartTime: dayjs(newStart).format("YYYY-MM-DD HH:mm:ss"),
       };
 
-      console.log("🟡 Resize start payload:", payload);
+      console.log("Resize start payload:", payload);
 
       await axios.patch(
         `http://localhost:3000/appointments/patient/${event.id}`,
@@ -534,6 +541,7 @@ class Basic extends Component {
       );
       this.setState({ viewModel: schedulerData });
     } catch (error) {
+      console.error("❌ Update start error:", error);
       alert("Không thể cập nhật thời gian bắt đầu!");
     }
   };
@@ -541,20 +549,24 @@ class Basic extends Component {
   updateEventEnd = async (schedulerData, event, newEnd) => {
     try {
       const payload = {
-        appointmentEndTime: dayjs(newEnd).format("HH[h]mm"),
+        appointmentEndTime: dayjs(newEnd).format("YYYY-MM-DD HH:mm:ss"),
       };
+
+      console.log("Resize end payload:", payload);
 
       await axios.patch(
         `http://localhost:3000/appointments/patient/${event.id}`,
         payload,
         { headers: { "Content-Type": "application/json" } }
       );
+
       await this.fetchAppointmentsByRange(
         schedulerData.startDate,
         schedulerData.endDate
       );
       this.setState({ viewModel: schedulerData });
     } catch (error) {
+      console.error("❌ Update end error:", error);
       alert("Không thể cập nhật thời gian kết thúc!");
     }
   };
