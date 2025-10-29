@@ -14,9 +14,9 @@ import axios from "axios";
 class Basic extends Component {
   constructor(props) {
     super(props);
-
+    const todayVN = dayjs().tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DD");
     const schedulerData = new SchedulerData(
-      dayjs().format("YYYY-MM-DD"),
+      todayVN,
       ViewType.Day,
       false,
       false,
@@ -134,6 +134,8 @@ class Basic extends Component {
       console.error("Error fetching appointments:", err);
       this.setState({ loading: false });
     }
+    console.log("Fetching range:", start, end);
+    console.log("Local:", dayjs(start).format(), dayjs(end).format());
   };
 
   render() {
@@ -336,7 +338,8 @@ class Basic extends Component {
   };
 
   onSelectDate = async (schedulerData, date) => {
-    schedulerData.setDate(date);
+    const localDate = dayjs(date).tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DD");
+    schedulerData.setDate(localDate);
     await this.fetchAppointmentsByRange(
       schedulerData.startDate,
       schedulerData.endDate
