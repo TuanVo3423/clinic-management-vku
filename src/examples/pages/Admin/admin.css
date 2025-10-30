@@ -1,0 +1,86 @@
+/* Admin page styles */
+.admin-container {
+  padding: 20px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f0f2f5;
+}
+
+.admin-header {
+  margin-bottom: 20px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.admin-header h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #1890ff;
+}
+
+.admin-tabs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.admin-tabs .ant-tabs-content {
+  height: 100%;
+}
+
+.admin-tabs .ant-tabs-tabpane {
+  height: 100%;
+}
+
+/* Statistics page */
+.stat-card {
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* List view */
+.list-view-header {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.list-view-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Timeline adjustments */
+.scheduler-container {
+  height: calc(100vh - 200px);
+  overflow: hidden;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-container {
+    padding: 10px;
+  }
+
+  .admin-header h1 {
+    font-size: 18px;
+  }
+
+  .list-view-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
