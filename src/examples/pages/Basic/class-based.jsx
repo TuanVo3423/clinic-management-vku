@@ -2,6 +2,7 @@
 import React, { Component } from "react";
 import { Modal, Form, Input, DatePicker } from "antd";
 import { Scheduler, SchedulerData, ViewType, wrapperFun } from "../../../index";
+import AuthPatientModal from "../../../components/AuthPatientmModal.jsx";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -53,6 +54,8 @@ class Basic extends Component {
       tempEvent: null,
       editModalVisible: false,
       selectedEvent: null,
+      showAuthModal: false,
+      patientInfo: JSON.parse(localStorage.getItem("patientInfo")) || null,
     };
   }
 
@@ -298,10 +301,24 @@ class Basic extends Component {
             </Form.Item>
           </Form>
         </Modal>
+        <AuthPatientModal
+          visible={this.state.showAuthModal}
+          onSuccess={(patientInfo) => {
+            localStorage.setItem("patientInfo", JSON.stringify(patientInfo));
+            this.setState({ patientInfo, showAuthModal: false }, () => {
+              window.location.reload();
+            });
+          }}
+          onClose={() => this.setState({ showAuthModal: false })}
+        />
       </div>
     );
   }
-
+  handleLogout = () => {
+    localStorage.removeItem("patientInfo");
+    alert("Bạn đã đăng xuất thành công!");
+    window.location.reload();
+  };
   prevClick = async (schedulerData) => {
     schedulerData.prev();
     await this.fetchAppointmentsByRange(
@@ -376,6 +393,11 @@ class Basic extends Component {
   };
 
   newEvent = (schedulerData, slotId, slotName, start, end) => {
+    if (!this.state.patientInfo) {
+      this.setState({ showAuthModal: true });
+      return;
+    }
+
     this.setState({
       isModalVisible: true,
       tempEvent: { schedulerData, slotId, slotName, start, end },
@@ -386,7 +408,13 @@ class Basic extends Component {
   handleCreateEvent = async () => {
     const { tempEvent, formValues } = this.state;
     const { schedulerData, slotId, start, end } = tempEvent;
+    const { patientInfo, onLoginClick } = this.props;
+
     const title = formValues.title.trim();
+    if (!this.props.patientInfo) {
+      this.props.onLoginClick();
+      return;
+    }
 
     if (!title) {
       alert("Vui lòng nhập tên lịch hẹn");
