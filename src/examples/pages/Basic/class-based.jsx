@@ -58,6 +58,7 @@ class Basic extends Component {
       selectedEvent: null,
       showAuthModal: false,
       patientInfo: JSON.parse(localStorage.getItem("patientInfo")) || null,
+      isEmergency: false,
     };
   }
 
@@ -190,7 +191,15 @@ class Basic extends Component {
           cancelText="Hủy"
         >
           <Form layout="vertical">
-            <Form.Item label="Tên lịch hẹn">
+            <Form.Item label="Tên bệnh nhân">
+              <Input value={this.state.patientInfo?.fullName || ""} disabled />
+            </Form.Item>
+
+            <Form.Item label="Số điện thoại">
+              <Input value={this.state.patientInfo?.phone || ""} disabled />
+            </Form.Item>
+
+            <Form.Item label="Ghi chú">
               <Input
                 value={this.state.formValues.title}
                 onChange={(e) =>
@@ -201,9 +210,23 @@ class Basic extends Component {
                     },
                   })
                 }
-                placeholder="Nhập tên bệnh nhân hoặc ghi chú"
+                placeholder="Nhập ghi chú (nếu có)"
               />
             </Form.Item>
+
+            <Form.Item>
+              <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={this.state.isEmergency}
+                  onChange={(e) =>
+                    this.setState({ isEmergency: e.target.checked })
+                  }
+                />
+                <span>Lịch khẩn cấp</span>
+              </label>
+            </Form.Item>
+
             <Form.Item label="Thời gian bắt đầu">
               <DatePicker
                 showTime
@@ -219,6 +242,7 @@ class Basic extends Component {
                 }
               />
             </Form.Item>
+
             <Form.Item label="Thời gian kết thúc">
               <DatePicker
                 showTime
@@ -454,6 +478,7 @@ class Basic extends Component {
         appointmentStartTime: startTime.format("YYYY-MM-DD HH:mm:ss"),
         appointmentEndTime: endTime.format("YYYY-MM-DD HH:mm:ss"),
         note: title,
+        isEmergency: this.state.isEmergency,
       };
 
       await axios.post("http://localhost:3000/appointments", payload);
@@ -467,6 +492,7 @@ class Basic extends Component {
         isModalVisible: false,
         tempEvent: null,
         formValues: { title: "", start: null, end: null },
+        isEmergency: false,
       });
 
       console.log("Appointment created successfully!");
