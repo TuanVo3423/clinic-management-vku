@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React, { Component } from "react";
-import { Modal, Form, Input, DatePicker } from "antd";
+import { Modal, Form, Input, DatePicker, Spin } from "antd";
 import { Scheduler, SchedulerData, ViewType, wrapperFun } from "../../../index";
 import AuthPatientModal from "../../../components/AuthPatientmModal.jsx";
 import dayjs from "dayjs";
@@ -145,7 +145,20 @@ class Basic extends Component {
 
   render() {
     const { viewModel, loading } = this.state;
-    if (loading) return <p>Đang tải danh sách...</p>;
+    if (loading) {
+      return (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100%",
+          }}
+        >
+          <Spin size="large" tip="Đang tải dữ liệu..." />
+        </div>
+      );
+    }
 
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -525,14 +538,13 @@ class Basic extends Component {
   };
 
   moveEvent = async (schedulerData, event, slotId, slotName, start, end) => {
+    this.setState({ loading: true });
     try {
       const payload = {
         appointmentStartTime: dayjs(start).format("YYYY-MM-DD HH:mm:ss"),
         appointmentEndTime: dayjs(end).format("YYYY-MM-DD HH:mm:ss"),
         bedId: slotId,
       };
-
-      console.log("Move payload:", payload);
 
       await axios.patch(
         `http://localhost:3000/appointments/patient/${event.id}`,
@@ -549,6 +561,8 @@ class Basic extends Component {
     } catch (error) {
       console.error("❌ Move event error:", error);
       alert("Không thể cập nhật lịch hẹn, vui lòng thử lại!");
+    } finally {
+      this.setState({ loading: false });
     }
   };
 
@@ -597,8 +611,10 @@ class Basic extends Component {
       );
       this.setState({ viewModel: schedulerData });
     } catch (error) {
+      this.setState({ loading: true });
       console.error("❌ Update end error:", error);
       alert("Không thể cập nhật thời gian kết thúc!");
+      this.setState({ loading: false });
     }
   };
 
@@ -630,9 +646,19 @@ class Basic extends Component {
 
   onScrollBottom = () => console.log("onScrollBottom");
 
-  toggleExpandFunc = (schedulerData, slotId) => {
+  toggleExpandFunc = async (schedulerData, slotId) => {
+    this.setState({ loading: true });
     schedulerData.toggleExpandStatus(slotId);
-    this.setState({ viewModel: schedulerData });
+
+    try {
+      this.setState({ viewModel: schedulerData });
+      await this.fetchAppointmentsByRange(
+        schedulerData.startDate,
+        schedulerData.endDate
+      );
+    } finally {
+      this.setState({ loading: false });
+    }
   };
 }
 
