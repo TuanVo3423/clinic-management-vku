@@ -12,7 +12,6 @@ const AuthPatientModal = ({ visible, onSuccess, onClose }) => {
   const [registerMode, setRegisterMode] = useState(false);
   const [form] = Form.useForm();
 
-  // 👉 Hàm đăng nhập bằng SĐT
   const handleLogin = async () => {
     if (!phone.trim()) {
       message.warning("Vui lòng nhập số điện thoại!");
@@ -20,13 +19,16 @@ const AuthPatientModal = ({ visible, onSuccess, onClose }) => {
     }
     setLoading(true);
     try {
-      const res = await axios.get(`http://localhost:3000/patients/phone/${phone}`);
+      const res = await axios.get(
+        `http://localhost:3000/patients/phone/${phone}`
+      );
       const patient = res.data.patient;
 
       if (patient) {
-        localStorage.setItem("patient", JSON.stringify(patient));
+        localStorage.setItem("patientInfo", JSON.stringify(patient));
         message.success(`Xin chào, ${patient.fullName}!`);
         onSuccess(patient);
+        window.location.reload();
       } else {
         message.warning("Không tìm thấy bệnh nhân. Vui lòng đăng ký mới!");
         setRegisterMode(true);
@@ -39,7 +41,6 @@ const AuthPatientModal = ({ visible, onSuccess, onClose }) => {
     }
   };
 
-  // 👉 Hàm đăng ký bệnh nhân mới
   const handleRegister = async (values) => {
     setLoading(true);
     try {
@@ -54,7 +55,7 @@ const AuthPatientModal = ({ visible, onSuccess, onClose }) => {
       const res = await axios.post("http://localhost:3000/patients", payload);
       const patient = res.data.patient;
 
-      localStorage.setItem("patient", JSON.stringify(patient));
+      localStorage.setItem("patientInfo", JSON.stringify(patient));
       message.success("Đăng ký thành công!");
       onSuccess(patient);
     } catch (err) {
@@ -67,11 +68,19 @@ const AuthPatientModal = ({ visible, onSuccess, onClose }) => {
 
   return (
     <Modal
-      title={registerMode ? "Đăng ký bệnh nhân mới" : "Đăng nhập bằng số điện thoại"}
+      title={
+        registerMode ? "Đăng ký bệnh nhân mới" : "Đăng nhập bằng số điện thoại"
+      }
       open={visible}
       onCancel={onClose}
       footer={null}
       centered
+      onAfterClose={() => {
+        const loggedIn = localStorage.getItem("patientInfo");
+        if (loggedIn) {
+          window.location.reload();
+        }
+      }}
     >
       {!registerMode ? (
         <>
@@ -106,7 +115,9 @@ const AuthPatientModal = ({ visible, onSuccess, onClose }) => {
           <Form.Item
             name="phone"
             label="Số điện thoại"
-            rules={[{ required: true, message: "Vui lòng nhập số điện thoại!" }]}
+            rules={[
+              { required: true, message: "Vui lòng nhập số điện thoại!" },
+            ]}
           >
             <Input />
           </Form.Item>

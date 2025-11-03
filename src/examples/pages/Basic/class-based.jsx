@@ -305,9 +305,7 @@ class Basic extends Component {
           visible={this.state.showAuthModal}
           onSuccess={(patientInfo) => {
             localStorage.setItem("patientInfo", JSON.stringify(patientInfo));
-            this.setState({ patientInfo, showAuthModal: false }, () => {
-              window.location.reload();
-            });
+            this.setState({ showAuthModal: false });
           }}
           onClose={() => this.setState({ showAuthModal: false })}
         />
@@ -393,7 +391,8 @@ class Basic extends Component {
   };
 
   newEvent = (schedulerData, slotId, slotName, start, end) => {
-    if (!this.state.patientInfo) {
+    const { patientInfo } = this.state;
+    if (!patientInfo) {
       this.setState({ showAuthModal: true });
       return;
     }
