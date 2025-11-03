@@ -405,13 +405,12 @@ class Basic extends Component {
   };
 
   handleCreateEvent = async () => {
-    const { tempEvent, formValues } = this.state;
+    const { tempEvent, formValues, patientInfo } = this.state;
     const { schedulerData, slotId, start, end } = tempEvent;
-    const { patientInfo, onLoginClick } = this.props;
 
     const title = formValues.title.trim();
-    if (!this.props.patientInfo) {
-      this.props.onLoginClick();
+    if (!patientInfo) {
+      this.setState({ showAuthModal: true });
       return;
     }
 
@@ -434,7 +433,7 @@ class Basic extends Component {
     try {
       const payload = {
         bedId: slotId,
-        patientId: "68eb572c67c485c17868fe9b",
+        patientId: patientInfo._id,
         doctorId: "655f8c123456789012345679",
         serviceId: "655f8c12345678901234567a",
         appointmentStartTime: startTime.format("YYYY-MM-DD HH:mm:ss"),
