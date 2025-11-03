@@ -264,3 +264,8 @@
   border: none;
   background-color: transparent;
 }
+.react-big-schedule th.header3-text[style*="background-color"],
+.react-big-schedule th.header3-text {
+  background-color: #fff !important;
+  color: #000 !important;
+}

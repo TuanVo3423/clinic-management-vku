@@ -34,6 +34,8 @@ class Basic extends Component {
         nonAgendaDayCellHeaderFormat: "HH:mm",
         dayCellWidth: 70,
         schedulerContentWidth: "100%",
+        nonWorkingTimeHeadStyle: { backgroundColor: "#fff" },
+        nonWorkingTimeBodyBgColor: "#fff",
       }
     );
 
