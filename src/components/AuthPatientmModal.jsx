@@ -53,9 +53,26 @@ const AuthPatientModal = ({ visible, onSuccess, onClose }) => {
       };
 
       const res = await axios.post("http://localhost:3000/patients", payload);
-      const patient = res.data.patient;
+      const patient = {
+        _id: res.data.patient_id,
+        fullName: payload.fullName,
+        phone: payload.phone,
+        email: payload.email,
+        dateOfBirth: payload.dateOfBirth,
+        gender: payload.gender,
+      };
+
+      if (!patient._id) {
+        console.error("❌ Invalid patient response:", res.data);
+        message.error("Dữ liệu phản hồi không hợp lệ!");
+        return;
+      }
 
       localStorage.setItem("patientInfo", JSON.stringify(patient));
+      message.success("Đăng ký thành công!");
+      onSuccess(patient);
+      window.location.reload();
+
       message.success("Đăng ký thành công!");
       onSuccess(patient);
     } catch (err) {
