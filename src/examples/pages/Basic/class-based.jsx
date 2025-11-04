@@ -9,6 +9,10 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.tz.setDefault("Asia/Ho_Chi_Minh");
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
 
 import axios from "axios";
 
@@ -501,6 +505,7 @@ class Basic extends Component {
       alert("Tạo lịch hẹn thất bại. Vui lòng thử lại!");
     }
   };
+
   handleEditAppointment = async () => {
     const { selectedEvent, formValues } = this.state;
     try {
@@ -565,10 +570,26 @@ class Basic extends Component {
 
   moveEvent = async (schedulerData, event, slotId, slotName, start, end) => {
     this.setState({ loading: true });
+
+    const startTime = dayjs(start)
+      .tz("Asia/Ho_Chi_Minh")
+      .second(0)
+      .millisecond(0);
+    const endTime = dayjs(end).tz("Asia/Ho_Chi_Minh").second(0).millisecond(0);
+
+    const earliest = startTime.startOf("day").hour(16).minute(30);
+    const latest = startTime.startOf("day").hour(20).minute(0);
+
+    if (startTime.isBefore(earliest) || endTime.isAfter(latest)) {
+      alert("Không thể di chuyển lịch ra ngoài khung giờ 16:30 - 19:30!");
+      this.setState({ loading: false });
+      return;
+    }
+
     try {
       const payload = {
-        appointmentStartTime: dayjs(start).format("YYYY-MM-DD HH:mm:ss"),
-        appointmentEndTime: dayjs(end).format("YYYY-MM-DD HH:mm:ss"),
+        appointmentStartTime: startTime.format("YYYY-MM-DD HH:mm:ss"),
+        appointmentEndTime: endTime.format("YYYY-MM-DD HH:mm:ss"),
         bedId: slotId,
       };
 
@@ -582,7 +603,6 @@ class Basic extends Component {
         schedulerData.startDate,
         schedulerData.endDate
       );
-
       this.setState({ viewModel: schedulerData });
     } catch (error) {
       console.error("❌ Move event error:", error);
@@ -593,12 +613,22 @@ class Basic extends Component {
   };
 
   updateEventStart = async (schedulerData, event, newStart) => {
+    const startTime = dayjs(newStart)
+      .tz("Asia/Ho_Chi_Minh")
+      .second(0)
+      .millisecond(0);
+    const earliest = startTime.startOf("day").hour(16).minute(30);
+    const latest = startTime.startOf("day").hour(20).minute(0);
+
+    if (startTime.isBefore(earliest) || startTime.isAfter(latest)) {
+      alert("Giờ bắt đầu phải nằm trong khoảng 16:30 - 19:30!");
+      return;
+    }
+
     try {
       const payload = {
-        appointmentStartTime: dayjs(newStart).format("YYYY-MM-DD HH:mm:ss"),
+        appointmentStartTime: startTime.format("YYYY-MM-DD HH:mm:ss"),
       };
-
-      console.log("Resize start payload:", payload);
 
       await axios.patch(
         `http://localhost:3000/appointments/patient/${event.id}`,
@@ -618,12 +648,22 @@ class Basic extends Component {
   };
 
   updateEventEnd = async (schedulerData, event, newEnd) => {
+    const endTime = dayjs(newEnd)
+      .tz("Asia/Ho_Chi_Minh")
+      .second(0)
+      .millisecond(0);
+    const earliest = endTime.startOf("day").hour(16).minute(30);
+    const latest = endTime.startOf("day").hour(20).minute(0);
+
+    if (endTime.isBefore(earliest) || endTime.isAfter(latest)) {
+      alert("Giờ kết thúc phải nằm trong khoảng 16:30 - 19:30!");
+      return;
+    }
+
     try {
       const payload = {
-        appointmentEndTime: dayjs(newEnd).format("YYYY-MM-DD HH:mm:ss"),
+        appointmentEndTime: endTime.format("YYYY-MM-DD HH:mm:ss"),
       };
-
-      console.log("Resize end payload:", payload);
 
       await axios.patch(
         `http://localhost:3000/appointments/patient/${event.id}`,
