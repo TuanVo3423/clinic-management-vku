@@ -1,22 +1,27 @@
 /* eslint-disable */
 import React, { Component } from "react";
-import { Modal, Form, Input, DatePicker } from "antd";
+import { Modal, Form, Input, DatePicker, Spin } from "antd";
 import { Scheduler, SchedulerData, ViewType, wrapperFun } from "../../../index";
+import AuthPatientModal from "../../../components/AuthPatientmModal.jsx";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.tz.setDefault("Asia/Ho_Chi_Minh");
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
 
 import axios from "axios";
 
 class Basic extends Component {
   constructor(props) {
     super(props);
-
+    const todayVN = dayjs().tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DD");
     const schedulerData = new SchedulerData(
-      dayjs().format("YYYY-MM-DD"),
+      todayVN,
       ViewType.Day,
       false,
       false,
@@ -33,6 +38,8 @@ class Basic extends Component {
         nonAgendaDayCellHeaderFormat: "HH:mm",
         dayCellWidth: 70,
         schedulerContentWidth: "100%",
+        nonWorkingTimeHeadStyle: { backgroundColor: "#fff" },
+        nonWorkingTimeBodyBgColor: "#fff",
       }
     );
 
@@ -53,13 +60,14 @@ class Basic extends Component {
       tempEvent: null,
       editModalVisible: false,
       selectedEvent: null,
+      showAuthModal: false,
+      patientInfo: JSON.parse(localStorage.getItem("patientInfo")) || null,
+      isEmergency: false,
     };
   }
 
   async componentDidMount() {
     const { viewModel } = this.state;
-    console.log("start hehe",viewModel.start);
-    console.log("end hehe",viewModel.end);
     await this.fetchAppointmentsByRange(viewModel.startDate, viewModel.endDate);
   }
 
@@ -75,10 +83,18 @@ class Basic extends Component {
         department: bed.department,
       }));
 
-      let startDate = dayjs.tz(start).startOf("day").format("YYYY-MM-DD HH:mm:ss");
-      let endDate = dayjs.tz(end).endOf("day").format("YYYY-MM-DD HH:mm:ss");
-      console.log("startDate123", startDate)
-      console.log("endDate123", endDate)
+      let startDate = dayjs(start).startOf("day").format("YYYY-MM-DD HH:mm:ss");
+      let endDate = dayjs(start).endOf("day").format("YYYY-MM-DD HH:mm:ss");
+      if (viewModel.viewType === ViewType.Day) {
+        startDate = dayjs(start).startOf("day").format("YYYY-MM-DD HH:mm:ss");
+        endDate = dayjs(start).endOf("day").format("YYYY-MM-DD HH:mm:ss");
+      } else if (viewModel.viewType === ViewType.Week) {
+        startDate = dayjs(start).startOf("week").format("YYYY-MM-DD HH:mm:ss");
+        endDate = dayjs(end).endOf("week").format("YYYY-MM-DD HH:mm:ss");
+      } else {
+        startDate = dayjs(start).format("YYYY-MM-DD HH:mm:ss");
+        endDate = dayjs(end).format("YYYY-MM-DD HH:mm:ss");
+      }
 
       const url = `http://localhost:3000/appointments/by-time-range?startDate=${encodeURIComponent(
         startDate
@@ -128,11 +144,26 @@ class Basic extends Component {
       console.error("Error fetching appointments:", err);
       this.setState({ loading: false });
     }
+    console.log("Fetching range:", start, end);
+    console.log("Local:", dayjs(start).format(), dayjs(end).format());
   };
 
   render() {
     const { viewModel, loading } = this.state;
-    if (loading) return <p>Đang tải danh sách...</p>;
+    if (loading) {
+      return (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100%",
+          }}
+        >
+          <Spin size="large" tip="Đang tải dữ liệu..." />
+        </div>
+      );
+    }
 
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -164,7 +195,15 @@ class Basic extends Component {
           cancelText="Hủy"
         >
           <Form layout="vertical">
-            <Form.Item label="Tên lịch hẹn">
+            <Form.Item label="Tên bệnh nhân">
+              <Input value={this.state.patientInfo?.fullName || ""} disabled />
+            </Form.Item>
+
+            <Form.Item label="Số điện thoại">
+              <Input value={this.state.patientInfo?.phone || ""} disabled />
+            </Form.Item>
+
+            <Form.Item label="Ghi chú">
               <Input
                 value={this.state.formValues.title}
                 onChange={(e) =>
@@ -175,9 +214,23 @@ class Basic extends Component {
                     },
                   })
                 }
-                placeholder="Nhập tên bệnh nhân hoặc ghi chú"
+                placeholder="Nhập ghi chú (nếu có)"
               />
             </Form.Item>
+
+            <Form.Item>
+              <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={this.state.isEmergency}
+                  onChange={(e) =>
+                    this.setState({ isEmergency: e.target.checked })
+                  }
+                />
+                <span>Lịch khẩn cấp</span>
+              </label>
+            </Form.Item>
+
             <Form.Item label="Thời gian bắt đầu">
               <DatePicker
                 showTime
@@ -193,6 +246,7 @@ class Basic extends Component {
                 }
               />
             </Form.Item>
+
             <Form.Item label="Thời gian kết thúc">
               <DatePicker
                 showTime
@@ -290,10 +344,22 @@ class Basic extends Component {
             </Form.Item>
           </Form>
         </Modal>
+        <AuthPatientModal
+          visible={this.state.showAuthModal}
+          onSuccess={(patientInfo) => {
+            localStorage.setItem("patientInfo", JSON.stringify(patientInfo));
+            this.setState({ showAuthModal: false });
+          }}
+          onClose={() => this.setState({ showAuthModal: false })}
+        />
       </div>
     );
   }
-
+  handleLogout = () => {
+    localStorage.removeItem("patientInfo");
+    alert("Bạn đã đăng xuất thành công!");
+    window.location.reload();
+  };
   prevClick = async (schedulerData) => {
     schedulerData.prev();
     await this.fetchAppointmentsByRange(
@@ -330,7 +396,8 @@ class Basic extends Component {
   };
 
   onSelectDate = async (schedulerData, date) => {
-    schedulerData.setDate(date);
+    const localDate = dayjs(date).tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DD");
+    schedulerData.setDate(localDate);
     await this.fetchAppointmentsByRange(
       schedulerData.startDate,
       schedulerData.endDate
@@ -367,6 +434,12 @@ class Basic extends Component {
   };
 
   newEvent = (schedulerData, slotId, slotName, start, end) => {
+    const { patientInfo } = this.state;
+    if (!patientInfo) {
+      this.setState({ showAuthModal: true });
+      return;
+    }
+
     this.setState({
       isModalVisible: true,
       tempEvent: { schedulerData, slotId, slotName, start, end },
@@ -375,9 +448,14 @@ class Basic extends Component {
   };
 
   handleCreateEvent = async () => {
-    const { tempEvent, formValues } = this.state;
+    const { tempEvent, formValues, patientInfo } = this.state;
     const { schedulerData, slotId, start, end } = tempEvent;
+
     const title = formValues.title.trim();
+    if (!patientInfo) {
+      this.setState({ showAuthModal: true });
+      return;
+    }
 
     if (!title) {
       alert("Vui lòng nhập tên lịch hẹn");
@@ -387,23 +465,30 @@ class Basic extends Component {
     const startTime = dayjs(formValues.start || start);
     const endTime = dayjs(formValues.end || end);
 
-    const earliest = startTime.startOf("day").add(16, "hour").add(30, "minute");
-    const latest = startTime.startOf("day").add(19, "hour").add(30, "minute");
+    const earliest = startTime.startOf("day").hour(16).minute(30);
+    const latestStart = startTime.startOf("day").hour(19).minute(30);
+    const latestEnd = startTime.startOf("day").hour(22).minute(0);
 
-    if (startTime.isBefore(earliest) || endTime.isAfter(latest)) {
-      alert("Giờ hẹn phải nằm trong khoảng 16:30 - 19:30!");
+    if (startTime.isBefore(earliest) || startTime.isAfter(latestStart)) {
+      alert("Giờ bắt đầu phải nằm trong khoảng 16:30 - 19:30!");
+      return;
+    }
+
+    if (endTime.isAfter(latestEnd)) {
+      alert("Giờ kết thúc không được quá 22:00!");
       return;
     }
 
     try {
       const payload = {
         bedId: slotId,
-        patientId: "68eb572c67c485c17868fe9b",
+        patientId: patientInfo._id,
         doctorId: "655f8c123456789012345679",
         serviceId: "655f8c12345678901234567a",
         appointmentStartTime: startTime.format("YYYY-MM-DD HH:mm:ss"),
         appointmentEndTime: endTime.format("YYYY-MM-DD HH:mm:ss"),
         note: title,
+        isEmergency: this.state.isEmergency,
       };
 
       await axios.post("http://localhost:3000/appointments", payload);
@@ -417,6 +502,7 @@ class Basic extends Component {
         isModalVisible: false,
         tempEvent: null,
         formValues: { title: "", start: null, end: null },
+        isEmergency: false,
       });
 
       console.log("Appointment created successfully!");
@@ -425,6 +511,7 @@ class Basic extends Component {
       alert("Tạo lịch hẹn thất bại. Vui lòng thử lại!");
     }
   };
+
   handleEditAppointment = async () => {
     const { selectedEvent, formValues } = this.state;
     try {
@@ -488,14 +575,36 @@ class Basic extends Component {
   };
 
   moveEvent = async (schedulerData, event, slotId, slotName, start, end) => {
+    this.setState({ loading: true });
+
+    const startTime = dayjs(start)
+      .tz("Asia/Ho_Chi_Minh")
+      .second(0)
+      .millisecond(0);
+    const endTime = dayjs(end).tz("Asia/Ho_Chi_Minh").second(0).millisecond(0);
+
+    const earliest = startTime.startOf("day").hour(16).minute(30);
+    const latestStart = startTime.startOf("day").hour(19).minute(30);
+    const latestEnd = startTime.startOf("day").hour(22).minute(30);
+
+    if (startTime.isBefore(earliest) || startTime.isAfter(latestStart)) {
+      alert("Giờ bắt đầu phải nằm trong khoảng 16:30 - 19:30!");
+      this.setState({ loading: false });
+      return;
+    }
+
+    if (endTime.isAfter(latestEnd)) {
+      alert("Giờ kết thúc không được quá 22:00!");
+      this.setState({ loading: false });
+      return;
+    }
+
     try {
       const payload = {
-        appointmentStartTime: dayjs(start).format("YYYY-MM-DD HH:mm:ss"),
-        appointmentEndTime: dayjs(end).format("YYYY-MM-DD HH:mm:ss"),
+        appointmentStartTime: startTime.format("YYYY-MM-DD HH:mm:ss"),
+        appointmentEndTime: endTime.format("YYYY-MM-DD HH:mm:ss"),
         bedId: slotId,
       };
-
-      console.log("Move payload:", payload);
 
       await axios.patch(
         `http://localhost:3000/appointments/${event.id}`,
@@ -507,21 +616,34 @@ class Basic extends Component {
         schedulerData.startDate,
         schedulerData.endDate
       );
-
       this.setState({ viewModel: schedulerData });
     } catch (error) {
       console.error("❌ Move event error:", error);
       alert("Không thể cập nhật lịch hẹn, vui lòng thử lại!");
+    } finally {
+      this.setState({ loading: false });
     }
   };
 
   updateEventStart = async (schedulerData, event, newStart) => {
+    const startTime = dayjs(newStart)
+      .tz("Asia/Ho_Chi_Minh")
+      .second(0)
+      .millisecond(0);
+    const earliest = startTime.startOf("day").hour(16).minute(30);
+    const latestStart = startTime.startOf("day").hour(19).minute(30);
+
+    if (startTime.isBefore(earliest) || startTime.isAfter(latestStart)) {
+      this.setState({ loading: true });
+      alert("Giờ bắt đầu phải nằm trong khoảng 16:30 - 19:30!");
+      this.setState({ loading: false });
+      return;
+    }
+
     try {
       const payload = {
-        appointmentStartTime: dayjs(newStart).format("YYYY-MM-DD HH:mm:ss"),
+        appointmentStartTime: startTime.format("YYYY-MM-DD HH:mm:ss"),
       };
-
-      console.log("Resize start payload:", payload);
 
       await axios.patch(
         `http://localhost:3000/appointments/${event.id}`,
@@ -536,24 +658,36 @@ class Basic extends Component {
       this.setState({ viewModel: schedulerData });
     } catch (error) {
       console.error("❌ Update start error:", error);
+      this.setState({ loading: true });
       alert("Không thể cập nhật thời gian bắt đầu!");
+      this.setState({ loading: false });
     }
   };
 
   updateEventEnd = async (schedulerData, event, newEnd) => {
+    const endTime = dayjs(newEnd)
+      .tz("Asia/Ho_Chi_Minh")
+      .second(0)
+      .millisecond(0);
+    const latestEnd = endTime.startOf("day").hour(22).minute(0);
+
+    if (endTime.isAfter(latestEnd)) {
+      this.setState({ loading: true });
+      alert("Giờ kết thúc không được quá 22:00!");
+      this.setState({ loading: false });
+      return;
+    }
+
     try {
       const payload = {
-        appointmentEndTime: dayjs(newEnd).format("YYYY-MM-DD HH:mm:ss"),
+        appointmentEndTime: endTime.format("YYYY-MM-DD HH:mm:ss"),
       };
-
-      console.log("Resize end payload:", payload);
 
       await axios.patch(
         `http://localhost:3000/appointments/${event.id}`,
         payload,
         { headers: { "Content-Type": "application/json" } }
       );
-
       await this.fetchAppointmentsByRange(
         schedulerData.startDate,
         schedulerData.endDate
@@ -561,7 +695,9 @@ class Basic extends Component {
       this.setState({ viewModel: schedulerData });
     } catch (error) {
       console.error("❌ Update end error:", error);
+      this.setState({ loading: true });
       alert("Không thể cập nhật thời gian kết thúc!");
+      this.setState({ loading: false });
     }
   };
 
@@ -593,9 +729,19 @@ class Basic extends Component {
 
   onScrollBottom = () => console.log("onScrollBottom");
 
-  toggleExpandFunc = (schedulerData, slotId) => {
+  toggleExpandFunc = async (schedulerData, slotId) => {
+    this.setState({ loading: true });
     schedulerData.toggleExpandStatus(slotId);
-    this.setState({ viewModel: schedulerData });
+
+    try {
+      this.setState({ viewModel: schedulerData });
+      await this.fetchAppointmentsByRange(
+        schedulerData.startDate,
+        schedulerData.endDate
+      );
+    } finally {
+      this.setState({ loading: false });
+    }
   };
 }
 
