@@ -1,9 +1,8 @@
-import { Row, Typography, Button } from 'antd';
+import { Button } from 'antd';
 import React, { useState, useEffect } from 'react';
 import { CloseOutlined, CodeOutlined, CalendarOutlined, DragOutlined, EyeOutlined } from '@ant-design/icons';
 import PropTypes from 'prop-types';
 import ClassBased from './class-based';
-import SourceCode from '../../components/SourceCode';
 
 const overlayStyles = {
   position: 'fixed',
@@ -239,10 +238,10 @@ function Basic() {
 
   return (
     <>
-      <Row align="middle" justify="center">
+      {/* <Row align="middle" justify="center">
         <Typography.Title level={2} className="m-0">Basic Example</Typography.Title>
       </Row>
-      <SourceCode value="https://github.com/ansulagrawal/react-big-schedule/blob/master/src/examples/pages/Basic/index.jsx" />
+      <SourceCode value="https://github.com/ansulagrawal/react-big-schedule/blob/master/src/examples/pages/Basic/index.jsx" /> */}
       <ClassBased />
 
       {/* Basic Example Guide Popup */}

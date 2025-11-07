@@ -1,34 +1,37 @@
-import { Result } from 'antd';
-import React, { lazy, Suspense } from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import Fallback from './components/Fallback';
-import Landing from './components/Landing';
-import './css/style.css';
+import { Result } from "antd";
+import React, { lazy, Suspense } from "react";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
+import Fallback from "./components/Fallback";
+import "./css/style.css";
+/* eslint-disable react/function-component-definition */
+/* eslint-disable react/prop-types */
+const Basic = lazy(() => import("./pages/Basic"));
+const Admin = lazy(() => import("./pages/Admin"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
 
-const Home = lazy(() => import('./pages/Home'));
-const Basic = lazy(() => import('./pages/Basic'));
-const ReadOnly = lazy(() => import('./pages/Read-Only'));
-const AddMore = lazy(() => import('./pages/Add-More'));
-const DragAndDrop = lazy(() => import('./pages/Drag-And-Drop'));
-const CustomTime = lazy(() => import('./pages/Custom-Time'));
-const ResizeByParent = lazy(() => import('./pages/Resize-By-Parent'));
+// Protected route component
+const ProtectedRoute = ({ children }) => {
+  const accessToken = localStorage.getItem("accessToken");
+
+  if (!accessToken) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  return children;
+};
 
 function App() {
   const router = createBrowserRouter([
     {
-      path: '/',
-      element: <Landing />,
+      path: "/",
       children: [
         {
-          path: '/',
-          element: (
-            <Suspense fallback={<Fallback />}>
-              <Home />
-            </Suspense>
-          ),
-        },
-        {
-          path: '/basic',
+          path: "/",
           element: (
             <Suspense fallback={<Fallback />}>
               <Basic />
@@ -36,54 +39,52 @@ function App() {
           ),
         },
         {
-          path: '/read-only',
+          path: "/admin/login",
           element: (
             <Suspense fallback={<Fallback />}>
-              <ReadOnly />
+              <Login />
             </Suspense>
           ),
         },
         {
-          path: '/add-more',
+          path: "/admin/register",
           element: (
             <Suspense fallback={<Fallback />}>
-              <AddMore />
+              <Register />
             </Suspense>
           ),
         },
         {
-          path: '/drag-and-drop',
+          path: "/admin",
           element: (
-            <Suspense fallback={<Fallback />}>
-              <DragAndDrop />
-            </Suspense>
+            <ProtectedRoute>
+              <Suspense fallback={<Fallback />}>
+                <Admin />
+              </Suspense>
+            </ProtectedRoute>
           ),
         },
         {
-          path: '/custom-time',
+          path: "*",
           element: (
-            <Suspense fallback={<Fallback />}>
-              <CustomTime />
-            </Suspense>
+            <Result
+              status="404"
+              title="404"
+              subTitle="Sorry, the page you visited does not exist or is under construction."
+            />
           ),
-        },
-        {
-          path: '/resize-by-parent',
-          element: (
-            <Suspense fallback={<Fallback />}>
-              <ResizeByParent />
-            </Suspense>
-          ),
-        },
-        {
-          path: '*',
-          element: <Result status="404" title="404" subTitle="Sorry, the page you visited does not exist or is under construction." />,
         },
       ],
     },
     {
-      path: '*',
-      element: <Result status="404" title="404" subTitle="Sorry, the page you visited does not exist or is under construction." />,
+      path: "*",
+      element: (
+        <Result
+          status="404"
+          title="404"
+          subTitle="Sorry, the page you visited does not exist or is under construction."
+        />
+      ),
     },
   ]);
 

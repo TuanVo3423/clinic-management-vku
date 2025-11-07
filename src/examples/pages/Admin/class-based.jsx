@@ -526,7 +526,7 @@ class Basic extends Component {
       console.log("Edit payload:", payload);
 
       await axios.patch(
-        `http://localhost:3000/appointments/patient/${selectedEvent.id}`,
+        `http://localhost:3000/appointments/${selectedEvent.id}`,
         payload,
         { headers: { "Content-Type": "application/json" } }
       );
@@ -607,7 +607,7 @@ class Basic extends Component {
       };
 
       await axios.patch(
-        `http://localhost:3000/appointments/patient/${event.id}`,
+        `http://localhost:3000/appointments/${event.id}`,
         payload,
         { headers: { "Content-Type": "application/json" } }
       );
@@ -646,7 +646,7 @@ class Basic extends Component {
       };
 
       await axios.patch(
-        `http://localhost:3000/appointments/patient/${event.id}`,
+        `http://localhost:3000/appointments/${event.id}`,
         payload,
         { headers: { "Content-Type": "application/json" } }
       );
@@ -684,7 +684,7 @@ class Basic extends Component {
       };
 
       await axios.patch(
-        `http://localhost:3000/appointments/patient/${event.id}`,
+        `http://localhost:3000/appointments/${event.id}`,
         payload,
         { headers: { "Content-Type": "application/json" } }
       );

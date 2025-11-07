@@ -462,37 +462,37 @@ function Scheduler(props) {
   }
 
   const schedulerHeader = (
-  <div>
-    <SchedulerHeader
-      ref={schedulerHeaderRef}
-      style={{
-        display: config.headerEnabled ? undefined : 'none',
-        marginBottom: config.headerEnabled ? '0px' : undefined,
-      }}
-      onViewChange={handleViewChange}
-      schedulerData={schedulerData}
-      onSelectDate={onSelect}
-      goNext={goNext}
-      goBack={goBack}
-      rightCustomHeader={rightCustomHeader}
-      leftCustomHeader={leftCustomHeader}
-    />
+    <div>
+      <SchedulerHeader
+        ref={schedulerHeaderRef}
+        style={{
+          display: config.headerEnabled ? undefined : 'none',
+          marginBottom: config.headerEnabled ? '0px' : undefined,
+        }}
+        onViewChange={handleViewChange}
+        schedulerData={schedulerData}
+        onSelectDate={onSelect}
+        goNext={goNext}
+        goBack={goBack}
+        rightCustomHeader={rightCustomHeader}
+        leftCustomHeader={leftCustomHeader}
+      />
 
-    <div
-      style={{
-        textAlign: 'center',
-        padding: '6px 0',
-        background: '#fafafa',
-        borderBottom: '1px solid #e9e9e9',
-        fontWeight: 'bold',
-        color: '#444',
-        fontSize: '14px',
-      }}
-    >
-      🕒 Thời gian mở cửa: 16h30 ⇒ 19h30 (không nhận bệnh)
+      <div
+        style={{
+          textAlign: 'center',
+          padding: '6px 0',
+          background: '#fafafa',
+          borderBottom: '1px solid #e9e9e9',
+          fontWeight: 'bold',
+          color: '#444',
+          fontSize: '14px',
+        }}
+      >
+        🕒 Thời gian mở cửa: 16h30 ⇒ 19h30 (không nhận bệnh)
+      </div>
     </div>
-  </div>
-);
+  );
 
   return (
     <table id="RBS-Scheduler-root" className="react-big-schedule" style={{ width: `${width}px` }}>
