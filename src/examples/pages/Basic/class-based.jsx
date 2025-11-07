@@ -465,11 +465,17 @@ class Basic extends Component {
     const startTime = dayjs(formValues.start || start);
     const endTime = dayjs(formValues.end || end);
 
-    const earliest = startTime.startOf("day").add(16, "hour").add(30, "minute");
-    const latest = startTime.startOf("day").add(19, "hour").add(30, "minute");
+    const earliest = startTime.startOf("day").hour(16).minute(30);
+    const latestStart = startTime.startOf("day").hour(19).minute(30);
+    const latestEnd = startTime.startOf("day").hour(22).minute(0);
 
-    if (startTime.isBefore(earliest) || endTime.isAfter(latest)) {
-      alert("Giờ hẹn phải nằm trong khoảng 16:30 - 19:30!");
+    if (startTime.isBefore(earliest) || startTime.isAfter(latestStart)) {
+      alert("Giờ bắt đầu phải nằm trong khoảng 16:30 - 19:30!");
+      return;
+    }
+
+    if (endTime.isAfter(latestEnd)) {
+      alert("Giờ kết thúc không được quá 22:00!");
       return;
     }
 
@@ -578,10 +584,17 @@ class Basic extends Component {
     const endTime = dayjs(end).tz("Asia/Ho_Chi_Minh").second(0).millisecond(0);
 
     const earliest = startTime.startOf("day").hour(16).minute(30);
-    const latest = startTime.startOf("day").hour(20).minute(0);
+    const latestStart = startTime.startOf("day").hour(19).minute(30);
+    const latestEnd = startTime.startOf("day").hour(22).minute(30);
 
-    if (startTime.isBefore(earliest) || endTime.isAfter(latest)) {
-      alert("Không thể di chuyển lịch ra ngoài khung giờ 16:30 - 19:30!");
+    if (startTime.isBefore(earliest) || startTime.isAfter(latestStart)) {
+      alert("Giờ bắt đầu phải nằm trong khoảng 16:30 - 19:30!");
+      this.setState({ loading: false });
+      return;
+    }
+
+    if (endTime.isAfter(latestEnd)) {
+      alert("Giờ kết thúc không được quá 22:00!");
       this.setState({ loading: false });
       return;
     }
@@ -618,10 +631,12 @@ class Basic extends Component {
       .second(0)
       .millisecond(0);
     const earliest = startTime.startOf("day").hour(16).minute(30);
-    const latest = startTime.startOf("day").hour(20).minute(0);
+    const latestStart = startTime.startOf("day").hour(19).minute(30);
 
-    if (startTime.isBefore(earliest) || startTime.isAfter(latest)) {
+    if (startTime.isBefore(earliest) || startTime.isAfter(latestStart)) {
+      this.setState({ loading: true });
       alert("Giờ bắt đầu phải nằm trong khoảng 16:30 - 19:30!");
+      this.setState({ loading: false });
       return;
     }
 
@@ -643,7 +658,9 @@ class Basic extends Component {
       this.setState({ viewModel: schedulerData });
     } catch (error) {
       console.error("❌ Update start error:", error);
+      this.setState({ loading: true });
       alert("Không thể cập nhật thời gian bắt đầu!");
+      this.setState({ loading: false });
     }
   };
 
@@ -652,11 +669,12 @@ class Basic extends Component {
       .tz("Asia/Ho_Chi_Minh")
       .second(0)
       .millisecond(0);
-    const earliest = endTime.startOf("day").hour(16).minute(30);
-    const latest = endTime.startOf("day").hour(20).minute(0);
+    const latestEnd = endTime.startOf("day").hour(22).minute(0);
 
-    if (endTime.isBefore(earliest) || endTime.isAfter(latest)) {
-      alert("Giờ kết thúc phải nằm trong khoảng 16:30 - 19:30!");
+    if (endTime.isAfter(latestEnd)) {
+      this.setState({ loading: true });
+      alert("Giờ kết thúc không được quá 22:00!");
+      this.setState({ loading: false });
       return;
     }
 
@@ -670,15 +688,14 @@ class Basic extends Component {
         payload,
         { headers: { "Content-Type": "application/json" } }
       );
-
       await this.fetchAppointmentsByRange(
         schedulerData.startDate,
         schedulerData.endDate
       );
       this.setState({ viewModel: schedulerData });
     } catch (error) {
-      this.setState({ loading: true });
       console.error("❌ Update end error:", error);
+      this.setState({ loading: true });
       alert("Không thể cập nhật thời gian kết thúc!");
       this.setState({ loading: false });
     }
