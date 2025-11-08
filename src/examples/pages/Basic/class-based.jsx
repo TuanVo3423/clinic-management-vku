@@ -1,4 +1,12 @@
 /* eslint-disable */
+/* eslint-disable react/no-unknown-property */
+/* eslint-disable react/no-find-dom-node */
+/* eslint-disable react/no-deprecated */
+/* eslint-disable react/no-direct-mutation-state */
+/* eslint-disable react/no-render-return-value */
+/* eslint-disable react/no-unstable-nested-components */
+/* eslint-disable react/no-string-refs */
+/* eslint-disable react/no-set-state */
 import React, { Component } from "react";
 import { Modal, Form, Input, DatePicker, Spin } from "antd";
 import { Scheduler, SchedulerData, ViewType, wrapperFun } from "../../../index";
@@ -63,6 +71,9 @@ class Basic extends Component {
       showAuthModal: false,
       patientInfo: JSON.parse(localStorage.getItem("patientInfo")) || null,
       isEmergency: false,
+      availableServices: [],
+      selectedServices: [],
+      totalPrice: 0,
     };
   }
 
@@ -70,6 +81,16 @@ class Basic extends Component {
     const { viewModel } = this.state;
     await this.fetchAppointmentsByRange(viewModel.startDate, viewModel.endDate);
   }
+  fetchServices = async () => {
+    try {
+      const res = await axios.get(
+        "http://localhost:3000/services?minPrice=100000&maxPrice=500000"
+      );
+      this.setState({ availableServices: res.data.services });
+    } catch (err) {
+      console.error("❌ Lỗi khi lấy danh sách dịch vụ:", err);
+    }
+  };
 
   fetchAppointmentsByRange = async (start, end) => {
     try {
@@ -229,6 +250,98 @@ class Basic extends Component {
                 />
                 <span>Lịch khẩn cấp</span>
               </label>
+            </Form.Item>
+
+            <Form.Item label="Dịch vụ khám">
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {this.state.availableServices.map((svc) => {
+                  const isSelected = this.state.selectedServices.some(
+                    (s) => s._id === svc._id
+                  );
+                  return (
+                    <button
+                      key={svc._id}
+                      type="button"
+                      onClick={() => {
+                        if (isSelected) return;
+                        this.setState((prev) => ({
+                          selectedServices: [...prev.selectedServices, svc],
+                          totalPrice: prev.totalPrice + svc.price,
+                        }));
+                      }}
+                      style={{
+                        backgroundColor: isSelected ? "#52c41a" : "#f0f0f0",
+                        color: isSelected ? "#fff" : "#000",
+                        border: "1px solid #ccc",
+                        borderRadius: 6,
+                        padding: "4px 10px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {svc.name} ({svc.price.toLocaleString()}đ)
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 12,
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 8,
+                }}
+              >
+                {this.state.selectedServices.map((svc) => (
+                  <span
+                    key={svc._id}
+                    style={{
+                      background: "#1890ff",
+                      color: "white",
+                      padding: "4px 10px",
+                      borderRadius: 12,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    {svc.name}
+                    <span
+                      style={{
+                        background: "white",
+                        color: "#1890ff",
+                        borderRadius: "50%",
+                        width: 16,
+                        height: 16,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        fontSize: 12,
+                        fontWeight: "bold",
+                      }}
+                      onClick={() => {
+                        this.setState((prev) => ({
+                          selectedServices: prev.selectedServices.filter(
+                            (s) => s._id !== svc._id
+                          ),
+                          totalPrice: prev.totalPrice - svc.price,
+                        }));
+                      }}
+                    >
+                      ×
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </Form.Item>
+
+            <Form.Item label="Tổng giá dịch vụ">
+              <Input
+                value={`${this.state.totalPrice.toLocaleString()} đ`}
+                disabled
+                style={{ fontWeight: "bold", color: "#d4380d" }}
+              />
             </Form.Item>
 
             <Form.Item label="Thời gian bắt đầu">
@@ -439,7 +552,7 @@ class Basic extends Component {
       this.setState({ showAuthModal: true });
       return;
     }
-
+    this.fetchServices();
     this.setState({
       isModalVisible: true,
       tempEvent: { schedulerData, slotId, slotName, start, end },
@@ -484,10 +597,10 @@ class Basic extends Component {
         bedId: slotId,
         patientId: patientInfo._id,
         doctorId: "655f8c123456789012345679",
-        serviceId: "655f8c12345678901234567a",
+        serviceId: this.state.selectedServices?.[0]?._id || null,
         appointmentStartTime: startTime.format("YYYY-MM-DD HH:mm:ss"),
         appointmentEndTime: endTime.format("YYYY-MM-DD HH:mm:ss"),
-        note: title,
+        note: `${title} | Dịch vụ: ${this.state.selectedServices.map(s => s.name).join(", ")}`,
         isEmergency: this.state.isEmergency,
       };
 
