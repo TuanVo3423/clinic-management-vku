@@ -13,6 +13,7 @@ const Basic = lazy(() => import("./pages/Basic"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
+const AppointmentDetail = lazy(() => import("./pages/Admin/AppointmentDetail"));
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
@@ -60,6 +61,16 @@ function App() {
             <ProtectedRoute>
               <Suspense fallback={<Fallback />}>
                 <Admin />
+              </Suspense>
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/admin/appointment/:id",
+          element: (
+            <ProtectedRoute>
+              <Suspense fallback={<Fallback />}>
+                <AppointmentDetail />
               </Suspense>
             </ProtectedRoute>
           ),
