@@ -10,6 +10,7 @@ import {
   DatePicker,
   Space,
   Spin,
+  Tabs,
 } from "antd";
 import {
   CalendarOutlined,
@@ -18,6 +19,8 @@ import {
   CloseCircleOutlined,
   UserOutlined,
   HomeOutlined,
+  DollarOutlined,
+  WalletOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -29,6 +32,7 @@ const Statistics = () => {
   const [loading, setLoading] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [beds, setBeds] = useState([]);
+  const [services, setServices] = useState([]);
   const [dateRange, setDateRange] = useState([
     dayjs().startOf("month"),
     dayjs().endOf("month"),
@@ -44,6 +48,12 @@ const Statistics = () => {
       // Fetch beds
       const bedsRes = await axios.get("http://localhost:3000/beds");
       setBeds(bedsRes.data.beds);
+
+      // Fetch services
+      const servicesRes = await axios.get(
+        "http://localhost:3000/services?minPrice=0&maxPrice=500000"
+      );
+      setServices(servicesRes.data.services || []);
 
       // Fetch appointments
       const startDate = dateRange[0].format("YYYY-MM-DD HH:mm:ss");
@@ -61,6 +71,17 @@ const Statistics = () => {
     }
   };
 
+  // Helper function to calculate appointment total price
+  const calculateAppointmentPrice = (appointment) => {
+    if (!appointment.serviceIds || appointment.serviceIds.length === 0) {
+      return 0;
+    }
+    return appointment.serviceIds.reduce((total, serviceId) => {
+      const service = services.find((s) => s._id === serviceId);
+      return total + (service ? service.price : 0);
+    }, 0);
+  };
+
   // Calculate statistics
   const stats = {
     total: appointments.length,
@@ -68,6 +89,22 @@ const Statistics = () => {
     confirmed: appointments.filter((a) => a.status === "confirmed").length,
     cancelled: appointments.filter((a) => a.status === "cancelled").length,
     completed: appointments.filter((a) => a.status === "completed").length,
+  };
+
+  // Calculate revenue statistics
+  const revenueStats = {
+    totalRevenue: appointments.reduce(
+      (sum, appt) => sum + calculateAppointmentPrice(appt),
+      0
+    ),
+    paidRevenue: appointments
+      .filter((a) => a.isCheckout)
+      .reduce((sum, appt) => sum + calculateAppointmentPrice(appt), 0),
+    unpaidRevenue: appointments
+      .filter((a) => !a.isCheckout)
+      .reduce((sum, appt) => sum + calculateAppointmentPrice(appt), 0),
+    paidCount: appointments.filter((a) => a.isCheckout).length,
+    unpaidCount: appointments.filter((a) => !a.isCheckout).length,
   };
 
   // Appointments by bed
@@ -86,12 +123,16 @@ const Statistics = () => {
 
   // Appointments by date
   const dateStats = {};
+  const revenueByDate = {};
+
   appointments.forEach((appt) => {
     const date = dayjs(appt.appointmentStartTime).format("YYYY-MM-DD");
     if (!dateStats[date]) {
       dateStats[date] = 0;
+      revenueByDate[date] = 0;
     }
     dateStats[date]++;
+    revenueByDate[date] += calculateAppointmentPrice(appt);
   });
 
   const chartData = Object.entries(dateStats)
@@ -104,6 +145,75 @@ const Statistics = () => {
       const dateB = b.date.split("/").reverse().join("-");
       return dateA.localeCompare(dateB);
     });
+
+  const revenueChartData = Object.entries(revenueByDate)
+    .map(([date, revenue]) => ({
+      date: dayjs(date).format("DD/MM"),
+      revenue: revenue,
+    }))
+    .sort((a, b) => {
+      const dateA = a.date.split("/").reverse().join("-");
+      const dateB = b.date.split("/").reverse().join("-");
+      return dateA.localeCompare(dateB);
+    });
+
+  // Prepare appointment tables data
+  const paidAppointments = appointments.filter((a) => a.isCheckout);
+  const unpaidAppointments = appointments.filter((a) => !a.isCheckout);
+
+  const appointmentColumns = [
+    {
+      title: "Bệnh nhân",
+      dataIndex: "patientName",
+      key: "patientName",
+    },
+    {
+      title: "Giường",
+      dataIndex: "bedId",
+      key: "bedId",
+      render: (bedId) => {
+        const bed = beds.find((b) => b._id === bedId);
+        return bed ? bed.bedName : "-";
+      },
+    },
+    {
+      title: "Thời gian",
+      dataIndex: "appointmentStartTime",
+      key: "appointmentStartTime",
+      render: (time) => dayjs(time).format("DD/MM/YYYY HH:mm"),
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => {
+        const colors = {
+          pending: "gold",
+          confirmed: "green",
+          cancelled: "red",
+          completed: "blue",
+        };
+        const labels = {
+          pending: "Chờ xác nhận",
+          confirmed: "Đã xác nhận",
+          cancelled: "Đã hủy",
+          completed: "Hoàn thành",
+        };
+        return <Tag color={colors[status]}>{labels[status]}</Tag>;
+      },
+    },
+    {
+      title: "Số tiền",
+      dataIndex: "_id",
+      key: "price",
+      render: (_, record) => {
+        const price = calculateAppointmentPrice(record);
+        return `${price.toLocaleString("vi-VN")}đ`;
+      },
+      sorter: (a, b) =>
+        calculateAppointmentPrice(a) - calculateAppointmentPrice(b),
+    },
+  ];
 
   const bedColumns = [
     {
@@ -175,8 +285,42 @@ const Statistics = () => {
     },
   };
 
+  const revenueConfig = {
+    data: revenueChartData,
+    xField: "date",
+    yField: "revenue",
+    label: {
+      position: "top",
+      style: {
+        fill: "#000000",
+        opacity: 0.6,
+      },
+      formatter: (datum) => {
+        return `${(datum.revenue / 1000).toFixed(0)}k`;
+      },
+    },
+    xAxis: {
+      label: {
+        autoHide: true,
+        autoRotate: false,
+      },
+    },
+    meta: {
+      date: {
+        alias: "Ngày",
+      },
+      revenue: {
+        alias: "Doanh thu (VNĐ)",
+        formatter: (v) => `${v.toLocaleString("vi-VN")}đ`,
+      },
+    },
+    columnStyle: {
+      fill: "#52c41a",
+    },
+  };
+
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ padding: "20px", height: "100vh", overflow: "scroll" }}>
       <div style={{ marginBottom: 20 }}>
         <Space>
           <span>Chọn khoảng thời gian:</span>
@@ -194,6 +338,7 @@ const Statistics = () => {
         </div>
       ) : (
         <>
+          {/* Thống kê trạng thái */}
           <Row gutter={16} style={{ marginBottom: 20 }}>
             <Col span={6}>
               <Card>
@@ -237,29 +382,86 @@ const Statistics = () => {
             </Col>
           </Row>
 
-          {/* <Card
-            title="Biểu đồ lịch khám theo ngày"
-            style={{ marginBottom: 20 }}
-          >
-            {chartData.length > 0 ? (
-              <Column {...config} height={300} />
-            ) : (
-              <div
-                style={{ textAlign: "center", padding: "50px", color: "#999" }}
-              >
-                Không có dữ liệu trong khoảng thời gian này
-              </div>
-            )}
-          </Card>
+          {/* Thống kê doanh thu */}
+          <Row gutter={16} style={{ marginBottom: 20 }}>
+            <Col span={8}>
+              <Card>
+                <Statistic
+                  title="Tổng doanh thu"
+                  value={revenueStats.totalRevenue}
+                  prefix={<DollarOutlined />}
+                  valueStyle={{ color: "#1890ff" }}
+                  suffix="đ"
+                  formatter={(value) => value.toLocaleString("vi-VN")}
+                />
+              </Card>
+            </Col>
+            <Col span={8}>
+              <Card>
+                <Statistic
+                  title={`Đã thanh toán (${revenueStats.paidCount} đơn)`}
+                  value={revenueStats.paidRevenue}
+                  prefix={<CheckCircleOutlined />}
+                  valueStyle={{ color: "#52c41a" }}
+                  suffix="đ"
+                  formatter={(value) => value.toLocaleString("vi-VN")}
+                />
+              </Card>
+            </Col>
+            <Col span={8}>
+              <Card>
+                <Statistic
+                  title={`Chưa thanh toán (${revenueStats.unpaidCount} đơn)`}
+                  value={revenueStats.unpaidRevenue}
+                  prefix={<WalletOutlined />}
+                  valueStyle={{ color: "#ff4d4f" }}
+                  suffix="đ"
+                  formatter={(value) => value.toLocaleString("vi-VN")}
+                />
+              </Card>
+            </Col>
+          </Row>
 
-          <Card title="Thống kê theo giường">
-            <Table
-              columns={bedColumns}
-              dataSource={bedStats}
-              rowKey="bedName"
-              pagination={false}
+          {/* Chi tiết thanh toán */}
+          <Card style={{ marginBottom: 20 }}>
+            <Tabs
+              defaultActiveKey="paid"
+              items={[
+                {
+                  key: "paid",
+                  label: `Đã thanh toán (${paidAppointments.length})`,
+                  children: (
+                    <Table
+                      columns={appointmentColumns}
+                      dataSource={paidAppointments}
+                      rowKey="_id"
+                      pagination={{
+                        pageSize: 10,
+                        showTotal: (total) => `Tổng ${total} lịch khám`,
+                      }}
+                      scroll={{ x: 800 }}
+                    />
+                  ),
+                },
+                {
+                  key: "unpaid",
+                  label: `Chưa thanh toán (${unpaidAppointments.length})`,
+                  children: (
+                    <Table
+                      columns={appointmentColumns}
+                      dataSource={unpaidAppointments}
+                      rowKey="_id"
+                      pagination={{
+                        pageSize: 10,
+                        showTotal: (total) => `Tổng ${total} lịch khám`,
+                      }}
+                      scroll={{ x: 800 }}
+                    />
+                  ),
+                },
+              ]}
             />
-          </Card> */}
+          </Card>
         </>
       )}
     </div>

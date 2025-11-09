@@ -12,28 +12,47 @@ import {
   Space,
   message,
   Radio,
+  Tabs,
 } from "antd";
 import {
   EditOutlined,
   DeleteOutlined,
   PlusOutlined,
   SearchOutlined,
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  CheckSquareOutlined,
+  AppstoreOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import dayjs from "dayjs";
+import { useNavigate } from "react-router-dom";
 
 const { Option } = Select;
 
+// Appointment Status Enum
+const AppointmentStatus = {
+  All: "all",
+  Pending: "pending",
+  Confirmed: "confirmed",
+  Cancelled: "cancelled",
+  Completed: "completed",
+};
+
 const ListView = () => {
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [beds, setBeds] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [form] = Form.useForm();
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [activeTab, setActiveTab] = useState(AppointmentStatus.All);
   const [searchText, setSearchText] = useState("");
-  
+  const [availableServices, setAvailableServices] = useState([]);
+
   // New patient mode states
   const [patientMode, setPatientMode] = useState("existing");
   const [existingPatients, setExistingPatients] = useState([]);
@@ -45,30 +64,47 @@ const ListView = () => {
   });
 
   useEffect(() => {
-    fetchData();
+    fetchBeds();
     fetchExistingPatients();
+    fetchServices();
   }, []);
 
-  const fetchData = async () => {
-    setLoading(true);
+  useEffect(() => {
+    fetchAppointmentsByStatus(activeTab);
+  }, [activeTab]);
+
+  const fetchBeds = async () => {
     try {
-      // Fetch beds
       const bedsRes = await axios.get("http://localhost:3000/beds");
       setBeds(bedsRes.data.beds);
+    } catch (error) {
+      message.error("Không thể tải danh sách giường!");
+      console.error(error);
+    }
+  };
 
-      // Fetch appointments (last 30 days)
-      const startDate = dayjs()
-        .subtract(30, "day")
-        .format("YYYY-MM-DD HH:mm:ss");
-      const endDate = dayjs().add(30, "day").format("YYYY-MM-DD HH:mm:ss");
-      const url = `http://localhost:3000/appointments/by-time-range?startDate=${encodeURIComponent(
-        startDate
-      )}&endDate=${encodeURIComponent(endDate)}`;
+  const fetchAppointmentsByStatus = async (status) => {
+    setLoading(true);
+    try {
+      let url;
+      if (status === AppointmentStatus.All) {
+        // Fetch all appointments (last 30 days to future 30 days)
+        const startDate = dayjs()
+          .subtract(30, "day")
+          .format("YYYY-MM-DD HH:mm:ss");
+        const endDate = dayjs().add(30, "day").format("YYYY-MM-DD HH:mm:ss");
+        url = `http://localhost:3000/appointments/by-time-range?startDate=${encodeURIComponent(
+          startDate
+        )}&endDate=${encodeURIComponent(endDate)}`;
+      } else {
+        // Fetch by specific status
+        url = `http://localhost:3000/appointments/by-status?status=${status}`;
+      }
 
       const apptRes = await axios.get(url);
-      setAppointments(apptRes.data.appointments);
+      setAppointments(apptRes.data.appointments || []);
     } catch (error) {
-      message.error("Không thể tải dữ liệu!");
+      message.error(`Không thể tải dữ liệu lịch khám!`);
       console.error(error);
     } finally {
       setLoading(false);
@@ -85,6 +121,18 @@ const ListView = () => {
     }
   };
 
+  const fetchServices = async () => {
+    try {
+      const res = await axios.get(
+        "http://localhost:3000/services?minPrice=0&maxPrice=500000"
+      );
+      setAvailableServices(res.data.services || []);
+    } catch (err) {
+      console.error("❌ Lỗi khi lấy danh sách dịch vụ:", err);
+      message.error("Không thể tải danh sách dịch vụ!");
+    }
+  };
+
   const handleAdd = () => {
     setEditingAppointment(null);
     form.resetFields();
@@ -93,16 +141,18 @@ const ListView = () => {
     setNewPatientForm({ fullName: "", phone: "", gender: "male" });
     setIsModalVisible(true);
   };
-
   const handleEdit = (record) => {
     setEditingAppointment(record);
     form.setFieldsValue({
       bedId: record.bedId,
       patientName: record.patient?.[0]?.fullName || "",
+      phone: record.patient?.[0]?.phone || "",
+      isCheckout: record.isCheckout,
       appointmentStartTime: dayjs(record.appointmentStartTime),
       appointmentEndTime: dayjs(record.appointmentEndTime),
       status: record.status,
       note: record.note,
+      serviceIds: record.serviceIds || [],
     });
     setIsModalVisible(true);
   };
@@ -166,8 +216,8 @@ const ListView = () => {
                 gender: newPatientForm.gender,
               }
             );
-
-            patientId = createPatientResponse.data.patient._id;
+            console.log("createPatientResponse", createPatientResponse);
+            patientId = createPatientResponse.data.patient_id;
             console.log("✅ New patient created:", patientId);
 
             // Refresh patient list
@@ -187,7 +237,7 @@ const ListView = () => {
         bedId: values.bedId,
         patientId: patientId,
         doctorId: "655f8c123456789012345679", // Default doctor
-        serviceId: "655f8c12345678901234567a", // Default service
+        serviceIds: values.serviceIds || [],
         appointmentStartTime: values.appointmentStartTime.format(
           "YYYY-MM-DD HH:mm:ss"
         ),
@@ -196,6 +246,7 @@ const ListView = () => {
         ),
         status: values.status || "pending",
         note: values.note,
+        isCheckout: values.isCheckout,
       };
 
       if (editingAppointment) {
@@ -305,13 +356,6 @@ const ListView = () => {
       render: (status) => (
         <Tag color={getStatusColor(status)}>{getStatusText(status)}</Tag>
       ),
-      filters: [
-        { text: "Chờ xác nhận", value: "pending" },
-        { text: "Đã xác nhận", value: "confirmed" },
-        { text: "Đã hủy", value: "cancelled" },
-        { text: "Hoàn thành", value: "completed" },
-      ],
-      onFilter: (value, record) => record.status === value,
     },
     {
       title: "Ghi chú",
@@ -322,23 +366,94 @@ const ListView = () => {
     {
       title: "Thao tác",
       key: "action",
-      width: 120,
+      width: 160,
       render: (_, record) => (
         <Space>
+          <Button
+            type="default"
+            size="small"
+            icon={<EyeOutlined />}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/admin/appointment/${record._id}`);
+            }}
+            title="Xem chi tiết"
+          />
           <Button
             type="primary"
             size="small"
             icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEdit(record);
+            }}
+            title="Chỉnh sửa"
           />
           <Button
             danger
             size="small"
             icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record._id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete(record._id);
+            }}
+            title="Xóa"
           />
         </Space>
       ),
+    },
+  ];
+
+  const tabItems = [
+    {
+      key: AppointmentStatus.All,
+      label: (
+        <span>
+          <AppstoreOutlined style={{ marginRight: 8 }} />
+          Tất cả
+        </span>
+      ),
+      children: null,
+    },
+    {
+      key: AppointmentStatus.Pending,
+      label: (
+        <span>
+          <ClockCircleOutlined style={{ marginRight: 8 }} />
+          Chờ xác nhận
+        </span>
+      ),
+      children: null,
+    },
+    {
+      key: AppointmentStatus.Confirmed,
+      label: (
+        <span>
+          <CheckCircleOutlined style={{ marginRight: 8 }} />
+          Đã xác nhận
+        </span>
+      ),
+      children: null,
+    },
+    {
+      key: AppointmentStatus.Cancelled,
+      label: (
+        <span>
+          <CloseCircleOutlined style={{ marginRight: 8 }} />
+          Đã hủy
+        </span>
+      ),
+      children: null,
+    },
+    {
+      key: AppointmentStatus.Completed,
+      label: (
+        <span>
+          <CheckSquareOutlined style={{ marginRight: 8 }} />
+          Hoàn thành
+        </span>
+      ),
+      children: null,
     },
   ];
 
@@ -349,6 +464,7 @@ const ListView = () => {
           marginBottom: 16,
           display: "flex",
           justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
         <Space>
@@ -366,7 +482,14 @@ const ListView = () => {
         </Button>
       </div>
 
+      <Tabs
+        activeKey={activeTab}
+        onChange={(key) => setActiveTab(key)}
+        items={tabItems}
+      />
+
       <Table
+        style={{ overflow: "scroll", marginTop: 16 }}
         columns={columns}
         dataSource={appointments}
         rowKey="_id"
@@ -374,8 +497,16 @@ const ListView = () => {
         pagination={{
           pageSize: 10,
           showTotal: (total) => `Tổng ${total} lịch khám`,
+          showSizeChanger: true,
+          pageSizeOptions: ["5", "10", "20", "50"],
         }}
-        scroll={{ x: 1000 }}
+        scroll={{ x: 1000, y: 500 }}
+        onRow={(record) => ({
+          onClick: () => {
+            navigate(`/admin/appointment/${record._id}`);
+          },
+          style: { cursor: "pointer" },
+        })}
       />
 
       <Modal
@@ -531,9 +662,14 @@ const ListView = () => {
           )}
 
           {editingAppointment && (
-            <Form.Item name="patientName" label="Tên bệnh nhân">
-              <Input placeholder="Nhập tên bệnh nhân" disabled />
-            </Form.Item>
+            <>
+              <Form.Item name="patientName" label="Tên bệnh nhân">
+                <Input placeholder="Nhập tên bệnh nhân" disabled />
+              </Form.Item>
+              <Form.Item name="phone" label="Số điện thoại">
+                <Input placeholder="Nhập số điện thoại" disabled />
+              </Form.Item>
+            </>
           )}
 
           <Form.Item
@@ -545,6 +681,31 @@ const ListView = () => {
               {beds.map((bed) => (
                 <Option key={bed._id} value={bed._id}>
                   {bed.bedName} - {bed.department}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="serviceIds"
+            label="Dịch vụ"
+            rules={[
+              { required: true, message: "Vui lòng chọn ít nhất một dịch vụ!" },
+            ]}
+          >
+            <Select
+              mode="multiple"
+              placeholder="Chọn các dịch vụ"
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+            >
+              {availableServices.map((service) => (
+                <Option key={service._id} value={service._id}>
+                  {service.name} - {service.price.toLocaleString("vi-VN")}đ (
+                  {service.duration} phút)
                 </Option>
               ))}
             </Select>
@@ -585,6 +746,13 @@ const ListView = () => {
 
           <Form.Item name="note" label="Ghi chú">
             <Input.TextArea rows={3} placeholder="Nhập ghi chú..." />
+          </Form.Item>
+
+          <Form.Item name="isCheckout" label="Đã thanh toán">
+            <Select>
+              <Option value={true}>Có</Option>
+              <Option value={false}>Không</Option>
+            </Select>
           </Form.Item>
         </Form>
       </Modal>
