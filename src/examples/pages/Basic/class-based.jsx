@@ -191,7 +191,6 @@ class Basic extends Component {
         </div>
       );
     }
-
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
         <Scheduler
@@ -596,7 +595,6 @@ class Basic extends Component {
       return;
     }
 
-    this.setState({ loading: true });
     this.fetchServices();
 
     try {
@@ -633,8 +631,6 @@ class Basic extends Component {
     } catch (err) {
       console.error("❌ Lỗi khi lấy chi tiết lịch hẹn:", err);
       alert("Không thể tải chi tiết lịch hẹn!");
-    } finally {
-      this.setState({ loading: false });
     }
   };
 
