@@ -11,13 +11,14 @@ import { useNavigate } from "react-router-dom";
 import ClassBased from "./class-based";
 import ListView from "./ListView";
 import Statistics from "./Statistics";
+import NotificationBell from "../../components/NotificationBell";
 import "./admin.css";
 import axios from "axios";
 import dayjs from "dayjs";
 
 const { TabPane } = Tabs;
 
-function Admin() {
+function Admin() {    
   const [activeTab, setActiveTab] = useState(
     () => localStorage.getItem("adminActiveTab") || "timeline"
   );
@@ -101,39 +102,42 @@ function Admin() {
               Xem và quản lý lịch khám, điều chỉnh giờ khám, theo dõi thống kê
             </p>
           </div>
-          <Dropdown menu={{ items: menuItems }} placement="bottomRight">
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                cursor: "pointer",
-                padding: "8px 16px",
-                borderRadius: "8px",
-                transition: "background 0.3s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#f0f0f0";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "transparent";
-              }}
-            >
-              <Avatar
-                icon={<UserOutlined />}
-                style={{ backgroundColor: "#1890ff" }}
-                size="large"
-              />
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontWeight: 600, color: "#262626" }}>
-                  {doctorInfo?.name || "Bác sĩ"}
-                </div>
-                <div style={{ fontSize: "12px", color: "#8c8c8c" }}>
-                  {doctorInfo?.specialization || "Chuyên khoa"}
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <NotificationBell />
+            <Dropdown menu={{ items: menuItems }} placement="bottomRight">
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  cursor: "pointer",
+                  padding: "8px 16px",
+                  borderRadius: "8px",
+                  transition: "background 0.3s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#f0f0f0";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                }}
+              >
+                <Avatar
+                  icon={<UserOutlined />}
+                  style={{ backgroundColor: "#1890ff" }}
+                  size="large"
+                />
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontWeight: 600, color: "#262626" }}>
+                    {doctorInfo?.name || "Bác sĩ"}
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#8c8c8c" }}>
+                    {doctorInfo?.specialization || "Chuyên khoa"}
+                  </div>
                 </div>
               </div>
-            </div>
-          </Dropdown>
+            </Dropdown>
+          </div>
         </div>
       </div>
 
