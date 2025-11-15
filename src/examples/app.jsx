@@ -4,8 +4,10 @@ import {
   createBrowserRouter,
   RouterProvider,
   Navigate,
+  Outlet,
 } from "react-router-dom";
 import Fallback from "./components/Fallback";
+import { NotificationProvider } from "./contexts/NotificationContext";
 import "./css/style.css";
 /* eslint-disable react/function-component-definition */
 /* eslint-disable react/prop-types */
@@ -14,6 +16,7 @@ const Admin = lazy(() => import("./pages/Admin"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const AppointmentDetail = lazy(() => import("./pages/Admin/AppointmentDetail"));
+const Notification = lazy(() => import("./pages/Notification"));
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
@@ -59,21 +62,25 @@ function App() {
           path: "/admin",
           element: (
             <ProtectedRoute>
-              <Suspense fallback={<Fallback />}>
-                <Admin />
-              </Suspense>
+              <NotificationProvider>
+                <Outlet />
+              </NotificationProvider>
             </ProtectedRoute>
           ),
-        },
-        {
-          path: "/admin/appointment/:id",
-          element: (
-            <ProtectedRoute>
-              <Suspense fallback={<Fallback />}>
-                <AppointmentDetail />
-              </Suspense>
-            </ProtectedRoute>
-          ),
+          children: [
+            {
+              path: "",
+              element: <Admin />,
+            },
+            {
+              path: "notifications",
+              element: <Notification />,
+            },
+            {
+              path: "appointment/:id",
+              element: <AppointmentDetail />,
+            },
+          ],
         },
         {
           path: "*",

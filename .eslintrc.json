@@ -9,7 +9,6 @@
   "extends": ["airbnb"],
   "parserOptions": { "ecmaVersion": "latest", "sourceType": "module" },
   "rules": {
-    "max-len": ["error", { "code": 200 }],
     "arrow-parens": ["off"],
     "linebreak-style": "off",
     "object-curly-newline": "off",
@@ -28,7 +27,21 @@
     "comma-dangle": "off",
     "no-trailing-spaces": "off",
     "react/jsx-wrap-multilines": "off",
-    "semi" : "off",
-    "indent": "off"
+    "semi": "off",
+    "indent": "off",
+    "react/function-component-definition": "off",
+    "max-len": "off",
+    "implicit-arrow-linebreak": "off",
+    "no-confusing-arrow": "off",
+    "function-paren-newline": "off",
+    "react/jsx-no-constructed-context-values": "off",
+    "arrow-body-style": "off",
+    "no-nested-ternary": "off",
+    "operator-linebreak": "off",
+    "object-shorthand": "off",
+    "no-shadow": "off",
+    "react/jsx-no-undef": "off",
+    "no-undef": "off",
+    "react/jsx-curly-newline": "off"
   }
 }
