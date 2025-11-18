@@ -9,6 +9,7 @@ import {
 import Fallback from "./components/Fallback";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import "./css/style.css";
+import Landing from "./pages/Landing";
 /* eslint-disable react/function-component-definition */
 /* eslint-disable react/prop-types */
 const Basic = lazy(() => import("./pages/Basic"));
@@ -36,6 +37,15 @@ function App() {
       children: [
         {
           path: "/",
+          element: (
+            <Suspense fallback={<Fallback />}>
+              <Landing />
+            </Suspense>
+          ),
+        },
+
+        {
+          path: "/scheduler",
           element: (
             <Suspense fallback={<Fallback />}>
               <Basic />
