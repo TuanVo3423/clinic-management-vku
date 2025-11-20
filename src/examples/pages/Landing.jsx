@@ -15,59 +15,13 @@ import doc1 from "./assets/doctor-1.jpg";
 import doc2 from "./assets/doctor-2.jpg";
 import doc3 from "./assets/doctor-3.jpg";
 import ChatWidget from "../components/ChatWidget";
+import SiteLayout from "./SiteLayout";
 export default function Landing() {
+  const patient = JSON.parse(localStorage.getItem("patientInfo")) || null;
   return (
     <>
-      <header>
-        <nav className="section__container nav__container">
-          <div className="nav__logo">
-            Health 
-            <span>Care</span>
-          </div>
-          <ul className="nav__links">
-            <li className="link">
-              <a href="/home">Home</a>
-            </li>
-            <li className="link">
-              <a href="/about">About Us</a>
-            </li>
-            <li className="link">
-              <a href="/scheduler">Services</a>
-            </li>
-            <li className="link">
-              <a href="/pages">Pages</a>
-            </li>
-            <li className="link">
-              <a href="/blog">Blog</a>
-            </li>
-          </ul>
-          <button type="button" className="btn">Contact Us</button>
-        </nav>
-
-        <div className="section__container header__container">
-          <div className="header__content">
-            <h1>Providing an Exceptional Patient Experience</h1>
-            <p>
-              Welcome, where exceptional patient experiences are our priority.
-              With compassionate care, state-of-the-art facilities, and a
-              patient-centered approach, we&apos;re dedicated to your well-being.
-              Trust us with your health and experience the difference.
-            </p>
-            <button type="button" className="btn">See Services</button>
-          </div>
-
-          <div className="header__form">
-            <form>
-              <h4>Book Now</h4>
-              <input type="text" placeholder="First Name" />
-              <input type="text" placeholder="Last Name" />
-              <input type="text" placeholder="Address" />
-              <input type="text" placeholder="Phone No." />
-              <button type="button" className="btn form__btn">Book Appointment</button>
-            </form>
-          </div>
-        </div>
-      </header>
+    <SiteLayout className={patient ? "header-side" : "header-main"}>
+    
 
       <section className="section__container service__container">
         <div className="service__header">
@@ -281,77 +235,9 @@ export default function Landing() {
         </div>
       </section>
 
-      <footer className="footer">
-        <div className="section__container footer__container">
-          <div className="footer__col">
-            <h3>
-              Health 
-              <span>Care</span>
-            </h3>
-            <p>
-              We are honored to be a part of your healthcare journey and
-              committed to delivering compassionate and top-notch care.
-            </p>
-            <p>
-              Trust us with your health and let&apos;s achieve the best outcomes
-              together.
-            </p>
-          </div>
+      </SiteLayout>
 
-          <div className="footer__col">
-            <h4>About Us</h4>
-            <p>Home</p>
-            <p>About Us</p>
-            <p>Work With Us</p>
-            <p>Our Blog</p>
-            <p>Terms &amp; Conditions</p>
-          </div>
-
-          <div className="footer__col">
-            <h4>Services</h4>
-            <p>Search Terms</p>
-            <p>Advance Search</p>
-            <p>Privacy Policy</p>
-            <p>Suppliers</p>
-            <p>Our Stores</p>
-          </div>
-
-          <div className="footer__col">
-            <h4>Contact Us</h4>
-            <p>
-              <i className="ri-map-pin-2-fill" /> Redfort Bridge Street, Delhi
-            </p>
-            <p>
-              <i className="ri-mail-fill" /> support@care.com
-            </p>
-            <p>
-              <i className="ri-phone-fill" /> (+91) 93456 87989
-            </p>
-          </div>
-        </div>
-
-        <div className="footer__bar">
-          <div className="footer__bar__content">
-            <p>Copyright © 2024 codeaashu. All rights reserved.</p>
-            <div className="footer__socials">
-              <span>
-                <i className="ri-instagram-line" />
-              </span>
-              <span>
-                <i className="ri-facebook-fill" />
-              </span>
-              <span>
-                <i className="ri-heart-fill" />
-              </span>
-              <span>
-                <i className="ri-twitter-fill" />
-              </span>
-            </div>
-          </div>
-        </div>
-      </footer>
-
-      <ChatWidget />
+    
     </>
   );
 }
