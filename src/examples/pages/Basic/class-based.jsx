@@ -8,7 +8,7 @@
 /* eslint-disable react/no-string-refs */
 /* eslint-disable react/no-set-state */
 import React, { Component } from "react";
-import { Modal, Form, Input, DatePicker, Spin } from "antd";
+import { Modal, Form, Input, DatePicker, Spin, message } from "antd";
 import { Scheduler, SchedulerData, ViewType, wrapperFun } from "../../../index";
 import AuthPatientModal from "../../../components/AuthPatientmModal.jsx";
 import dayjs from "dayjs";
@@ -23,6 +23,7 @@ dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
 
 import axios from "axios";
+import SiteLayout from "../SiteLayout.jsx";
 
 class Basic extends Component {
   constructor(props) {
@@ -76,6 +77,27 @@ class Basic extends Component {
       totalPrice: 0,
     };
   }
+  isLoggedIn = () => {
+    return !!(
+      this.state.patientInfo || JSON.parse(localStorage.getItem("patientInfo"))
+    );
+  };
+
+  // helper: determine ownership from event/appt object
+  isOwnerOf = (evtOrAppt) => {
+    const current =
+      this.state.patientInfo || JSON.parse(localStorage.getItem("patientInfo"));
+    if (!current) return false;
+    const ownerId =
+      evtOrAppt.ownerId ||
+      evtOrAppt.patientId ||
+      (evtOrAppt.patient &&
+        Array.isArray(evtOrAppt.patient) &&
+        evtOrAppt.patient[0]?._id) ||
+      (evtOrAppt.patient && evtOrAppt.patient._id);
+    if (!ownerId) return false;
+    return String(ownerId) === String(current._id);
+  };
 
   async componentDidMount() {
     const { viewModel } = this.state;
@@ -103,7 +125,9 @@ class Basic extends Component {
         name: bed.bedName,
         department: bed.department,
       }));
-
+      const currentPatient =
+        this.state.patientInfo ||
+        JSON.parse(localStorage.getItem("patientInfo"));
       let startDate = dayjs(start).startOf("day").format("YYYY-MM-DD HH:mm:ss");
       let endDate = dayjs(start).endOf("day").format("YYYY-MM-DD HH:mm:ss");
       if (viewModel.viewType === ViewType.Day) {
@@ -124,26 +148,37 @@ class Basic extends Component {
       const apptRes = await axios.get(url);
 
       const appointments = apptRes.data.appointments.map((a) => {
-        let bgColor;
+        let statusColor;
         switch (a.status) {
           case "pending":
-            bgColor = "#faad14";
+            statusColor = "#faad14";
             break;
           case "confirmed":
-            bgColor = "#52c41a";
+            statusColor = "#52c41a";
             break;
           case "cancelled":
-            bgColor = "#ff4d4f";
+            statusColor = "#ff4d4f";
             break;
           default:
-            bgColor = "#d9d9d9";
+            statusColor = "#d9d9d9";
         }
+        const ownerId =
+          a.patientId ||
+          (a.patient && Array.isArray(a.patient) && a.patient[0]?._id) ||
+          (a.patient && a.patient._id) ||
+          null;
+        const isOwn =
+          currentPatient &&
+          ownerId &&
+          String(ownerId) === String(currentPatient._id);
 
         const start = dayjs(a.appointmentStartTime).format(
           "YYYY-MM-DDTHH:mm:ss"
         );
         const end = dayjs(a.appointmentEndTime).format("YYYY-MM-DDTHH:mm:ss");
         console.log("start:", start, "| raw:", a.appointmentStartTime);
+
+        const bgColor = isOwn ? statusColor : "#bfbfbf";
 
         return {
           id: a._id,
@@ -154,6 +189,8 @@ class Basic extends Component {
             a.status
           }`,
           bgColor,
+          ownerId,
+          isOwn,
         };
       });
       console.log("Final mapped appointments:", appointments);
@@ -193,355 +230,362 @@ class Basic extends Component {
     }
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-        <Scheduler
-          schedulerData={viewModel}
-          prevClick={this.prevClick}
-          nextClick={this.nextClick}
-          onSelectDate={this.onSelectDate}
-          onViewChange={this.onViewChange}
-          eventItemClick={this.eventClicked}
-          viewEventText=""
-          viewEvent2Text=""
-          updateEventStart={this.updateEventStart}
-          updateEventEnd={this.updateEventEnd}
-          moveEvent={this.moveEvent}
-          newEvent={this.newEvent}
-          onScrollLeft={this.onScrollLeft}
-          onScrollRight={this.onScrollRight}
-          onScrollTop={this.onScrollTop}
-          onScrollBottom={this.onScrollBottom}
-          toggleExpandFunc={this.toggleExpandFunc}
-        />
-        <Modal
-          title="Tạo lịch hẹn mới"
-          open={this.state.isModalVisible}
-          onCancel={() => this.setState({ isModalVisible: false })}
-          onOk={this.handleCreateEvent}
-          okText="Lưu"
-          cancelText="Hủy"
-          style={{ top: 20 }}
-        >
-          <Form layout="vertical">
-            <Form.Item label="Tên bệnh nhân">
-              <Input value={this.state.patientInfo?.fullName || ""} disabled />
-            </Form.Item>
+        <SiteLayout>
+          <Scheduler
+            schedulerData={viewModel}
+            prevClick={this.prevClick}
+            nextClick={this.nextClick}
+            onSelectDate={this.onSelectDate}
+            onViewChange={this.onViewChange}
+            eventItemClick={this.eventClicked}
+            viewEventText=""
+            viewEvent2Text=""
+            updateEventStart={this.updateEventStart}
+            updateEventEnd={this.updateEventEnd}
+            moveEvent={this.moveEvent}
+            newEvent={this.newEvent}
+            onScrollLeft={this.onScrollLeft}
+            onScrollRight={this.onScrollRight}
+            onScrollTop={this.onScrollTop}
+            onScrollBottom={this.onScrollBottom}
+            toggleExpandFunc={this.toggleExpandFunc}
+          />
+          <Modal
+            title="Tạo lịch hẹn mới"
+            open={this.state.isModalVisible}
+            onCancel={() => this.setState({ isModalVisible: false })}
+            onOk={this.handleCreateEvent}
+            okText="Lưu"
+            cancelText="Hủy"
+            style={{ top: 20 }}
+          >
+            <Form layout="vertical">
+              <Form.Item label="Tên bệnh nhân">
+                <Input
+                  value={this.state.patientInfo?.fullName || ""}
+                  disabled
+                />
+              </Form.Item>
 
-            <Form.Item label="Số điện thoại">
-              <Input value={this.state.patientInfo?.phone || ""} disabled />
-            </Form.Item>
+              <Form.Item label="Số điện thoại">
+                <Input value={this.state.patientInfo?.phone || ""} disabled />
+              </Form.Item>
 
-            <Form.Item label="Ghi chú">
-              <Input
-                value={this.state.formValues.title}
-                onChange={(e) =>
-                  this.setState({
-                    formValues: {
-                      ...this.state.formValues,
-                      title: e.target.value,
-                    },
-                  })
-                }
-                placeholder="Nhập ghi chú (nếu có)"
-              />
-            </Form.Item>
-
-            <Form.Item>
-              <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <input
-                  type="checkbox"
-                  checked={this.state.isEmergency}
+              <Form.Item label="Ghi chú">
+                <Input
+                  value={this.state.formValues.title}
                   onChange={(e) =>
-                    this.setState({ isEmergency: e.target.checked })
+                    this.setState({
+                      formValues: {
+                        ...this.state.formValues,
+                        title: e.target.value,
+                      },
+                    })
+                  }
+                  placeholder="Nhập ghi chú (nếu có)"
+                />
+              </Form.Item>
+
+              <Form.Item>
+                <label
+                  style={{ display: "flex", alignItems: "center", gap: 8 }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={this.state.isEmergency}
+                    onChange={(e) =>
+                      this.setState({ isEmergency: e.target.checked })
+                    }
+                  />
+                  <span>Lịch khẩn cấp</span>
+                </label>
+              </Form.Item>
+
+              <Form.Item label="Dịch vụ khám">
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {this.state.availableServices.map((svc) => {
+                    const isSelected = this.state.selectedServices.some(
+                      (s) => s._id === svc._id
+                    );
+                    return (
+                      <button
+                        key={svc._id}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) return;
+                          this.setState((prev) => ({
+                            selectedServices: [...prev.selectedServices, svc],
+                            totalPrice: prev.totalPrice + svc.price,
+                          }));
+                        }}
+                        style={{
+                          backgroundColor: isSelected ? "#52c41a" : "#f0f0f0",
+                          color: isSelected ? "#fff" : "#000",
+                          border: "1px solid #ccc",
+                          borderRadius: 6,
+                          padding: "4px 10px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {svc.name} ({svc.price.toLocaleString()}đ)
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 12,
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 8,
+                  }}
+                >
+                  {this.state.selectedServices.map((svc) => (
+                    <span
+                      key={svc._id}
+                      style={{
+                        background: "#1890ff",
+                        color: "white",
+                        padding: "4px 10px",
+                        borderRadius: 12,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                      }}
+                    >
+                      {svc.name}
+                      <span
+                        style={{
+                          background: "white",
+                          color: "#1890ff",
+                          borderRadius: "50%",
+                          width: 16,
+                          height: 16,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                          fontSize: 12,
+                          fontWeight: "bold",
+                        }}
+                        onClick={() => {
+                          this.setState((prev) => ({
+                            selectedServices: prev.selectedServices.filter(
+                              (s) => s._id !== svc._id
+                            ),
+                            totalPrice: prev.totalPrice - svc.price,
+                          }));
+                        }}
+                      >
+                        ×
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              </Form.Item>
+
+              <Form.Item label="Tổng giá dịch vụ">
+                <Input
+                  value={`${this.state.totalPrice.toLocaleString()} đ`}
+                  disabled
+                  style={{ fontWeight: "bold", color: "#d4380d" }}
+                />
+              </Form.Item>
+
+              <Form.Item label="Thời gian bắt đầu">
+                <DatePicker
+                  showTime
+                  value={
+                    this.state.formValues.start
+                      ? dayjs(this.state.formValues.start)
+                      : null
+                  }
+                  onChange={(value) =>
+                    this.setState({
+                      formValues: { ...this.state.formValues, start: value },
+                    })
                   }
                 />
-                <span>Lịch khẩn cấp</span>
-              </label>
-            </Form.Item>
+              </Form.Item>
 
-            <Form.Item label="Dịch vụ khám">
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {this.state.availableServices.map((svc) => {
-                  const isSelected = this.state.selectedServices.some(
-                    (s) => s._id === svc._id
-                  );
-                  return (
-                    <button
-                      key={svc._id}
-                      type="button"
-                      onClick={() => {
-                        if (isSelected) return;
-                        this.setState((prev) => ({
-                          selectedServices: [...prev.selectedServices, svc],
-                          totalPrice: prev.totalPrice + svc.price,
-                        }));
-                      }}
-                      style={{
-                        backgroundColor: isSelected ? "#52c41a" : "#f0f0f0",
-                        color: isSelected ? "#fff" : "#000",
-                        border: "1px solid #ccc",
-                        borderRadius: 6,
-                        padding: "4px 10px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {svc.name} ({svc.price.toLocaleString()}đ)
-                    </button>
-                  );
-                })}
-              </div>
+              <Form.Item label="Thời gian kết thúc">
+                <DatePicker
+                  showTime
+                  value={
+                    this.state.formValues.end
+                      ? dayjs(this.state.formValues.end)
+                      : null
+                  }
+                  onChange={(value) =>
+                    this.setState({
+                      formValues: { ...this.state.formValues, end: value },
+                    })
+                  }
+                />
+              </Form.Item>
+            </Form>
+          </Modal>
+          <Modal
+            title="Chỉnh sửa lịch hẹn"
+            open={this.state.editModalVisible}
+            onCancel={() => this.setState({ editModalVisible: false })}
+            onOk={this.handleEditAppointment}
+            okText="Lưu"
+            cancelText="Hủy"
+            style={{ top: 20 }}
+          >
+            <Form layout="vertical">
+              <Form.Item label="Ghi chú / tiêu đề">
+                <Input
+                  value={this.state.formValues.title}
+                  onChange={(e) =>
+                    this.setState({
+                      formValues: {
+                        ...this.state.formValues,
+                        title: e.target.value,
+                      },
+                    })
+                  }
+                />
+              </Form.Item>
+              <Form.Item label="Dịch vụ khám">
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {this.state.availableServices.map((svc) => {
+                    const isSelected = this.state.selectedServices.some(
+                      (s) => s._id === svc._id
+                    );
+                    return (
+                      <button
+                        key={svc._id}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) return;
+                          this.setState((prev) => ({
+                            selectedServices: [...prev.selectedServices, svc],
+                            totalPrice: prev.totalPrice + svc.price,
+                          }));
+                        }}
+                        style={{
+                          backgroundColor: isSelected ? "#52c41a" : "#f0f0f0",
+                          color: isSelected ? "#fff" : "#000",
+                          border: "1px solid #ccc",
+                          borderRadius: 6,
+                          padding: "4px 10px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {svc.name} ({svc.price.toLocaleString()}đ)
+                      </button>
+                    );
+                  })}
+                </div>
 
-              <div
-                style={{
-                  marginTop: 12,
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 8,
-                }}
-              >
-                {this.state.selectedServices.map((svc) => (
-                  <span
-                    key={svc._id}
-                    style={{
-                      background: "#1890ff",
-                      color: "white",
-                      padding: "4px 10px",
-                      borderRadius: 12,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                    }}
-                  >
-                    {svc.name}
+                <div
+                  style={{
+                    marginTop: 12,
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 8,
+                  }}
+                >
+                  {this.state.selectedServices.map((svc) => (
                     <span
+                      key={svc._id}
                       style={{
-                        background: "white",
-                        color: "#1890ff",
-                        borderRadius: "50%",
-                        width: 16,
-                        height: 16,
+                        background: "#1890ff",
+                        color: "white",
+                        padding: "4px 10px",
+                        borderRadius: 12,
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                        fontSize: 12,
-                        fontWeight: "bold",
-                      }}
-                      onClick={() => {
-                        this.setState((prev) => ({
-                          selectedServices: prev.selectedServices.filter(
-                            (s) => s._id !== svc._id
-                          ),
-                          totalPrice: prev.totalPrice - svc.price,
-                        }));
+                        gap: 6,
                       }}
                     >
-                      ×
+                      {svc.name}
+                      <span
+                        style={{
+                          background: "white",
+                          color: "#1890ff",
+                          borderRadius: "50%",
+                          width: 16,
+                          height: 16,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                          fontSize: 12,
+                          fontWeight: "bold",
+                        }}
+                        onClick={() => {
+                          this.setState((prev) => ({
+                            selectedServices: prev.selectedServices.filter(
+                              (s) => s._id !== svc._id
+                            ),
+                            totalPrice: prev.totalPrice - svc.price,
+                          }));
+                        }}
+                      >
+                        ×
+                      </span>
                     </span>
-                  </span>
-                ))}
-              </div>
-            </Form.Item>
-
-            <Form.Item label="Tổng giá dịch vụ">
-              <Input
-                value={`${this.state.totalPrice.toLocaleString()} đ`}
-                disabled
-                style={{ fontWeight: "bold", color: "#d4380d" }}
-              />
-            </Form.Item>
-
-            <Form.Item label="Thời gian bắt đầu">
-              <DatePicker
-                showTime
-                value={
-                  this.state.formValues.start
-                    ? dayjs(this.state.formValues.start)
-                    : null
-                }
-                onChange={(value) =>
-                  this.setState({
-                    formValues: { ...this.state.formValues, start: value },
-                  })
-                }
-              />
-            </Form.Item>
-
-            <Form.Item label="Thời gian kết thúc">
-              <DatePicker
-                showTime
-                value={
-                  this.state.formValues.end
-                    ? dayjs(this.state.formValues.end)
-                    : null
-                }
-                onChange={(value) =>
-                  this.setState({
-                    formValues: { ...this.state.formValues, end: value },
-                  })
-                }
-              />
-            </Form.Item>
-          </Form>
-        </Modal>
-        <Modal
-          title="Chỉnh sửa lịch hẹn"
-          open={this.state.editModalVisible}
-          onCancel={() => this.setState({ editModalVisible: false })}
-          onOk={this.handleEditAppointment}
-          okText="Lưu"
-          cancelText="Hủy"
-          style={{ top: 20 }}
-        >
-          <Form layout="vertical">
-            <Form.Item label="Ghi chú / tiêu đề">
-              <Input
-                value={this.state.formValues.title}
-                onChange={(e) =>
-                  this.setState({
-                    formValues: {
-                      ...this.state.formValues,
-                      title: e.target.value,
-                    },
-                  })
-                }
-              />
-            </Form.Item>
-            <Form.Item label="Dịch vụ khám">
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {this.state.availableServices.map((svc) => {
-                  const isSelected = this.state.selectedServices.some(
-                    (s) => s._id === svc._id
-                  );
-                  return (
-                    <button
-                      key={svc._id}
-                      type="button"
-                      onClick={() => {
-                        if (isSelected) return;
-                        this.setState((prev) => ({
-                          selectedServices: [...prev.selectedServices, svc],
-                          totalPrice: prev.totalPrice + svc.price,
-                        }));
-                      }}
-                      style={{
-                        backgroundColor: isSelected ? "#52c41a" : "#f0f0f0",
-                        color: isSelected ? "#fff" : "#000",
-                        border: "1px solid #ccc",
-                        borderRadius: 6,
-                        padding: "4px 10px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {svc.name} ({svc.price.toLocaleString()}đ)
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div
-                style={{
-                  marginTop: 12,
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 8,
-                }}
-              >
-                {this.state.selectedServices.map((svc) => (
-                  <span
-                    key={svc._id}
-                    style={{
-                      background: "#1890ff",
-                      color: "white",
-                      padding: "4px 10px",
-                      borderRadius: 12,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                    }}
-                  >
-                    {svc.name}
-                    <span
-                      style={{
-                        background: "white",
-                        color: "#1890ff",
-                        borderRadius: "50%",
-                        width: 16,
-                        height: 16,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                        fontSize: 12,
-                        fontWeight: "bold",
-                      }}
-                      onClick={() => {
-                        this.setState((prev) => ({
-                          selectedServices: prev.selectedServices.filter(
-                            (s) => s._id !== svc._id
-                          ),
-                          totalPrice: prev.totalPrice - svc.price,
-                        }));
-                      }}
-                    >
-                      ×
-                    </span>
-                  </span>
-                ))}
-              </div>
-            </Form.Item>
-            <Form.Item label="Tổng giá dịch vụ">
-              <Input
-                value={`${this.state.totalPrice.toLocaleString()} đ`}
-                disabled
-                style={{ fontWeight: "bold", color: "#d4380d" }}
-              />
-            </Form.Item>
-            <Form.Item label="Thời gian bắt đầu">
-              <DatePicker
-                showTime
-                value={
-                  this.state.formValues.start
-                    ? dayjs(this.state.formValues.start)
-                    : null
-                }
-                onChange={(value) =>
-                  this.setState({
-                    formValues: { ...this.state.formValues, start: value },
-                  })
-                }
-              />
-            </Form.Item>
-            <Form.Item label="Thời gian kết thúc">
-              <DatePicker
-                showTime
-                value={
-                  this.state.formValues.end
-                    ? dayjs(this.state.formValues.end)
-                    : null
-                }
-                onChange={(value) =>
-                  this.setState({
-                    formValues: { ...this.state.formValues, end: value },
-                  })
-                }
-              />
-            </Form.Item>
-          </Form>
-        </Modal>
-        <AuthPatientModal
-          visible={this.state.showAuthModal}
-          onSuccess={(patientInfo) => {
-            localStorage.setItem("patientInfo", JSON.stringify(patientInfo));
-            this.setState({ showAuthModal: false });
-          }}
-          onClose={() => this.setState({ showAuthModal: false })}
-        />
+                  ))}
+                </div>
+              </Form.Item>
+              <Form.Item label="Tổng giá dịch vụ">
+                <Input
+                  value={`${this.state.totalPrice.toLocaleString()} đ`}
+                  disabled
+                  style={{ fontWeight: "bold", color: "#d4380d" }}
+                />
+              </Form.Item>
+              <Form.Item label="Thời gian bắt đầu">
+                <DatePicker
+                  showTime
+                  value={
+                    this.state.formValues.start
+                      ? dayjs(this.state.formValues.start)
+                      : null
+                  }
+                  onChange={(value) =>
+                    this.setState({
+                      formValues: { ...this.state.formValues, start: value },
+                    })
+                  }
+                />
+              </Form.Item>
+              <Form.Item label="Thời gian kết thúc">
+                <DatePicker
+                  showTime
+                  value={
+                    this.state.formValues.end
+                      ? dayjs(this.state.formValues.end)
+                      : null
+                  }
+                  onChange={(value) =>
+                    this.setState({
+                      formValues: { ...this.state.formValues, end: value },
+                    })
+                  }
+                />
+              </Form.Item>
+            </Form>
+          </Modal>
+          <AuthPatientModal
+            visible={this.state.showAuthModal}
+            onSuccess={(patientInfo) => {
+              localStorage.setItem("patientInfo", JSON.stringify(patientInfo));
+              this.setState({ showAuthModal: false });
+            }}
+            onClose={() => this.setState({ showAuthModal: false })}
+          />
+        </SiteLayout>
       </div>
     );
   }
   handleLogout = () => {
     localStorage.removeItem("patientInfo");
-    alert("Bạn đã đăng xuất thành công!");
+    message.info("Bạn đã đăng xuất thành công!");
     window.location.reload();
   };
   prevClick = async (schedulerData) => {
@@ -590,19 +634,36 @@ class Basic extends Component {
   };
 
   eventClicked = async (schedulerData, event) => {
-    if (!event.title.includes("pending")) {
-      alert("Chỉ có thể chỉnh sửa lịch hẹn ở trạng thái pending!");
+    if (!this.isLoggedIn()) {
+      this.setState({ showAuthModal: true });
       return;
     }
 
+    // fetch appointment details
     this.fetchServices();
-
+    let appt;
     try {
       const res = await axios.get(
         `http://localhost:3000/appointments/${event.id}`
       );
-      const appt = res.data.appointment || res.data;
+      appt = res.data.appointment || res.data;
+    } catch (err) {
+      console.error("❌ Lỗi khi lấy chi tiết lịch hẹn:", err);
+      message.error("Không thể tải chi tiết lịch hẹn!");
+      return;
+    }
 
+    // check ownership
+    const isOwner = this.isOwnerOf(appt) || this.isOwnerOf(event);
+    if (!isOwner) {
+      message.warning(
+        "Bạn không có quyền chỉnh sửa lịch hẹn của người khác. Nếu bạn muốn đặt, vui lòng tạo lịch mới."
+      );
+      return;
+    }
+
+    // proceed to open edit modal for owner (previous behavior)
+    try {
       let selectedServices = [];
       if (appt.services && appt.services.length > 0) {
         selectedServices = appt.services;
@@ -612,10 +673,7 @@ class Basic extends Component {
         );
       }
 
-      const totalPrice = selectedServices.reduce(
-        (sum, s) => sum + (s.price || 0),
-        0
-      );
+      const totalPrice = selectedServices.reduce((sum, s) => sum + (s.price || 0), 0);
 
       this.setState({
         editModalVisible: true,
@@ -629,19 +687,18 @@ class Basic extends Component {
         totalPrice,
       });
     } catch (err) {
-      console.error("❌ Lỗi khi lấy chi tiết lịch hẹn:", err);
-      alert("Không thể tải chi tiết lịch hẹn!");
+      console.error(err);
     }
   };
 
   ops1 = (schedulerData, event) => {
-    alert(
+    message.info(
       `You just executed ops1 to event: {id: ${event.id}, title: ${event.title}}`
     );
   };
 
   ops2 = (schedulerData, event) => {
-    alert(
+    message.info(
       `You just executed ops2 to event: {id: ${event.id}, title: ${event.title}}`
     );
   };
@@ -671,7 +728,7 @@ class Basic extends Component {
     }
 
     if (!title) {
-      alert("Vui lòng nhập tên lịch hẹn");
+      message.warning("Vui lòng nhập tên lịch hẹn");
       return;
     }
 
@@ -683,16 +740,17 @@ class Basic extends Component {
     const latestEnd = startTime.startOf("day").hour(22).minute(0);
 
     if (startTime.isBefore(earliest) || startTime.isAfter(latestStart)) {
-      alert("Giờ bắt đầu phải nằm trong khoảng 16:30 - 19:30!");
+      message.warning("Giờ bắt đầu phải nằm trong khoảng 16:30 - 19:30!");
       return;
     }
 
     if (endTime.isAfter(latestEnd)) {
-      alert("Giờ kết thúc không được quá 22:00!");
+      message.warning("Giờ kết thúc không được quá 22:00!");
       return;
     }
 
     try {
+      this.setState({ loading: true });
       const payload = {
         bedId: slotId,
         patientId: patientInfo._id,
@@ -720,16 +778,20 @@ class Basic extends Component {
         isEmergency: false,
       });
 
+      message.success("Tạo lịch hẹn thành công!");
       console.log("Appointment created successfully!");
     } catch (err) {
       console.error("Error creating appointment:", err);
-      alert("Tạo lịch hẹn thất bại. Vui lòng thử lại!");
+      message.error("Tạo lịch hẹn thất bại. Vui lòng thử lại!");
+    } finally {
+      this.setState({ loading: false });
     }
   };
 
   handleEditAppointment = async () => {
     const { selectedEvent, formValues } = this.state;
     try {
+      this.setState({ loading: true });
       const payload = {
         appointmentStartTime: dayjs(formValues.start).format(
           "YYYY-MM-DD HH:mm:ss"
@@ -757,10 +819,12 @@ class Basic extends Component {
         selectedEvent: null,
       });
 
-      alert("Cập nhật lịch hẹn thành công!");
+      message.success("Cập nhật lịch hẹn thành công!");
     } catch (error) {
       console.error("❌ Error editing appointment:", error);
-      alert("Không thể cập nhật lịch hẹn!");
+      message.error("Không thể cập nhật lịch hẹn!");
+    } finally {
+      this.setState({ loading: false });
     }
   };
 
@@ -769,6 +833,7 @@ class Basic extends Component {
     if (!window.confirm("Bạn có chắc muốn xóa lịch hẹn này không?")) return;
 
     try {
+      this.setState({ loading: true });
       await axios.delete(
         `http://localhost:3000/appointments/${selectedEvent.id}`
       );
@@ -783,14 +848,24 @@ class Basic extends Component {
         selectedEvent: null,
       });
 
-      alert("Đã xóa lịch hẹn thành công!");
+      message.success("Đã xóa lịch hẹn thành công!");
     } catch (error) {
       console.error("❌ Error deleting appointment:", error);
-      alert("Không thể xóa lịch hẹn!");
+      message.error("Không thể xóa lịch hẹn!");
+    } finally {
+      this.setState({ loading: false });
     }
   };
 
   moveEvent = async (schedulerData, event, slotId, slotName, start, end) => {
+    if (!this.isLoggedIn()) {
+      this.setState({ showAuthModal: true });
+      return;
+    }
+    if (!this.isOwnerOf(event)) {
+      message.warning("Bạn không thể di chuyển lịch hẹn của người khác.");
+      return;
+    }
     this.setState({ loading: true });
 
     const startTime = dayjs(start)
@@ -804,13 +879,13 @@ class Basic extends Component {
     const latestEnd = startTime.startOf("day").hour(22).minute(30);
 
     if (startTime.isBefore(earliest) || startTime.isAfter(latestStart)) {
-      alert("Giờ bắt đầu phải nằm trong khoảng 16:30 - 19:30!");
+      message.warning("Giờ bắt đầu phải nằm trong khoảng 16:30 - 19:30!");
       this.setState({ loading: false });
       return;
     }
 
     if (endTime.isAfter(latestEnd)) {
-      alert("Giờ kết thúc không được quá 22:00!");
+      message.warning("Giờ kết thúc không được quá 22:00!");
       this.setState({ loading: false });
       return;
     }
@@ -835,13 +910,22 @@ class Basic extends Component {
       this.setState({ viewModel: schedulerData });
     } catch (error) {
       console.error("❌ Move event error:", error);
-      alert("Không thể cập nhật lịch hẹn, vui lòng thử lại!");
+      message.error("Không thể cập nhật lịch hẹn, vui lòng thử lại!");
     } finally {
       this.setState({ loading: false });
     }
   };
 
   updateEventStart = async (schedulerData, event, newStart) => {
+    if (!this.isLoggedIn()) {
+      this.setState({ showAuthModal: true });
+      return;
+    }
+    if (!this.isOwnerOf(event)) {
+      message.warning("Bạn không thể chỉnh sửa thời gian của lịch hẹn của người khác.");
+      return;
+    }
+
     const startTime = dayjs(newStart)
       .tz("Asia/Ho_Chi_Minh")
       .second(0)
@@ -851,12 +935,13 @@ class Basic extends Component {
 
     if (startTime.isBefore(earliest) || startTime.isAfter(latestStart)) {
       this.setState({ loading: true });
-      alert("Giờ bắt đầu phải nằm trong khoảng 16:30 - 19:30!");
+      message.warning("Giờ bắt đầu phải nằm trong khoảng 16:30 - 19:30!");
       this.setState({ loading: false });
       return;
     }
 
     try {
+      this.setState({ loading: true });
       const payload = {
         appointmentStartTime: startTime.format("YYYY-MM-DD HH:mm:ss"),
       };
@@ -875,12 +960,23 @@ class Basic extends Component {
     } catch (error) {
       console.error("❌ Update start error:", error);
       this.setState({ loading: true });
-      alert("Không thể cập nhật thời gian bắt đầu!");
+      message.error("Không thể cập nhật thời gian bắt đầu!");
+      this.setState({ loading: false });
+    } finally {
       this.setState({ loading: false });
     }
   };
 
   updateEventEnd = async (schedulerData, event, newEnd) => {
+    if (!this.isLoggedIn()) {
+      this.setState({ showAuthModal: true });
+      return;
+    }
+    if (!this.isOwnerOf(event)) {
+      message.warning("Bạn không thể chỉnh sửa thời gian của lịch hẹn của người khác.");
+      return;
+    }
+
     const endTime = dayjs(newEnd)
       .tz("Asia/Ho_Chi_Minh")
       .second(0)
@@ -889,12 +985,13 @@ class Basic extends Component {
 
     if (endTime.isAfter(latestEnd)) {
       this.setState({ loading: true });
-      alert("Giờ kết thúc không được quá 22:00!");
+      message.warning("Giờ kết thúc không được quá 22:00!");
       this.setState({ loading: false });
       return;
     }
 
     try {
+      this.setState({ loading: true });
       const payload = {
         appointmentEndTime: endTime.format("YYYY-MM-DD HH:mm:ss"),
       };
@@ -912,7 +1009,9 @@ class Basic extends Component {
     } catch (error) {
       console.error("❌ Update end error:", error);
       this.setState({ loading: true });
-      alert("Không thể cập nhật thời gian kết thúc!");
+      message.error("Không thể cập nhật thời gian kết thúc!");
+      this.setState({ loading: false });
+    } finally {
       this.setState({ loading: false });
     }
   };
@@ -946,9 +1045,27 @@ class Basic extends Component {
   onScrollBottom = () => console.log("onScrollBottom");
 
   toggleExpandFunc = async (schedulerData, slotId) => {
+    if (!this.isLoggedIn()) {
+      this.setState({ showAuthModal: true });
+      return;
+    }
+    const patient =
+      this.state.patientInfo || JSON.parse(localStorage.getItem("patientInfo"));
+    const events = schedulerData.events || this.state.viewModel.events || [];
+    const hasOwnedInSlot = events.some(
+      (ev) =>
+        String(ev.resourceId) === String(slotId) &&
+        String(ev.ownerId) === String(patient._id)
+    );
+    if (!hasOwnedInSlot) {
+      message.warning(
+        "Bạn không có quyền mở/tắt phần này vì không có lịch hẹn thuộc về bạn ở mục này."
+      );
+      return;
+    }
+
     this.setState({ loading: true });
     schedulerData.toggleExpandStatus(slotId);
-
     try {
       this.setState({ viewModel: schedulerData });
       await this.fetchAppointmentsByRange(

@@ -23,6 +23,9 @@ import {
   ClockCircleOutlined,
   UserOutlined,
   HistoryOutlined,
+  SafetyOutlined,
+  CheckCircleOutlined,
+  WarningOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -39,12 +42,15 @@ const AppointmentDetail = () => {
   const [loading, setLoading] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [form] = Form.useForm();
+  const [verificationStatus, setVerificationStatus] = useState(null);
+  const [verifyLoading, setVerifyLoading] = useState(false);
 
   useEffect(() => {
     if (id) {
       fetchAppointmentDetail();
       fetchBeds();
       fetchServices();
+      verifyAppointment();
     }
   }, [id]);
 
@@ -80,6 +86,39 @@ const AppointmentDetail = () => {
       setAvailableServices(res.data.services || []);
     } catch (err) {
       console.error("❌ Lỗi khi lấy danh sách dịch vụ:", err);
+    }
+  };
+
+  const verifyAppointment = async () => {
+    setVerifyLoading(true);
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/appointments/${id}/verify`
+      );
+      console.log("response", response);
+
+      if(response.data.isPendingSavingToBlockchain) {
+        Modal.info({
+          title: "ℹ️ Thông tin",
+          content: "Dữ liệu lịch khám đang được xử lý và lưu trữ lên Blockchain sau khi bạn tạo và cập nhật.",})
+        return;
+      }
+      setVerificationStatus(response.data);
+
+      // Hiển thị cảnh báo nếu dữ liệu bị thay đổi trái phép
+      if (response.data.isValid === false) {
+        Modal.warning({
+          title: "⚠️ Cảnh báo bảo mật!",
+          content: "Dữ liệu lịch khám đã bị thay đổi trái phép!",
+          okText: "Đã hiểu",
+          width: 500,
+        });
+      }
+    } catch (error) {
+      console.error("Lỗi khi xác thực lịch khám:", error);
+      // Không hiển thị lỗi cho người dùng nếu API verify không khả dụng
+    } finally {
+      setVerifyLoading(false);
     }
   };
 
@@ -264,6 +303,52 @@ const AppointmentDetail = () => {
           </Button>
         </Space>
       </div>
+
+      {/* Verification Status Card */}
+      {verificationStatus && (
+        <Card
+          style={{ marginBottom: 20 }}
+          bordered={!verificationStatus.isValid}
+          styles={{
+            body: {
+              backgroundColor: verificationStatus.isValid
+                ? "#f6ffed"
+                : "#fff2e8",
+            },
+          }}
+        >
+          <Space direction="vertical" style={{ width: "100%" }} size="middle">
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Space>
+                <SafetyOutlined style={{ fontSize: "16px" }} />
+                <strong>Trạng thái xác thực Blockchain:</strong>
+                {verificationStatus.isValid ? (
+                  <Tag color="success" icon={<CheckCircleOutlined />}>
+                    Dữ liệu hợp lệ
+                  </Tag>
+                ) : (
+                  <Tag color="error" icon={<WarningOutlined />}>
+                    Dữ liệu bị thay đổi trái phép
+                  </Tag>
+                )}
+              </Space>
+              <Button
+                size="small"
+                loading={verifyLoading}
+                onClick={verifyAppointment}
+              >
+                Kiểm tra lại
+              </Button>
+            </div>
+          </Space>
+        </Card>
+      )}
 
       {/* Main Info Card */}
       <Card
