@@ -8,8 +8,20 @@
 /* eslint-disable react/no-string-refs */
 /* eslint-disable react/no-set-state */
 import React, { Component } from "react";
-import { Modal, Form, Input, DatePicker, Spin } from "antd";
+import {
+  Modal,
+  Form,
+  Input,
+  DatePicker,
+  Spin,
+  Select,
+  Radio,
+  message,
+  Skeleton,
+} from "antd";
 import { Scheduler, SchedulerData, ViewType, wrapperFun } from "../../../index";
+
+const { Option } = Select;
 import AuthPatientModal from "../../../components/AuthPatientmModal.jsx";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -59,6 +71,7 @@ class Basic extends Component {
     this.state = {
       viewModel: schedulerData,
       loading: true,
+      isLoadingModal : false,
       isModalVisible: false,
       formValues: {
         title: "",
@@ -74,13 +87,44 @@ class Basic extends Component {
       availableServices: [],
       selectedServices: [],
       totalPrice: 0,
+      // State cho ListView modal
+      beds: [],
+      existingPatients: [],
+      patientMode: "existing",
+      selectedPatientId: null,
+      newPatientForm: {
+        fullName: "",
+        phone: "",
+        gender: "male",
+      },
     };
+    this.form = React.createRef();
   }
 
   async componentDidMount() {
     const { viewModel } = this.state;
     await this.fetchAppointmentsByRange(viewModel.startDate, viewModel.endDate);
+    await this.fetchBeds();
+    await this.fetchExistingPatients();
   }
+
+  fetchBeds = async () => {
+    try {
+      const bedsRes = await axios.get("http://localhost:3000/beds");
+      this.setState({ beds: bedsRes.data.beds });
+    } catch (error) {
+      console.error("Không thể tải danh sách giường!", error);
+    }
+  };
+
+  fetchExistingPatients = async () => {
+    try {
+      const response = await axios.get("http://localhost:3000/patients");
+      this.setState({ existingPatients: response.data.patients || [] });
+    } catch (error) {
+      console.error("Error fetching patients:", error);
+    }
+  };
   fetchServices = async () => {
     try {
       const res = await axios.get(
@@ -213,26 +257,280 @@ class Basic extends Component {
           onScrollBottom={this.onScrollBottom}
           toggleExpandFunc={this.toggleExpandFunc}
         />
+        {/* Modal tạo lịch hẹn mới - từ ListView */}
         <Modal
-          title="Tạo lịch hẹn mới"
+          title="Thêm lịch khám mới"
           open={this.state.isModalVisible}
-          onCancel={() => this.setState({ isModalVisible: false })}
+          onCancel={() => {
+            this.setState({
+              isModalVisible: false,
+              patientMode: "existing",
+              selectedPatientId: null,
+              newPatientForm: { fullName: "", phone: "", gender: "male" },
+              selectedServices: [],
+              totalPrice: 0,
+            });
+          }}
           onOk={this.handleCreateEvent}
           okText="Lưu"
           cancelText="Hủy"
-          style={{ top: 20 }}
+          width={600}
         >
+          <Skeleton loading={this.state.isLoadingModal} active>
           <Form layout="vertical">
-            <Form.Item label="Tên bệnh nhân">
-              <Input value={this.state.patientInfo?.fullName || ""} disabled />
+            <Form.Item label="Loại bệnh nhân">
+              <Radio.Group
+                value={this.state.patientMode}
+                onChange={(e) => {
+                  this.setState({
+                    patientMode: e.target.value,
+                    selectedPatientId: null,
+                    newPatientForm: {
+                      fullName: "",
+                      phone: "",
+                      gender: "male",
+                    },
+                  });
+                }}
+              >
+                <Radio value="existing">Bệnh nhân có sẵn</Radio>
+                <Radio value="new">Bệnh nhân mới</Radio>
+              </Radio.Group>
             </Form.Item>
 
-            <Form.Item label="Số điện thoại">
-              <Input value={this.state.patientInfo?.phone || ""} disabled />
+            {this.state.patientMode === "existing" ? (
+              <>
+                <Form.Item label="Chọn bệnh nhân" required>
+                  <Select
+                    placeholder="Chọn bệnh nhân"
+                    value={this.state.selectedPatientId}
+                    onChange={(value) =>
+                      this.setState({ selectedPatientId: value })
+                    }
+                    showSearch
+                    optionFilterProp="children"
+                    filterOption={(input, option) =>
+                      option.children
+                        .toLowerCase()
+                        .indexOf(input.toLowerCase()) >= 0
+                    }
+                  >
+                    {this.state.existingPatients.map((patient) => (
+                      <Option key={patient._id} value={patient._id}>
+                        {patient.fullName} - {patient.phone}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+
+                {this.state.selectedPatientId && (
+                  <>
+                    <Form.Item label="Họ tên">
+                      <Input
+                        value={
+                          this.state.existingPatients.find(
+                            (p) => p._id === this.state.selectedPatientId
+                          )?.fullName || ""
+                        }
+                        disabled
+                      />
+                    </Form.Item>
+
+                    <Form.Item label="Số điện thoại">
+                      <Input
+                        value={
+                          this.state.existingPatients.find(
+                            (p) => p._id === this.state.selectedPatientId
+                          )?.phone || ""
+                        }
+                        disabled
+                      />
+                    </Form.Item>
+
+                    <Form.Item label="Ngày sinh">
+                      <Input
+                        value={
+                          this.state.existingPatients.find(
+                            (p) => p._id === this.state.selectedPatientId
+                          )?.dateOfBirth
+                            ? dayjs(
+                                this.state.existingPatients.find(
+                                  (p) => p._id === this.state.selectedPatientId
+                                )?.dateOfBirth
+                              ).format("DD/MM/YYYY")
+                            : ""
+                        }
+                        disabled
+                      />
+                    </Form.Item>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <Form.Item label="Họ tên" required>
+                  <Input
+                    value={this.state.newPatientForm.fullName}
+                    onChange={(e) =>
+                      this.setState({
+                        newPatientForm: {
+                          ...this.state.newPatientForm,
+                          fullName: e.target.value,
+                        },
+                      })
+                    }
+                    placeholder="Nhập họ tên bệnh nhân"
+                  />
+                </Form.Item>
+
+                <Form.Item label="Số điện thoại" required>
+                  <Input
+                    value={this.state.newPatientForm.phone}
+                    onChange={(e) =>
+                      this.setState({
+                        newPatientForm: {
+                          ...this.state.newPatientForm,
+                          phone: e.target.value,
+                        },
+                      })
+                    }
+                    placeholder="Nhập số điện thoại"
+                  />
+                </Form.Item>
+
+                <Form.Item label="Giới tính" required>
+                  <Select
+                    value={this.state.newPatientForm.gender}
+                    onChange={(value) =>
+                      this.setState({
+                        newPatientForm: {
+                          ...this.state.newPatientForm,
+                          gender: value,
+                        },
+                      })
+                    }
+                  >
+                    <Option value="male">Nam</Option>
+                    <Option value="female">Nữ</Option>
+                    <Option value="other">Khác</Option>
+                  </Select>
+                </Form.Item>
+              </>
+            )}
+
+            <Form.Item
+              label="Giường khám"
+              rules={[{ required: true, message: "Vui lòng chọn giường!" }]}
+            >
+              <Select
+                placeholder="Chọn giường khám"
+                value={this.state.tempEvent?.slotId}
+                disabled
+              >
+                {this.state.beds.map((bed) => (
+                  <Option key={bed._id} value={bed._id}>
+                    {bed.bedName} - {bed.department}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              label="Dịch vụ"
+              rules={[
+                {
+                  required: true,
+                  message: "Vui lòng chọn ít nhất một dịch vụ!",
+                },
+              ]}
+            >
+              <Select
+                mode="multiple"
+                placeholder="Chọn các dịch vụ"
+                value={this.state.selectedServices.map((s) => s._id)}
+                onChange={(selectedIds) => {
+                  const selected = this.state.availableServices.filter((svc) =>
+                    selectedIds.includes(svc._id)
+                  );
+                  const totalPrice = selected.reduce(
+                    (sum, s) => sum + (s.price || 0),
+                    0
+                  );
+                  this.setState({
+                    selectedServices: selected,
+                    totalPrice,
+                  });
+                }}
+                showSearch
+                optionFilterProp="children"
+                filterOption={(input, option) =>
+                  option.children.toLowerCase().indexOf(input.toLowerCase()) >=
+                  0
+                }
+              >
+                {this.state.availableServices.map((service) => (
+                  <Option key={service._id} value={service._id}>
+                    {service.name} - {service.price.toLocaleString("vi-VN")}đ (
+                    {service.duration} phút)
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            <Form.Item label="Tổng giá dịch vụ">
+              <Input
+                value={`${this.state.totalPrice.toLocaleString()} đ`}
+                disabled
+                style={{ fontWeight: "bold", color: "#d4380d" }}
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="Thời gian bắt đầu"
+              rules={[{ required: true, message: "Vui lòng chọn thời gian!" }]}
+            >
+              <DatePicker
+                showTime
+                format="DD/MM/YYYY HH:mm"
+                style={{ width: "100%" }}
+                value={
+                  this.state.formValues.start
+                    ? dayjs(this.state.formValues.start)
+                    : null
+                }
+                onChange={(value) =>
+                  this.setState({
+                    formValues: { ...this.state.formValues, start: value },
+                  })
+                }
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="Thời gian kết thúc"
+              rules={[{ required: true, message: "Vui lòng chọn thời gian!" }]}
+            >
+              <DatePicker
+                showTime
+                format="DD/MM/YYYY HH:mm"
+                style={{ width: "100%" }}
+                value={
+                  this.state.formValues.end
+                    ? dayjs(this.state.formValues.end)
+                    : null
+                }
+                onChange={(value) =>
+                  this.setState({
+                    formValues: { ...this.state.formValues, end: value },
+                  })
+                }
+              />
             </Form.Item>
 
             <Form.Item label="Ghi chú">
-              <Input
+              <Input.TextArea
+                rows={3}
+                placeholder="Nhập ghi chú..."
                 value={this.state.formValues.title}
                 onChange={(e) =>
                   this.setState({
@@ -242,254 +540,96 @@ class Basic extends Component {
                     },
                   })
                 }
-                placeholder="Nhập ghi chú (nếu có)"
-              />
-            </Form.Item>
-
-            <Form.Item>
-              <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <input
-                  type="checkbox"
-                  checked={this.state.isEmergency}
-                  onChange={(e) =>
-                    this.setState({ isEmergency: e.target.checked })
-                  }
-                />
-                <span>Lịch khẩn cấp</span>
-              </label>
-            </Form.Item>
-
-            <Form.Item label="Dịch vụ khám">
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {this.state.availableServices.map((svc) => {
-                  const isSelected = this.state.selectedServices.some(
-                    (s) => s._id === svc._id
-                  );
-                  return (
-                    <button
-                      key={svc._id}
-                      type="button"
-                      onClick={() => {
-                        if (isSelected) return;
-                        this.setState((prev) => ({
-                          selectedServices: [...prev.selectedServices, svc],
-                          totalPrice: prev.totalPrice + svc.price,
-                        }));
-                      }}
-                      style={{
-                        backgroundColor: isSelected ? "#52c41a" : "#f0f0f0",
-                        color: isSelected ? "#fff" : "#000",
-                        border: "1px solid #ccc",
-                        borderRadius: 6,
-                        padding: "4px 10px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {svc.name} ({svc.price.toLocaleString()}đ)
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div
-                style={{
-                  marginTop: 12,
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 8,
-                }}
-              >
-                {this.state.selectedServices.map((svc) => (
-                  <span
-                    key={svc._id}
-                    style={{
-                      background: "#1890ff",
-                      color: "white",
-                      padding: "4px 10px",
-                      borderRadius: 12,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                    }}
-                  >
-                    {svc.name}
-                    <span
-                      style={{
-                        background: "white",
-                        color: "#1890ff",
-                        borderRadius: "50%",
-                        width: 16,
-                        height: 16,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                        fontSize: 12,
-                        fontWeight: "bold",
-                      }}
-                      onClick={() => {
-                        this.setState((prev) => ({
-                          selectedServices: prev.selectedServices.filter(
-                            (s) => s._id !== svc._id
-                          ),
-                          totalPrice: prev.totalPrice - svc.price,
-                        }));
-                      }}
-                    >
-                      ×
-                    </span>
-                  </span>
-                ))}
-              </div>
-            </Form.Item>
-
-            <Form.Item label="Tổng giá dịch vụ">
-              <Input
-                value={`${this.state.totalPrice.toLocaleString()} đ`}
-                disabled
-                style={{ fontWeight: "bold", color: "#d4380d" }}
-              />
-            </Form.Item>
-
-            <Form.Item label="Thời gian bắt đầu">
-              <DatePicker
-                showTime
-                value={
-                  this.state.formValues.start
-                    ? dayjs(this.state.formValues.start)
-                    : null
-                }
-                onChange={(value) =>
-                  this.setState({
-                    formValues: { ...this.state.formValues, start: value },
-                  })
-                }
-              />
-            </Form.Item>
-
-            <Form.Item label="Thời gian kết thúc">
-              <DatePicker
-                showTime
-                value={
-                  this.state.formValues.end
-                    ? dayjs(this.state.formValues.end)
-                    : null
-                }
-                onChange={(value) =>
-                  this.setState({
-                    formValues: { ...this.state.formValues, end: value },
-                  })
-                }
               />
             </Form.Item>
           </Form>
+          </Skeleton>
         </Modal>
+        {/* Modal chỉnh sửa lịch hẹn - từ ListView */}
         <Modal
-          title="Chỉnh sửa lịch hẹn"
+          title="Chỉnh sửa lịch khám"
           open={this.state.editModalVisible}
-          onCancel={() => this.setState({ editModalVisible: false })}
+          onCancel={() => {
+            this.setState({
+              editModalVisible: false,
+              selectedServices: [],
+              totalPrice: 0,
+            });
+          }}
           onOk={this.handleEditAppointment}
           okText="Lưu"
           cancelText="Hủy"
-          style={{ top: 20 }}
+          width={600}
         >
-          <Form layout="vertical">
-            <Form.Item label="Ghi chú / tiêu đề">
+          <Skeleton loading={this.state.isLoadingModal} style={{minHeight: 300}} active>
+  <Form layout="vertical">
+            <Form.Item label="Tên bệnh nhân">
               <Input
-                value={this.state.formValues.title}
-                onChange={(e) =>
-                  this.setState({
-                    formValues: {
-                      ...this.state.formValues,
-                      title: e.target.value,
-                    },
-                  })
-                }
+                value={this.state.selectedEvent?.patientName || ""}
+                disabled
               />
             </Form.Item>
-            <Form.Item label="Dịch vụ khám">
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {this.state.availableServices.map((svc) => {
-                  const isSelected = this.state.selectedServices.some(
-                    (s) => s._id === svc._id
-                  );
-                  return (
-                    <button
-                      key={svc._id}
-                      type="button"
-                      onClick={() => {
-                        if (isSelected) return;
-                        this.setState((prev) => ({
-                          selectedServices: [...prev.selectedServices, svc],
-                          totalPrice: prev.totalPrice + svc.price,
-                        }));
-                      }}
-                      style={{
-                        backgroundColor: isSelected ? "#52c41a" : "#f0f0f0",
-                        color: isSelected ? "#fff" : "#000",
-                        border: "1px solid #ccc",
-                        borderRadius: 6,
-                        padding: "4px 10px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {svc.name} ({svc.price.toLocaleString()}đ)
-                    </button>
-                  );
-                })}
-              </div>
 
-              <div
-                style={{
-                  marginTop: 12,
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 8,
-                }}
-              >
-                {this.state.selectedServices.map((svc) => (
-                  <span
-                    key={svc._id}
-                    style={{
-                      background: "#1890ff",
-                      color: "white",
-                      padding: "4px 10px",
-                      borderRadius: 12,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                    }}
-                  >
-                    {svc.name}
-                    <span
-                      style={{
-                        background: "white",
-                        color: "#1890ff",
-                        borderRadius: "50%",
-                        width: 16,
-                        height: 16,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                        fontSize: 12,
-                        fontWeight: "bold",
-                      }}
-                      onClick={() => {
-                        this.setState((prev) => ({
-                          selectedServices: prev.selectedServices.filter(
-                            (s) => s._id !== svc._id
-                          ),
-                          totalPrice: prev.totalPrice - svc.price,
-                        }));
-                      }}
-                    >
-                      ×
-                    </span>
-                  </span>
-                ))}
-              </div>
+            <Form.Item label="Số điện thoại">
+              <Input value={this.state.selectedEvent?.phone || ""} disabled />
             </Form.Item>
+
+            <Form.Item label="Giường khám">
+              <Select
+                placeholder="Chọn giường khám"
+                value={this.state.selectedEvent?.resourceId}
+                disabled
+              >
+                {this.state.beds.map((bed) => (
+                  <Option key={bed._id} value={bed._id}>
+                    {bed.bedName} - {bed.department}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              label="Dịch vụ"
+              rules={[
+                {
+                  required: true,
+                  message: "Vui lòng chọn ít nhất một dịch vụ!",
+                },
+              ]}
+            >
+              <Select
+                mode="multiple"
+                placeholder="Chọn các dịch vụ"
+                value={this.state.selectedServices.map((s) => s._id)}
+                onChange={(selectedIds) => {
+                  const selected = this.state.availableServices.filter((svc) =>
+                    selectedIds.includes(svc._id)
+                  );
+                  const totalPrice = selected.reduce(
+                    (sum, s) => sum + (s.price || 0),
+                    0
+                  );
+                  this.setState({
+                    selectedServices: selected,
+                    totalPrice,
+                  });
+                }}
+                showSearch
+                optionFilterProp="children"
+                filterOption={(input, option) =>
+                  option.children.toLowerCase().indexOf(input.toLowerCase()) >=
+                  0
+                }
+              >
+                {this.state.availableServices.map((service) => (
+                  <Option key={service._id} value={service._id}>
+                    {service.name} - {service.price.toLocaleString("vi-VN")}đ (
+                    {service.duration} phút)
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+
             <Form.Item label="Tổng giá dịch vụ">
               <Input
                 value={`${this.state.totalPrice.toLocaleString()} đ`}
@@ -497,9 +637,15 @@ class Basic extends Component {
                 style={{ fontWeight: "bold", color: "#d4380d" }}
               />
             </Form.Item>
-            <Form.Item label="Thời gian bắt đầu">
+
+            <Form.Item
+              label="Thời gian bắt đầu"
+              rules={[{ required: true, message: "Vui lòng chọn thời gian!" }]}
+            >
               <DatePicker
                 showTime
+                format="DD/MM/YYYY HH:mm"
+                style={{ width: "100%" }}
                 value={
                   this.state.formValues.start
                     ? dayjs(this.state.formValues.start)
@@ -512,9 +658,15 @@ class Basic extends Component {
                 }
               />
             </Form.Item>
-            <Form.Item label="Thời gian kết thúc">
+
+            <Form.Item
+              label="Thời gian kết thúc"
+              rules={[{ required: true, message: "Vui lòng chọn thời gian!" }]}
+            >
               <DatePicker
                 showTime
+                format="DD/MM/YYYY HH:mm"
+                style={{ width: "100%" }}
                 value={
                   this.state.formValues.end
                     ? dayjs(this.state.formValues.end)
@@ -527,7 +679,25 @@ class Basic extends Component {
                 }
               />
             </Form.Item>
+
+            <Form.Item label="Ghi chú">
+              <Input.TextArea
+                rows={3}
+                placeholder="Nhập ghi chú..."
+                value={this.state.formValues.title}
+                onChange={(e) =>
+                  this.setState({
+                    formValues: {
+                      ...this.state.formValues,
+                      title: e.target.value,
+                    },
+                  })
+                }
+              />
+            </Form.Item>
           </Form>
+          </Skeleton>
+        
         </Modal>
         <AuthPatientModal
           visible={this.state.showAuthModal}
@@ -592,12 +762,12 @@ class Basic extends Component {
 
   eventClicked = async (schedulerData, event) => {
     if (!event.title.includes("pending")) {
-      alert("Chỉ có thể chỉnh sửa lịch hẹn ở trạng thái pending!");
+      message.warning("Chỉ có thể chỉnh sửa lịch hẹn ở trạng thái pending!");
       return;
     }
 
-    this.setState({ loading: true });
-    this.fetchServices();
+    this.setState({ isLoadingModal : true, editModalVisible: true });
+    await this.fetchServices();
 
     try {
       const res = await axios.get(
@@ -619,9 +789,16 @@ class Basic extends Component {
         0
       );
 
+      // Thêm thông tin bệnh nhân vào selectedEvent
+      const eventWithPatientInfo = {
+        ...event,
+        patientName: appt.patient?.[0]?.fullName || "Không rõ",
+        phone: appt.patient?.[0]?.phone || "",
+      };
+
       this.setState({
-        editModalVisible: true,
-        selectedEvent: event,
+        isLoadingModal : false,
+        selectedEvent: eventWithPatientInfo,
         formValues: {
           title: appt.note || event.title.split(" - ")[0],
           start: dayjs(appt.appointmentStartTime),
@@ -632,7 +809,7 @@ class Basic extends Component {
       });
     } catch (err) {
       console.error("❌ Lỗi khi lấy chi tiết lịch hẹn:", err);
-      alert("Không thể tải chi tiết lịch hẹn!");
+      message.error("Không thể tải chi tiết lịch hẹn!");
     } finally {
       this.setState({ loading: false });
     }
@@ -651,63 +828,109 @@ class Basic extends Component {
   };
 
   newEvent = (schedulerData, slotId, slotName, start, end) => {
-    const { patientInfo } = this.state;
-    if (!patientInfo) {
-      this.setState({ showAuthModal: true });
-      return;
-    }
     this.fetchServices();
     this.setState({
       isModalVisible: true,
       tempEvent: { schedulerData, slotId, slotName, start, end },
       formValues: { title: "", start, end },
+      patientMode: "existing",
+      selectedPatientId: null,
+      newPatientForm: { fullName: "", phone: "", gender: "male" },
+      selectedServices: [],
+      totalPrice: 0,
     });
   };
 
   handleCreateEvent = async () => {
-    const { tempEvent, formValues, patientInfo } = this.state;
+    const {
+      tempEvent,
+      formValues,
+      patientMode,
+      selectedPatientId,
+      newPatientForm,
+      selectedServices,
+    } = this.state;
     const { schedulerData, slotId, start, end } = tempEvent;
 
-    const title = formValues.title.trim();
-    if (!patientInfo) {
-      this.setState({ showAuthModal: true });
-      return;
-    }
-
-    if (!title) {
-      alert("Vui lòng nhập tên lịch hẹn");
-      return;
-    }
-
-    const startTime = dayjs(formValues.start || start);
-    const endTime = dayjs(formValues.end || end);
-
-    const earliest = startTime.startOf("day").hour(16).minute(30);
-    const latestStart = startTime.startOf("day").hour(19).minute(30);
-    const latestEnd = startTime.startOf("day").hour(22).minute(0);
-
-    if (startTime.isBefore(earliest) || startTime.isAfter(latestStart)) {
-      alert("Giờ bắt đầu phải nằm trong khoảng 16:30 - 19:30!");
-      return;
-    }
-
-    if (endTime.isAfter(latestEnd)) {
-      alert("Giờ kết thúc không được quá 22:00!");
-      return;
-    }
-
     try {
+      let patientId = null;
+
+      // Xử lý bệnh nhân
+      if (patientMode === "existing") {
+        if (!selectedPatientId) {
+          message.error("Vui lòng chọn bệnh nhân!");
+          return;
+        }
+        patientId = selectedPatientId;
+      } else {
+        // Mode new patient - validate and create
+        if (
+          !newPatientForm.fullName.trim() ||
+          !newPatientForm.phone.trim() ||
+          !newPatientForm.gender
+        ) {
+          message.error("Vui lòng điền đầy đủ thông tin bệnh nhân!");
+          return;
+        }
+
+        // Create new patient first
+        try {
+          const createPatientResponse = await axios.post(
+            "http://localhost:3000/patients",
+            {
+              fullName: newPatientForm.fullName.trim(),
+              phone: newPatientForm.phone.trim(),
+              gender: newPatientForm.gender,
+            }
+          );
+          patientId = createPatientResponse.data.patient_id;
+          console.log("✅ New patient created:", patientId);
+
+          // Refresh patient list
+          await this.fetchExistingPatients();
+        } catch (err) {
+          console.error("Error creating patient:", err);
+          message.error(
+            "Không thể tạo bệnh nhân mới. " +
+              (err.response?.data?.message || "Vui lòng thử lại!")
+          );
+          return;
+        }
+      }
+
+      // Validate services
+      if (!selectedServices || selectedServices.length === 0) {
+        message.error("Vui lòng chọn ít nhất một dịch vụ!");
+        return;
+      }
+
+      const startTime = dayjs(formValues.start || start);
+      const endTime = dayjs(formValues.end || end);
+
+      const earliest = startTime.startOf("day").hour(16).minute(30);
+      const latestStart = startTime.startOf("day").hour(19).minute(30);
+      const latestEnd = startTime.startOf("day").hour(22).minute(0);
+
+      if (startTime.isBefore(earliest) || startTime.isAfter(latestStart)) {
+        message.error("Giờ bắt đầu phải nằm trong khoảng 16:30 - 19:30!");
+        return;
+      }
+
+      if (endTime.isAfter(latestEnd)) {
+        message.error("Giờ kết thúc không được quá 22:00!");
+        return;
+      }
+
       const payload = {
         bedId: slotId,
-        patientId: patientInfo._id,
+        patientId: patientId,
         doctorId: "655f8c123456789012345679",
-        serviceIds: this.state.selectedServices.map((s) => s._id),
+        serviceIds: selectedServices.map((s) => s._id),
         appointmentStartTime: startTime.format("YYYY-MM-DD HH:mm:ss"),
         appointmentEndTime: endTime.format("YYYY-MM-DD HH:mm:ss"),
-        note: `${title} | Dịch vụ: ${this.state.selectedServices
-          .map((s) => s.name)
-          .join(", ")}`,
-        isEmergency: this.state.isEmergency,
+        status: "pending",
+        note: formValues.title || "",
+        isCheckout: false,
       };
 
       await axios.post("http://localhost:3000/appointments", payload);
@@ -721,18 +944,29 @@ class Basic extends Component {
         isModalVisible: false,
         tempEvent: null,
         formValues: { title: "", start: null, end: null },
-        isEmergency: false,
+        patientMode: "existing",
+        selectedPatientId: null,
+        newPatientForm: { fullName: "", phone: "", gender: "male" },
+        selectedServices: [],
+        totalPrice: 0,
       });
 
-      console.log("Appointment created successfully!");
+      message.success("Đã tạo lịch khám mới!");
     } catch (err) {
       console.error("Error creating appointment:", err);
-      alert("Tạo lịch hẹn thất bại. Vui lòng thử lại!");
+      message.error("Có lỗi xảy ra!");
     }
   };
 
   handleEditAppointment = async () => {
-    const { selectedEvent, formValues } = this.state;
+    const { selectedEvent, formValues, selectedServices } = this.state;
+
+    // Validate services
+    if (!selectedServices || selectedServices.length === 0) {
+      message.error("Vui lòng chọn ít nhất một dịch vụ!");
+      return;
+    }
+
     try {
       const payload = {
         appointmentStartTime: dayjs(formValues.start).format(
@@ -740,7 +974,7 @@ class Basic extends Component {
         ),
         appointmentEndTime: dayjs(formValues.end).format("YYYY-MM-DD HH:mm:ss"),
         note: formValues.title,
-        serviceIds: this.state.selectedServices.map((s) => s._id),
+        serviceIds: selectedServices.map((s) => s._id),
       };
 
       console.log("Edit payload:", payload);
@@ -759,12 +993,14 @@ class Basic extends Component {
       this.setState({
         editModalVisible: false,
         selectedEvent: null,
+        selectedServices: [],
+        totalPrice: 0,
       });
 
-      alert("Cập nhật lịch hẹn thành công!");
+      message.success("Đã cập nhật lịch khám!");
     } catch (error) {
       console.error("❌ Error editing appointment:", error);
-      alert("Không thể cập nhật lịch hẹn!");
+      message.error("Có lỗi xảy ra!");
     }
   };
 
