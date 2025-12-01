@@ -11,6 +11,7 @@ import {
   Space,
   Spin,
   Tabs,
+  Input,
 } from "antd";
 import {
   CalendarOutlined,
@@ -21,14 +22,18 @@ import {
   HomeOutlined,
   DollarOutlined,
   WalletOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import dayjs from "dayjs";
 import { Column } from "@ant-design/plots";
+import { useNavigate } from "react-router-dom";
+
 
 const { RangePicker } = DatePicker;
 
 const Statistics = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [beds, setBeds] = useState([]);
@@ -37,6 +42,8 @@ const Statistics = () => {
     dayjs().startOf("month"),
     dayjs().endOf("month"),
   ]);
+  const [paidSearchText, setPaidSearchText] = useState("");
+  const [unpaidSearchText, setUnpaidSearchText] = useState("");
 
   useEffect(() => {
     fetchData();
@@ -158,14 +165,36 @@ const Statistics = () => {
     });
 
   // Prepare appointment tables data
-  const paidAppointments = appointments.filter((a) => a.isCheckout);
-  const unpaidAppointments = appointments.filter((a) => !a.isCheckout);
+  const paidAppointments = appointments
+    .filter((a) => a.isCheckout)
+    .filter((a) => {
+      if (!paidSearchText) return true;
+      const patientName = a.patient?.[0]?.fullName || "";
+      return patientName.toLowerCase().includes(paidSearchText.toLowerCase());
+    });
+
+  console.log("paidAppointments", paidAppointments);
+
+  const unpaidAppointments = appointments
+    .filter((a) => !a.isCheckout)
+    .filter((a) => {
+      if (!unpaidSearchText) return true;
+      const patientName = a.patient?.[0]?.fullName || "";
+      return patientName.toLowerCase().includes(unpaidSearchText.toLowerCase());
+    });
 
   const appointmentColumns = [
     {
+      title: "STT",
+      dataIndex: "STT",
+      key: "index",
+      render: (_, __, index) => index + 1,
+    },
+    {
       title: "Bệnh nhân",
-      dataIndex: "patientName",
+      dataIndex: "patient",
       key: "patientName",
+      render: (patient) => patient?.[0]?.fullName || "-",
     },
     {
       title: "Giường",
@@ -177,9 +206,15 @@ const Statistics = () => {
       },
     },
     {
-      title: "Thời gian",
+      title: "Thời gian bắt đầu",
       dataIndex: "appointmentStartTime",
       key: "appointmentStartTime",
+      render: (time) => dayjs(time).format("DD/MM/YYYY HH:mm"),
+    },
+    {
+      title: "Thời gian kết thúc",
+      dataIndex: "appointmentEndTime",
+      key: "appointmentEndTime",
       render: (time) => dayjs(time).format("DD/MM/YYYY HH:mm"),
     },
     {
@@ -201,6 +236,12 @@ const Statistics = () => {
         };
         return <Tag color={colors[status]}>{labels[status]}</Tag>;
       },
+    },
+    {
+      title: "Ghi chú",
+      dataIndex: "note",
+      key: "note",
+      render: (note) => note || "-",
     },
     {
       title: "Số tiền",
@@ -431,32 +472,72 @@ const Statistics = () => {
                   key: "paid",
                   label: `Đã thanh toán (${paidAppointments.length})`,
                   children: (
-                    <Table
-                      columns={appointmentColumns}
-                      dataSource={paidAppointments}
-                      rowKey="_id"
-                      pagination={{
-                        pageSize: 10,
-                        showTotal: (total) => `Tổng ${total} lịch khám`,
-                      }}
-                      scroll={{ x: 800 }}
-                    />
+                    <div>
+                      <Space style={{ marginBottom: 16 }}>
+                        <Input
+                          placeholder="Tìm kiếm bệnh nhân..."
+                          prefix={<SearchOutlined />}
+                          value={paidSearchText}
+                          onChange={(e) => setPaidSearchText(e.target.value)}
+                          style={{ width: 250 }}
+                          allowClear
+                        />
+                      </Space>
+                      <Table
+                        columns={appointmentColumns}
+                        dataSource={paidAppointments}
+                        rowKey="_id"
+                        onRow={(record) => ({
+                          onClick: () => {
+                            navigate(`/admin/appointment/${record._id}`);
+                          },
+                          style: { cursor: "pointer" },
+                        })}
+                        pagination={{
+                          pageSize: 10,
+                          showTotal: (total) => `Tổng ${total} lịch khám`,
+                          showSizeChanger: true,
+                          pageSizeOptions: ["5", "10", "20", "50"],
+                        }}
+                        scroll={{ x: 800 }}
+                      />
+                    </div>
                   ),
                 },
                 {
                   key: "unpaid",
                   label: `Chưa thanh toán (${unpaidAppointments.length})`,
                   children: (
-                    <Table
-                      columns={appointmentColumns}
-                      dataSource={unpaidAppointments}
-                      rowKey="_id"
-                      pagination={{
-                        pageSize: 10,
-                        showTotal: (total) => `Tổng ${total} lịch khám`,
-                      }}
-                      scroll={{ x: 800 }}
-                    />
+                    <div>
+                      <Space style={{ marginBottom: 16 }}>
+                        <Input
+                          placeholder="Tìm kiếm bệnh nhân..."
+                          prefix={<SearchOutlined />}
+                          value={unpaidSearchText}
+                          onChange={(e) => setUnpaidSearchText(e.target.value)}
+                          style={{ width: 250 }}
+                          allowClear
+                        />
+                      </Space>
+                      <Table
+                        columns={appointmentColumns}
+                        dataSource={unpaidAppointments}
+                        onRow={(record) => ({
+                          onClick: () => {
+                            navigate(`/admin/appointment/${record._id}`);
+                          },
+                          style: { cursor: "pointer" },
+                        })}
+                        rowKey="_id"
+                        pagination={{
+                          pageSize: 10,
+                          showTotal: (total) => `Tổng ${total} lịch khám`,
+                          showSizeChanger: true,
+                          pageSizeOptions: ["5", "10", "20", "50"],
+                        }}
+                        scroll={{ x: 800 }}
+                      />
+                    </div>
                   ),
                 },
               ]}

@@ -1,37 +1,18 @@
 /* eslint-disable */
 import React, { useState, useEffect } from "react";
-import {
-  Card,
-  Descriptions,
-  Tag,
-  Button,
-  Space,
-  Timeline,
-  Modal,
-  Form,
-  Input,
-  DatePicker,
-  Select,
-  message,
-  Spin,
-  Divider,
-} from "antd";
+import { Button, Space, Modal, Form, message, Spin } from "antd";
 import {
   EditOutlined,
   DeleteOutlined,
   ArrowLeftOutlined,
-  ClockCircleOutlined,
-  UserOutlined,
-  HistoryOutlined,
-  SafetyOutlined,
-  CheckCircleOutlined,
-  WarningOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import dayjs from "dayjs";
 import { useParams, useNavigate } from "react-router-dom";
-
-const { Option } = Select;
+import VerificationCard from "./components/VerificationCard.jsx";
+import AppointmentInfoCard from "./components/AppointmentInfoCard.jsx";
+import AppointmentHistoryCard from "./components/AppointmentHistoryCard.jsx";
+import EditAppointmentDetailModal from "./components/EditAppointmentDetailModal.jsx";
 
 const AppointmentDetail = () => {
   const { id } = useParams();
@@ -60,6 +41,8 @@ const AppointmentDetail = () => {
       const response = await axios.get(
         `http://localhost:3000/appointments/${id}`
       );
+
+      console.log("response 123", response.data.appointment)
       setAppointment(response.data.appointment);
     } catch (error) {
       message.error("Không thể tải thông tin lịch khám!");
@@ -97,10 +80,12 @@ const AppointmentDetail = () => {
       );
       console.log("response", response);
 
-      if(response.data.isPendingSavingToBlockchain) {
+      if (response.data.isPendingSavingToBlockchain) {
         Modal.info({
           title: "ℹ️ Thông tin",
-          content: "Dữ liệu lịch khám đang được xử lý và lưu trữ lên Blockchain sau khi bạn tạo và cập nhật.",})
+          content:
+            "Dữ liệu lịch khám đang được xử lý và lưu trữ lên Blockchain sau khi bạn tạo và cập nhật.",
+        });
         return;
       }
       setVerificationStatus(response.data);
@@ -305,291 +290,41 @@ const AppointmentDetail = () => {
       </div>
 
       {/* Verification Status Card */}
-      {verificationStatus && (
-        <Card
-          style={{ marginBottom: 20 }}
-          bordered={!verificationStatus.isValid}
-          styles={{
-            body: {
-              backgroundColor: verificationStatus.isValid
-                ? "#f6ffed"
-                : "#fff2e8",
-            },
-          }}
-        >
-          <Space direction="vertical" style={{ width: "100%" }} size="middle">
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Space>
-                <SafetyOutlined style={{ fontSize: "16px" }} />
-                <strong>Trạng thái xác thực Blockchain:</strong>
-                {verificationStatus.isValid ? (
-                  <Tag color="success" icon={<CheckCircleOutlined />}>
-                    Dữ liệu hợp lệ
-                  </Tag>
-                ) : (
-                  <Tag color="error" icon={<WarningOutlined />}>
-                    Dữ liệu bị thay đổi trái phép
-                  </Tag>
-                )}
-              </Space>
-              <Button
-                size="small"
-                loading={verifyLoading}
-                onClick={verifyAppointment}
-              >
-                Kiểm tra lại
-              </Button>
-            </div>
-          </Space>
-        </Card>
-      )}
+      <VerificationCard
+        verificationStatus={verificationStatus}
+        verifyLoading={verifyLoading}
+        onVerify={verifyAppointment}
+      />
 
       {/* Main Info Card */}
-      <Card
-        title={
-          <Space>
-            <UserOutlined />
-            <span>Thông tin lịch khám</span>
-          </Space>
-        }
-        style={{ marginBottom: 20 }}
-      >
-        <Descriptions bordered column={2}>
-          <Descriptions.Item label="Mã lịch khám" span={2}>
-            {appointment._id}
-          </Descriptions.Item>
-
-          <Descriptions.Item label="Bệnh nhân">
-            {patient.fullName || "Không rõ"}
-          </Descriptions.Item>
-
-          <Descriptions.Item label="Số điện thoại">
-            {patient.phone || "Không có"}
-          </Descriptions.Item>
-
-          <Descriptions.Item label="Ngày sinh">
-            {patient.dateOfBirth
-              ? dayjs(patient.dateOfBirth).format("DD/MM/YYYY")
-              : "Không có"}
-          </Descriptions.Item>
-
-          <Descriptions.Item label="Giới tính">
-            {patient.gender === "male"
-              ? "Nam"
-              : patient.gender === "female"
-              ? "Nữ"
-              : "Khác"}
-          </Descriptions.Item>
-
-          <Descriptions.Item label="Giường khám">
-            {bed ? `${bed.bedName} - ${bed.department}` : appointment.bedId}
-          </Descriptions.Item>
-
-          <Descriptions.Item label="Trạng thái">
-            <Tag color={getStatusColor(appointment.status)}>
-              {getStatusText(appointment.status)}
-            </Tag>
-          </Descriptions.Item>
-
-          <Descriptions.Item label="Thời gian bắt đầu">
-            <Space>
-              <ClockCircleOutlined />
-              {dayjs(appointment.appointmentStartTime).format(
-                "DD/MM/YYYY HH:mm"
-              )}
-            </Space>
-          </Descriptions.Item>
-
-          <Descriptions.Item label="Thời gian kết thúc">
-            <Space>
-              <ClockCircleOutlined />
-              {dayjs(appointment.appointmentEndTime).format("DD/MM/YYYY HH:mm")}
-            </Space>
-          </Descriptions.Item>
-
-          <Descriptions.Item label="Dịch vụ" span={2}>
-            {appointment.serviceIds && appointment.serviceIds.length > 0 ? (
-              <Space wrap>
-                {appointment.serviceIds.map((serviceId) => {
-                  const service = availableServices.find(
-                    (s) => s._id === serviceId
-                  );
-                  return service ? (
-                    <Tag key={serviceId} color="blue">
-                      {service.name} - {service.price.toLocaleString("vi-VN")}đ
-                    </Tag>
-                  ) : (
-                    <Tag key={serviceId}>{serviceId}</Tag>
-                  );
-                })}
-              </Space>
-            ) : (
-              "Không có dịch vụ"
-            )}
-          </Descriptions.Item>
-
-          <Descriptions.Item label="Đã thanh toán">
-            <Tag color={appointment.isCheckout ? "green" : "red"}>
-              {appointment.isCheckout ? "Đã thanh toán" : "Chưa thanh toán"}
-            </Tag>
-          </Descriptions.Item>
-
-          <Descriptions.Item label="Ghi chú" span={2}>
-            {appointment.note || "Không có ghi chú"}
-          </Descriptions.Item>
-        </Descriptions>
-      </Card>
+      <AppointmentInfoCard
+        appointment={appointment}
+        patient={patient}
+        bed={bed}
+        availableServices={availableServices}
+        getStatusColor={getStatusColor}
+        getStatusText={getStatusText}
+      />
 
       {/* History Card */}
-      <Card
-        title={
-          <Space>
-            <HistoryOutlined />
-            <span>Lịch sử thay đổi</span>
-          </Space>
-        }
-      >
-        {appointment.history && appointment.history.length > 0 ? (
-          <Timeline
-            items={appointment.history.map((item, index) => ({
-              color: getActionColor(item.action),
-              children: (
-                <div key={index}>
-                  <Space
-                    direction="vertical"
-                    size="small"
-                    style={{ width: "100%" }}
-                  >
-                    <Space>
-                      <Tag color={getActionColor(item.action)}>
-                        {getActionText(item.action)}
-                      </Tag>
-                      <span style={{ color: "#999" }}>
-                        {dayjs(item.timestamp).format("DD/MM/YYYY HH:mm:ss")}
-                      </span>
-                    </Space>
-                    <div>
-                      <strong>Người thực hiện:</strong> {item.by || "System"}
-                    </div>
-                    <div>
-                      <strong>Chi tiết:</strong> {item.details || "Không có"}
-                    </div>
-                  </Space>
-                </div>
-              ),
-            }))}
-          />
-        ) : (
-          <p style={{ color: "#999", textAlign: "center", padding: "20px" }}>
-            Chưa có lịch sử thay đổi
-          </p>
-        )}
-      </Card>
+      <AppointmentHistoryCard
+        history={appointment.history}
+        getActionText={getActionText}
+        getActionColor={getActionColor}
+      />
 
       {/* Edit Modal */}
-      <Modal
-        title="Chỉnh sửa lịch khám"
-        open={isEditModalVisible}
+      <EditAppointmentDetailModal
+        visible={isEditModalVisible}
+        form={form}
         onCancel={() => {
           setIsEditModalVisible(false);
           form.resetFields();
         }}
-        onOk={() => form.submit()}
-        okText="Cập nhật"
-        cancelText="Hủy"
-        width={600}
-      >
-        <Form form={form} layout="vertical" onFinish={handleUpdate}>
-          <Form.Item
-            name="bedId"
-            label="Giường khám"
-            rules={[{ required: true, message: "Vui lòng chọn giường!" }]}
-          >
-            <Select placeholder="Chọn giường khám">
-              {beds.map((bed) => (
-                <Option key={bed._id} value={bed._id}>
-                  {bed.bedName} - {bed.department}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="serviceIds"
-            label="Dịch vụ"
-            rules={[
-              { required: true, message: "Vui lòng chọn ít nhất một dịch vụ!" },
-            ]}
-          >
-            <Select
-              mode="multiple"
-              placeholder="Chọn các dịch vụ"
-              showSearch
-              optionFilterProp="children"
-              filterOption={(input, option) =>
-                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-              }
-            >
-              {availableServices.map((service) => (
-                <Option key={service._id} value={service._id}>
-                  {service.name} - {service.price.toLocaleString("vi-VN")}đ (
-                  {service.duration} phút)
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="appointmentStartTime"
-            label="Thời gian bắt đầu"
-            rules={[{ required: true, message: "Vui lòng chọn thời gian!" }]}
-          >
-            <DatePicker
-              showTime
-              format="DD/MM/YYYY HH:mm"
-              style={{ width: "100%" }}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="appointmentEndTime"
-            label="Thời gian kết thúc"
-            rules={[{ required: true, message: "Vui lòng chọn thời gian!" }]}
-          >
-            <DatePicker
-              showTime
-              format="DD/MM/YYYY HH:mm"
-              style={{ width: "100%" }}
-            />
-          </Form.Item>
-
-          <Form.Item name="status" label="Trạng thái">
-            <Select>
-              <Option value="pending">Chờ xác nhận</Option>
-              <Option value="confirmed">Đã xác nhận</Option>
-              <Option value="cancelled">Đã hủy</Option>
-              <Option value="completed">Hoàn thành</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item name="note" label="Ghi chú">
-            <Input.TextArea rows={3} placeholder="Nhập ghi chú..." />
-          </Form.Item>
-
-          <Form.Item name="isCheckout" label="Đã thanh toán">
-            <Select>
-              <Option value={true}>Có</Option>
-              <Option value={false}>Không</Option>
-            </Select>
-          </Form.Item>
-        </Form>
-      </Modal>
+        onSubmit={handleUpdate}
+        beds={beds}
+        availableServices={availableServices}
+      />
     </div>
   );
 };

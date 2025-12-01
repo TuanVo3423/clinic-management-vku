@@ -47,6 +47,10 @@ const Notification = () => {
     fetchNotifications();
   }, []);
 
+  useEffect(() => {
+    console.log("notificationsUnRead ahaha", notificationsUnRead);
+  }, [notificationsUnRead])
+
   const handleMaskReadNotification = async (notificationId) => {
     try {
       await axios.patch(`http://localhost:3000/notifications/${notificationId}/read`, null, {
@@ -62,7 +66,6 @@ const Notification = () => {
 
   const fetchNotificationUnread = async () => {
     try {
-      console.log("cc tao")
       const res = await axios.get(`http://localhost:3000/notifications/status/false`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,

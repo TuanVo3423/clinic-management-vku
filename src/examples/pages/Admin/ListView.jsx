@@ -31,6 +31,7 @@ import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 
 const { Option } = Select;
+const { RangePicker } = DatePicker;
 
 // Appointment Status Enum
 const AppointmentStatus = {
@@ -52,6 +53,11 @@ const ListView = () => {
   const [activeTab, setActiveTab] = useState(AppointmentStatus.All);
   const [searchText, setSearchText] = useState("");
   const [availableServices, setAvailableServices] = useState([]);
+  const [dateRange, setDateRange] = useState([
+    dayjs().subtract(30, "day"),
+    dayjs().add(30, "day"),
+  ]);
+  const [pageSize, setPageSize] = useState(10);
 
   // New patient mode states
   const [patientMode, setPatientMode] = useState("existing");
@@ -71,7 +77,7 @@ const ListView = () => {
 
   useEffect(() => {
     fetchAppointmentsByStatus(activeTab);
-  }, [activeTab]);
+  }, [activeTab, dateRange]);
 
   const fetchBeds = async () => {
     try {
@@ -87,18 +93,19 @@ const ListView = () => {
     setLoading(true);
     try {
       let url;
+      const startDate = dateRange[0].format("YYYY-MM-DD HH:mm:ss");
+      const endDate = dateRange[1].format("YYYY-MM-DD HH:mm:ss");
+
       if (status === AppointmentStatus.All) {
-        // Fetch all appointments (last 30 days to future 30 days)
-        const startDate = dayjs()
-          .subtract(30, "day")
-          .format("YYYY-MM-DD HH:mm:ss");
-        const endDate = dayjs().add(30, "day").format("YYYY-MM-DD HH:mm:ss");
+        // Fetch all appointments with date range
         url = `http://localhost:3000/appointments/by-time-range?startDate=${encodeURIComponent(
           startDate
         )}&endDate=${encodeURIComponent(endDate)}`;
       } else {
-        // Fetch by specific status
-        url = `http://localhost:3000/appointments/by-status?status=${status}`;
+        // Fetch by specific status with date range
+        url = `http://localhost:3000/appointments/by-status?status=${status}&startDate=${encodeURIComponent(
+          startDate
+        )}&endDate=${encodeURIComponent(endDate)}`;
       }
 
       const apptRes = await axios.get(url);
@@ -247,6 +254,7 @@ const ListView = () => {
         status: values.status || "pending",
         note: values.note,
         isCheckout: values.isCheckout,
+        createdBy: "doctor",
       };
 
       if (editingAppointment) {
@@ -465,17 +473,45 @@ const ListView = () => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          flexWrap: "wrap",
+          gap: "12px",
         }}
       >
-        <Space>
+        <Space wrap>
           <Input
             placeholder="Tìm kiếm bệnh nhân..."
             prefix={<SearchOutlined />}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-            style={{ width: 250 }}
+            style={{ width: 200 }}
           />
-          <Button onClick={() => setSearchText("")}>Xóa bộ lọc</Button>
+          <RangePicker
+            value={dateRange}
+            onChange={(dates) => {
+              if (dates) {
+                setDateRange(dates);
+              } else {
+                setDateRange([
+                  dayjs().subtract(30, "day"),
+                  dayjs().add(30, "day"),
+                ]);
+              }
+            }}
+            format="DD/MM/YYYY"
+            style={{ width: 260 }}
+            placeholder={["Từ ngày", "Đến ngày"]}
+          />
+          <Button
+            onClick={() => {
+              setSearchText("");
+              setDateRange([
+                dayjs().subtract(30, "day"),
+                dayjs().add(30, "day"),
+              ]);
+            }}
+          >
+            Xóa bộ lọc
+          </Button>
         </Space>
         <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
           Thêm lịch khám
@@ -495,10 +531,13 @@ const ListView = () => {
         rowKey="_id"
         loading={loading}
         pagination={{
-          pageSize: 10,
+          pageSize: pageSize,
           showTotal: (total) => `Tổng ${total} lịch khám`,
           showSizeChanger: true,
           pageSizeOptions: ["5", "10", "20", "50"],
+          onShowSizeChange: (current, size) => {
+            setPageSize(size);
+          },
         }}
         scroll={{ x: 1000, y: 500 }}
         onRow={(record) => ({

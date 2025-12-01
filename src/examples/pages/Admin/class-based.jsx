@@ -8,21 +8,11 @@
 /* eslint-disable react/no-string-refs */
 /* eslint-disable react/no-set-state */
 import React, { Component } from "react";
-import {
-  Modal,
-  Form,
-  Input,
-  DatePicker,
-  Spin,
-  Select,
-  Radio,
-  message,
-  Skeleton,
-} from "antd";
+import { Spin, message } from "antd";
 import { Scheduler, SchedulerData, ViewType, wrapperFun } from "../../../index";
-
-const { Option } = Select;
 import AuthPatientModal from "../../../components/AuthPatientmModal.jsx";
+import CreateAppointmentModal from "./components/CreateAppointmentModal.jsx";
+import EditAppointmentModal from "./components/EditAppointmentModal.jsx";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -71,12 +61,14 @@ class Basic extends Component {
     this.state = {
       viewModel: schedulerData,
       loading: true,
-      isLoadingModal : false,
+      isLoadingModal: false,
       isModalVisible: false,
       formValues: {
         title: "",
         start: null,
         end: null,
+        status: "pending",
+        isCheckout: false,
       },
       tempEvent: null,
       editModalVisible: false,
@@ -258,9 +250,9 @@ class Basic extends Component {
           toggleExpandFunc={this.toggleExpandFunc}
         />
         {/* Modal tạo lịch hẹn mới - từ ListView */}
-        <Modal
-          title="Thêm lịch khám mới"
-          open={this.state.isModalVisible}
+        <CreateAppointmentModal
+          visible={this.state.isModalVisible}
+          loading={this.state.isLoadingModal}
           onCancel={() => {
             this.setState({
               isModalVisible: false,
@@ -272,283 +264,52 @@ class Basic extends Component {
             });
           }}
           onOk={this.handleCreateEvent}
-          okText="Lưu"
-          cancelText="Hủy"
-          width={600}
-        >
-          <Skeleton loading={this.state.isLoadingModal} active>
-          <Form layout="vertical">
-            <Form.Item label="Loại bệnh nhân">
-              <Radio.Group
-                value={this.state.patientMode}
-                onChange={(e) => {
-                  this.setState({
-                    patientMode: e.target.value,
-                    selectedPatientId: null,
-                    newPatientForm: {
-                      fullName: "",
-                      phone: "",
-                      gender: "male",
-                    },
-                  });
-                }}
-              >
-                <Radio value="existing">Bệnh nhân có sẵn</Radio>
-                <Radio value="new">Bệnh nhân mới</Radio>
-              </Radio.Group>
-            </Form.Item>
-
-            {this.state.patientMode === "existing" ? (
-              <>
-                <Form.Item label="Chọn bệnh nhân" required>
-                  <Select
-                    placeholder="Chọn bệnh nhân"
-                    value={this.state.selectedPatientId}
-                    onChange={(value) =>
-                      this.setState({ selectedPatientId: value })
-                    }
-                    showSearch
-                    optionFilterProp="children"
-                    filterOption={(input, option) =>
-                      option.children
-                        .toLowerCase()
-                        .indexOf(input.toLowerCase()) >= 0
-                    }
-                  >
-                    {this.state.existingPatients.map((patient) => (
-                      <Option key={patient._id} value={patient._id}>
-                        {patient.fullName} - {patient.phone}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-
-                {this.state.selectedPatientId && (
-                  <>
-                    <Form.Item label="Họ tên">
-                      <Input
-                        value={
-                          this.state.existingPatients.find(
-                            (p) => p._id === this.state.selectedPatientId
-                          )?.fullName || ""
-                        }
-                        disabled
-                      />
-                    </Form.Item>
-
-                    <Form.Item label="Số điện thoại">
-                      <Input
-                        value={
-                          this.state.existingPatients.find(
-                            (p) => p._id === this.state.selectedPatientId
-                          )?.phone || ""
-                        }
-                        disabled
-                      />
-                    </Form.Item>
-
-                    <Form.Item label="Ngày sinh">
-                      <Input
-                        value={
-                          this.state.existingPatients.find(
-                            (p) => p._id === this.state.selectedPatientId
-                          )?.dateOfBirth
-                            ? dayjs(
-                                this.state.existingPatients.find(
-                                  (p) => p._id === this.state.selectedPatientId
-                                )?.dateOfBirth
-                              ).format("DD/MM/YYYY")
-                            : ""
-                        }
-                        disabled
-                      />
-                    </Form.Item>
-                  </>
-                )}
-              </>
-            ) : (
-              <>
-                <Form.Item label="Họ tên" required>
-                  <Input
-                    value={this.state.newPatientForm.fullName}
-                    onChange={(e) =>
-                      this.setState({
-                        newPatientForm: {
-                          ...this.state.newPatientForm,
-                          fullName: e.target.value,
-                        },
-                      })
-                    }
-                    placeholder="Nhập họ tên bệnh nhân"
-                  />
-                </Form.Item>
-
-                <Form.Item label="Số điện thoại" required>
-                  <Input
-                    value={this.state.newPatientForm.phone}
-                    onChange={(e) =>
-                      this.setState({
-                        newPatientForm: {
-                          ...this.state.newPatientForm,
-                          phone: e.target.value,
-                        },
-                      })
-                    }
-                    placeholder="Nhập số điện thoại"
-                  />
-                </Form.Item>
-
-                <Form.Item label="Giới tính" required>
-                  <Select
-                    value={this.state.newPatientForm.gender}
-                    onChange={(value) =>
-                      this.setState({
-                        newPatientForm: {
-                          ...this.state.newPatientForm,
-                          gender: value,
-                        },
-                      })
-                    }
-                  >
-                    <Option value="male">Nam</Option>
-                    <Option value="female">Nữ</Option>
-                    <Option value="other">Khác</Option>
-                  </Select>
-                </Form.Item>
-              </>
-            )}
-
-            <Form.Item
-              label="Giường khám"
-              rules={[{ required: true, message: "Vui lòng chọn giường!" }]}
-            >
-              <Select
-                placeholder="Chọn giường khám"
-                value={this.state.tempEvent?.slotId}
-                disabled
-              >
-                {this.state.beds.map((bed) => (
-                  <Option key={bed._id} value={bed._id}>
-                    {bed.bedName} - {bed.department}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-
-            <Form.Item
-              label="Dịch vụ"
-              rules={[
-                {
-                  required: true,
-                  message: "Vui lòng chọn ít nhất một dịch vụ!",
-                },
-              ]}
-            >
-              <Select
-                mode="multiple"
-                placeholder="Chọn các dịch vụ"
-                value={this.state.selectedServices.map((s) => s._id)}
-                onChange={(selectedIds) => {
-                  const selected = this.state.availableServices.filter((svc) =>
-                    selectedIds.includes(svc._id)
-                  );
-                  const totalPrice = selected.reduce(
-                    (sum, s) => sum + (s.price || 0),
-                    0
-                  );
-                  this.setState({
-                    selectedServices: selected,
-                    totalPrice,
-                  });
-                }}
-                showSearch
-                optionFilterProp="children"
-                filterOption={(input, option) =>
-                  option.children.toLowerCase().indexOf(input.toLowerCase()) >=
-                  0
-                }
-              >
-                {this.state.availableServices.map((service) => (
-                  <Option key={service._id} value={service._id}>
-                    {service.name} - {service.price.toLocaleString("vi-VN")}đ (
-                    {service.duration} phút)
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-
-            <Form.Item label="Tổng giá dịch vụ">
-              <Input
-                value={`${this.state.totalPrice.toLocaleString()} đ`}
-                disabled
-                style={{ fontWeight: "bold", color: "#d4380d" }}
-              />
-            </Form.Item>
-
-            <Form.Item
-              label="Thời gian bắt đầu"
-              rules={[{ required: true, message: "Vui lòng chọn thời gian!" }]}
-            >
-              <DatePicker
-                showTime
-                format="DD/MM/YYYY HH:mm"
-                style={{ width: "100%" }}
-                value={
-                  this.state.formValues.start
-                    ? dayjs(this.state.formValues.start)
-                    : null
-                }
-                onChange={(value) =>
-                  this.setState({
-                    formValues: { ...this.state.formValues, start: value },
-                  })
-                }
-              />
-            </Form.Item>
-
-            <Form.Item
-              label="Thời gian kết thúc"
-              rules={[{ required: true, message: "Vui lòng chọn thời gian!" }]}
-            >
-              <DatePicker
-                showTime
-                format="DD/MM/YYYY HH:mm"
-                style={{ width: "100%" }}
-                value={
-                  this.state.formValues.end
-                    ? dayjs(this.state.formValues.end)
-                    : null
-                }
-                onChange={(value) =>
-                  this.setState({
-                    formValues: { ...this.state.formValues, end: value },
-                  })
-                }
-              />
-            </Form.Item>
-
-            <Form.Item label="Ghi chú">
-              <Input.TextArea
-                rows={3}
-                placeholder="Nhập ghi chú..."
-                value={this.state.formValues.title}
-                onChange={(e) =>
-                  this.setState({
-                    formValues: {
-                      ...this.state.formValues,
-                      title: e.target.value,
-                    },
-                  })
-                }
-              />
-            </Form.Item>
-          </Form>
-          </Skeleton>
-        </Modal>
+          patientMode={this.state.patientMode}
+          onPatientModeChange={(e) => {
+            this.setState({
+              patientMode: e.target.value,
+              selectedPatientId: null,
+              newPatientForm: {
+                fullName: "",
+                phone: "",
+                gender: "male",
+              },
+            });
+          }}
+          existingPatients={this.state.existingPatients}
+          selectedPatientId={this.state.selectedPatientId}
+          onPatientSelect={(value) =>
+            this.setState({ selectedPatientId: value })
+          }
+          newPatientForm={this.state.newPatientForm}
+          onNewPatientChange={(newPatientForm) =>
+            this.setState({ newPatientForm })
+          }
+          beds={this.state.beds}
+          tempEvent={this.state.tempEvent}
+          availableServices={this.state.availableServices}
+          selectedServices={this.state.selectedServices}
+          onServicesChange={(selectedIds) => {
+            const selected = this.state.availableServices.filter((svc) =>
+              selectedIds.includes(svc._id)
+            );
+            const totalPrice = selected.reduce(
+              (sum, s) => sum + (s.price || 0),
+              0
+            );
+            this.setState({
+              selectedServices: selected,
+              totalPrice,
+            });
+          }}
+          totalPrice={this.state.totalPrice}
+          formValues={this.state.formValues}
+          onFormValuesChange={(formValues) => this.setState({ formValues })}
+        />
         {/* Modal chỉnh sửa lịch hẹn - từ ListView */}
-        <Modal
-          title="Chỉnh sửa lịch khám"
-          open={this.state.editModalVisible}
+        <EditAppointmentModal
+          visible={this.state.editModalVisible}
+          loading={this.state.isLoadingModal}
           onCancel={() => {
             this.setState({
               editModalVisible: false,
@@ -557,148 +318,27 @@ class Basic extends Component {
             });
           }}
           onOk={this.handleEditAppointment}
-          okText="Lưu"
-          cancelText="Hủy"
-          width={600}
-        >
-          <Skeleton loading={this.state.isLoadingModal} style={{minHeight: 300}} active>
-  <Form layout="vertical">
-            <Form.Item label="Tên bệnh nhân">
-              <Input
-                value={this.state.selectedEvent?.patientName || ""}
-                disabled
-              />
-            </Form.Item>
-
-            <Form.Item label="Số điện thoại">
-              <Input value={this.state.selectedEvent?.phone || ""} disabled />
-            </Form.Item>
-
-            <Form.Item label="Giường khám">
-              <Select
-                placeholder="Chọn giường khám"
-                value={this.state.selectedEvent?.resourceId}
-                disabled
-              >
-                {this.state.beds.map((bed) => (
-                  <Option key={bed._id} value={bed._id}>
-                    {bed.bedName} - {bed.department}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-
-            <Form.Item
-              label="Dịch vụ"
-              rules={[
-                {
-                  required: true,
-                  message: "Vui lòng chọn ít nhất một dịch vụ!",
-                },
-              ]}
-            >
-              <Select
-                mode="multiple"
-                placeholder="Chọn các dịch vụ"
-                value={this.state.selectedServices.map((s) => s._id)}
-                onChange={(selectedIds) => {
-                  const selected = this.state.availableServices.filter((svc) =>
-                    selectedIds.includes(svc._id)
-                  );
-                  const totalPrice = selected.reduce(
-                    (sum, s) => sum + (s.price || 0),
-                    0
-                  );
-                  this.setState({
-                    selectedServices: selected,
-                    totalPrice,
-                  });
-                }}
-                showSearch
-                optionFilterProp="children"
-                filterOption={(input, option) =>
-                  option.children.toLowerCase().indexOf(input.toLowerCase()) >=
-                  0
-                }
-              >
-                {this.state.availableServices.map((service) => (
-                  <Option key={service._id} value={service._id}>
-                    {service.name} - {service.price.toLocaleString("vi-VN")}đ (
-                    {service.duration} phút)
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-
-            <Form.Item label="Tổng giá dịch vụ">
-              <Input
-                value={`${this.state.totalPrice.toLocaleString()} đ`}
-                disabled
-                style={{ fontWeight: "bold", color: "#d4380d" }}
-              />
-            </Form.Item>
-
-            <Form.Item
-              label="Thời gian bắt đầu"
-              rules={[{ required: true, message: "Vui lòng chọn thời gian!" }]}
-            >
-              <DatePicker
-                showTime
-                format="DD/MM/YYYY HH:mm"
-                style={{ width: "100%" }}
-                value={
-                  this.state.formValues.start
-                    ? dayjs(this.state.formValues.start)
-                    : null
-                }
-                onChange={(value) =>
-                  this.setState({
-                    formValues: { ...this.state.formValues, start: value },
-                  })
-                }
-              />
-            </Form.Item>
-
-            <Form.Item
-              label="Thời gian kết thúc"
-              rules={[{ required: true, message: "Vui lòng chọn thời gian!" }]}
-            >
-              <DatePicker
-                showTime
-                format="DD/MM/YYYY HH:mm"
-                style={{ width: "100%" }}
-                value={
-                  this.state.formValues.end
-                    ? dayjs(this.state.formValues.end)
-                    : null
-                }
-                onChange={(value) =>
-                  this.setState({
-                    formValues: { ...this.state.formValues, end: value },
-                  })
-                }
-              />
-            </Form.Item>
-
-            <Form.Item label="Ghi chú">
-              <Input.TextArea
-                rows={3}
-                placeholder="Nhập ghi chú..."
-                value={this.state.formValues.title}
-                onChange={(e) =>
-                  this.setState({
-                    formValues: {
-                      ...this.state.formValues,
-                      title: e.target.value,
-                    },
-                  })
-                }
-              />
-            </Form.Item>
-          </Form>
-          </Skeleton>
-        
-        </Modal>
+          selectedEvent={this.state.selectedEvent}
+          beds={this.state.beds}
+          availableServices={this.state.availableServices}
+          selectedServices={this.state.selectedServices}
+          onServicesChange={(selectedIds) => {
+            const selected = this.state.availableServices.filter((svc) =>
+              selectedIds.includes(svc._id)
+            );
+            const totalPrice = selected.reduce(
+              (sum, s) => sum + (s.price || 0),
+              0
+            );
+            this.setState({
+              selectedServices: selected,
+              totalPrice,
+            });
+          }}
+          totalPrice={this.state.totalPrice}
+          formValues={this.state.formValues}
+          onFormValuesChange={(formValues) => this.setState({ formValues })}
+        />
         <AuthPatientModal
           visible={this.state.showAuthModal}
           onSuccess={(patientInfo) => {
@@ -761,12 +401,12 @@ class Basic extends Component {
   };
 
   eventClicked = async (schedulerData, event) => {
-    if (!event.title.includes("pending")) {
-      message.warning("Chỉ có thể chỉnh sửa lịch hẹn ở trạng thái pending!");
-      return;
-    }
+    // if (!event.title.includes("pending")) {
+    //   message.warning("Chỉ có thể chỉnh sửa lịch hẹn ở trạng thái pending!");
+    //   return;
+    // }
 
-    this.setState({ isLoadingModal : true, editModalVisible: true });
+    this.setState({ isLoadingModal: true, editModalVisible: true });
     await this.fetchServices();
 
     try {
@@ -774,6 +414,7 @@ class Basic extends Component {
         `http://localhost:3000/appointments/${event.id}`
       );
       const appt = res.data.appointment || res.data;
+
 
       let selectedServices = [];
       if (appt.services && appt.services.length > 0) {
@@ -795,14 +436,16 @@ class Basic extends Component {
         patientName: appt.patient?.[0]?.fullName || "Không rõ",
         phone: appt.patient?.[0]?.phone || "",
       };
-
+      console.log("appt.status", appt.status)
       this.setState({
-        isLoadingModal : false,
+        isLoadingModal: false,
         selectedEvent: eventWithPatientInfo,
         formValues: {
           title: appt.note || event.title.split(" - ")[0],
           start: dayjs(appt.appointmentStartTime),
           end: dayjs(appt.appointmentEndTime),
+          status: appt.status,
+          isCheckout: appt.isCheckout || false,
         },
         selectedServices,
         totalPrice,
@@ -832,7 +475,7 @@ class Basic extends Component {
     this.setState({
       isModalVisible: true,
       tempEvent: { schedulerData, slotId, slotName, start, end },
-      formValues: { title: "", start, end },
+      formValues: { title: "", start, end, status: "pending", isCheckout: false },
       patientMode: "existing",
       selectedPatientId: null,
       newPatientForm: { fullName: "", phone: "", gender: "male" },
@@ -928,9 +571,10 @@ class Basic extends Component {
         serviceIds: selectedServices.map((s) => s._id),
         appointmentStartTime: startTime.format("YYYY-MM-DD HH:mm:ss"),
         appointmentEndTime: endTime.format("YYYY-MM-DD HH:mm:ss"),
-        status: "pending",
+        status: formValues.status || "pending",
         note: formValues.title || "",
         isCheckout: false,
+        createdBy : "doctor"
       };
 
       await axios.post("http://localhost:3000/appointments", payload);
@@ -943,7 +587,7 @@ class Basic extends Component {
       this.setState({
         isModalVisible: false,
         tempEvent: null,
-        formValues: { title: "", start: null, end: null },
+        formValues: { title: "", start: null, end: null, status: "pending" },
         patientMode: "existing",
         selectedPatientId: null,
         newPatientForm: { fullName: "", phone: "", gender: "male" },
@@ -975,6 +619,8 @@ class Basic extends Component {
         appointmentEndTime: dayjs(formValues.end).format("YYYY-MM-DD HH:mm:ss"),
         note: formValues.title,
         serviceIds: selectedServices.map((s) => s._id),
+        status: formValues.status,
+        isCheckout: formValues.isCheckout || false,
       };
 
       console.log("Edit payload:", payload);

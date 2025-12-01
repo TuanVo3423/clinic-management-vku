@@ -762,6 +762,7 @@ class Basic extends Component {
           .map((s) => s.name)
           .join(", ")}`,
         isEmergency: this.state.isEmergency,
+        createdBy : 'patient',
       };
 
       await axios.post("http://localhost:3000/appointments", payload);
