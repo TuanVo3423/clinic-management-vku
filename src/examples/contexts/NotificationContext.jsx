@@ -154,7 +154,7 @@ export const NotificationProvider = ({ children }) => {
       return;
     }
     setUnreadCount((prev) => prev - value);
-  }, []);
+  }, [unreadCount]);
 
   const getNotificationTitle = (type) => {
     switch (type) {

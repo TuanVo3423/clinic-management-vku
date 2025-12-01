@@ -201,6 +201,7 @@ const Notification = () => {
         <Tabs
           activeKey={activeTab}
           onChange={handleTabChange}
+          tabBarStyle={{ marginLeft: 30 }}
           items={[
             {
               key: "unread",

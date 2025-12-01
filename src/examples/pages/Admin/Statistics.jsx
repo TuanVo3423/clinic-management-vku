@@ -414,6 +414,16 @@ const Statistics = () => {
             <Col span={6}>
               <Card>
                 <Statistic
+                  title="Đã hoàn thành"
+                  value={stats.completed}
+                  prefix={<CheckCircleOutlined />}
+                  valueStyle={{ color: "#52c41a" }}
+                />
+              </Card>
+            </Col>
+            <Col span={6}>
+              <Card>
+                <Statistic
                   title="Đã hủy"
                   value={stats.cancelled}
                   prefix={<CloseCircleOutlined />}

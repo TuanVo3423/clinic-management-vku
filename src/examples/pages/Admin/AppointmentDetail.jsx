@@ -244,7 +244,7 @@ const AppointmentDetail = () => {
     return (
       <div style={{ textAlign: "center", padding: "50px" }}>
         <p>Không tìm thấy thông tin lịch khám</p>
-        <Button onClick={() => navigate("/admin")}>Quay lại</Button>
+        <Button onClick={() => navigate(-1)}>Quay lại</Button>
       </div>
     );
   }
@@ -273,7 +273,7 @@ const AppointmentDetail = () => {
         <Space>
           <Button
             icon={<ArrowLeftOutlined />}
-            onClick={() => navigate("/admin")}
+            onClick={() => navigate(-1)}
           >
             Quay lại
           </Button>
