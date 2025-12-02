@@ -35,7 +35,7 @@ class Basic extends Component {
       false,
       false,
       {
-        besidesWidth: 300,
+        besidesWidth: 50,
         schedulerContentHeight: "100%",
         resourceName: "Bed No.",
         dayMaxEvents: 99,
@@ -45,7 +45,7 @@ class Basic extends Component {
         dayStopTo: 22,
         minuteStep: 30,
         nonAgendaDayCellHeaderFormat: "HH:mm",
-        dayCellWidth: 70,
+        dayCellWidth: 90,
         schedulerContentWidth: "100%",
         nonWorkingTimeHeadStyle: { backgroundColor: "#fff" },
         nonWorkingTimeBodyBgColor: "#fff",
