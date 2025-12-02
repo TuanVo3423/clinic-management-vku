@@ -8,7 +8,7 @@
 /* eslint-disable react/no-string-refs */
 /* eslint-disable react/no-set-state */
 import React, { Component } from "react";
-import { Modal, Form, Input, DatePicker, Spin, message } from "antd";
+import { Modal, Form, Input, DatePicker, Spin, message, Button } from "antd";
 import { Scheduler, SchedulerData, ViewType, wrapperFun } from "../../../index";
 import AuthPatientModal from "../../../components/AuthPatientmModal.jsx";
 import dayjs from "dayjs";
@@ -208,6 +208,7 @@ class Basic extends Component {
 
   render() {
     const { viewModel, loading } = this.state;
+    const canDelete = !!(this.state.selectedEvent && this.isOwnerOf(this.state.selectedEvent));
     if (loading) {
       return (
         <div
@@ -430,9 +431,19 @@ class Basic extends Component {
             title="Chỉnh sửa lịch hẹn"
             open={this.state.editModalVisible}
             onCancel={() => this.setState({ editModalVisible: false })}
-            onOk={this.handleEditAppointment}
-            okText="Lưu"
-            cancelText="Hủy"
+            footer={[
+              <Button key="cancel" onClick={() => this.setState({ editModalVisible: false })}>
+                Hủy
+              </Button>,
+              canDelete && (
+                <Button key="delete" danger onClick={this.handleDeleteAppointment}>
+                  Xóa
+                </Button>
+              ),
+              <Button key="save" type="primary" onClick={this.handleEditAppointment}>
+                Lưu
+              </Button>,
+            ]}
             style={{ top: 20 }}
           >
             <Form layout="vertical">
@@ -831,6 +842,10 @@ class Basic extends Component {
 
   handleDeleteAppointment = async () => {
     const { selectedEvent } = this.state;
+    if (!selectedEvent || !this.isOwnerOf(selectedEvent)) {
+      message.warning("Bạn không có quyền xóa lịch hẹn của người khác.");
+      return;
+    }
     if (!window.confirm("Bạn có chắc muốn xóa lịch hẹn này không?")) return;
 
     try {
