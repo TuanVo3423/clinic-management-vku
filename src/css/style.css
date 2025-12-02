@@ -331,14 +331,16 @@
   border: 1px solid #e6e6e6;
   padding: 6px 10px;
   border-radius: 8px;
-  cursor: pointer;
   font-size: 0.9rem;
 }
-.suggestion-btn:hover {
+.suggestion-btn-book:hover {
   background: #f5f7ff;
   border-color: #c7d2fe;
 }
 
+.suggestion-btn-book {
+  background:#667eea;
+}
 
 .chat-message .suggestions .suggestion-btn {
   background: #fafafa;
@@ -591,15 +593,15 @@
   color: #667eea;
   padding: 10px 12px;
   border-radius: 8px;
-  cursor: pointer;
   font-size: 0.95rem;
   font-weight: 500;
   text-align: left;
   transition: all 0.2s;
 }
 
-.suggestion-btn:hover {
+.suggestion-btn-book:hover {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  cursor: pointer;
   color: white;
   transform: translateX(4px);
 }

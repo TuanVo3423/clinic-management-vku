@@ -156,11 +156,19 @@ export default function ChatWidget() {
                       const displayName = s.serviceName || s.name || s.title || "Dịch vụ";
                       const key = `${m.id}-svc-${s._id || s.id || displayName.replace(/\s+/g, "_")}`;
                       return (
-                        <button type="button" key={key} className="suggestion-btn" onClick={() => handleSuggestionClick(s)}>
+                        <div key={key} className="suggestion-btn" aria-readonly="true">
                           {displayName}
-                        </button>
+                        </div>
                       );
                     })}
+                  </div>
+                )}
+
+                {m.from === "bot" && m.status !== "thinking" && (
+                  <div style={{ marginTop: '6px' }}>
+                    <button type="button" className="suggestion-btn suggestion-btn-book" onClick={handleSuggestionClick}>
+                      Đặt lịch ngay
+                    </button>
                   </div>
                 )}
               </div>
