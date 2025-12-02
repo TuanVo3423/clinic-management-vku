@@ -725,6 +725,9 @@ class Basic extends Component {
       isModalVisible: true,
       tempEvent: { schedulerData, slotId, slotName, start, end },
       formValues: { title: "", start, end },
+      selectedServices: [],
+      totalPrice: 0,
+      isEmergency: false,
     });
   };
 
@@ -788,6 +791,8 @@ class Basic extends Component {
         tempEvent: null,
         formValues: { title: "", start: null, end: null },
         isEmergency: false,
+        selectedServices: [],
+        totalPrice: 0,
       });
 
       message.success("Tạo lịch hẹn thành công!");
