@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import quarterOfYear from 'dayjs/plugin/quarterOfYear';
 import utc from 'dayjs/plugin/utc';
 import weekday from 'dayjs/plugin/weekday';
+import timezone from 'dayjs/plugin/timezone';
 import { RRuleSet, rrulestr } from 'rrule';
 import { CellUnit, DATE_FORMAT, DATETIME_FORMAT, ViewType } from '../config/default';
 import config from '../config/scheduler';
@@ -28,6 +29,12 @@ export default class SchedulerData {
     dayjs.extend(quarterOfYear);
     dayjs.extend(weekday);
     dayjs.extend(utc);
+    dayjs.extend(timezone);
+    try {
+      dayjs.tz.setDefault('Asia/Ho_Chi_Minh');
+    } catch (e) {
+      // noop if timezone plugin not available
+    }
     this.localeDayjs = dayjs;
     this.config = newConfig === undefined ? config : { ...config, ...newConfig };
     this._validateMinuteStep(this.config.minuteStep);
@@ -155,7 +162,7 @@ export default class SchedulerData {
     this._createRenderData();
   }
 
-  setDate(date = dayjs(new Date())) {
+  setDate(date = dayjs()) {
     this._resolveDate(0, date);
     this.events = [];
     this._createHeaders();
@@ -199,9 +206,9 @@ export default class SchedulerData {
             }
           }
 
-          const now = this.localeDayjs();
+          const now = this.localeDayjs().tz ? this.localeDayjs().tz() : this.localeDayjs();
           if (now >= start && now < end) {
-            date = now.startOf('day');
+            date = (now.tz ? now.tz() : now).startOf('day');
           }
 
           if (viewType === ViewType.Day) {
@@ -395,8 +402,8 @@ export default class SchedulerData {
   }
 
   getDateLabel() {
-    const start = this.localeDayjs(new Date(this.startDate));
-    const end = this.localeDayjs(new Date(this.endDate));
+    const start = this.localeDayjs(this.startDate);
+    const end = this.localeDayjs(this.endDate);
     let dateLabel = start.format('LL');
 
     if (start !== end) dateLabel = `${start.format('LL')}-${end.format('LL')}`;
@@ -691,8 +698,8 @@ export default class SchedulerData {
   // Previous Code
   _createHeaders() {
     const headers = [];
-    let start = this.localeDayjs(new Date(this.startDate));
-    let end = this.localeDayjs(new Date(this.endDate));
+    let start = this.localeDayjs(this.startDate);
+    let end = this.localeDayjs(this.endDate);
     let header = start;
 
     if (this.showAgenda) {
@@ -810,7 +817,7 @@ export default class SchedulerData {
   // }
 
   _createInitHeaderEvents(header) {
-    const start = this.localeDayjs(new Date(header.time));
+    const start = this.localeDayjs(header.time);
     const startValue = start.format(DATETIME_FORMAT);
 
     let endValue;
