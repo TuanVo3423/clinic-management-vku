@@ -8,7 +8,7 @@
 /* eslint-disable react/no-string-refs */
 /* eslint-disable react/no-set-state */
 import React, { Component } from "react";
-import { Modal, Form, Input, DatePicker, Spin, message } from "antd";
+import { Modal, Form, Input, DatePicker, Spin, message, Button } from "antd";
 import { Scheduler, SchedulerData, ViewType, wrapperFun } from "../../../index";
 import AuthPatientModal from "../../../components/AuthPatientmModal.jsx";
 import dayjs from "dayjs";
@@ -35,7 +35,7 @@ class Basic extends Component {
       false,
       false,
       {
-        besidesWidth: 300,
+        besidesWidth: 50,
         schedulerContentHeight: "100%",
         resourceName: "Bed No.",
         dayMaxEvents: 99,
@@ -45,7 +45,7 @@ class Basic extends Component {
         dayStopTo: 22,
         minuteStep: 30,
         nonAgendaDayCellHeaderFormat: "HH:mm",
-        dayCellWidth: 70,
+        dayCellWidth: 90,
         schedulerContentWidth: "100%",
         nonWorkingTimeHeadStyle: { backgroundColor: "#fff" },
         nonWorkingTimeBodyBgColor: "#fff",
@@ -128,17 +128,17 @@ class Basic extends Component {
       const currentPatient =
         this.state.patientInfo ||
         JSON.parse(localStorage.getItem("patientInfo"));
-      let startDate = dayjs(start).startOf("day").format("YYYY-MM-DD HH:mm:ss");
-      let endDate = dayjs(start).endOf("day").format("YYYY-MM-DD HH:mm:ss");
+      let startDate = dayjs(start).tz("Asia/Ho_Chi_Minh").startOf("day").format("YYYY-MM-DDTHH:mm:ssZ");
+      let endDate = dayjs(start).tz("Asia/Ho_Chi_Minh").endOf("day").format("YYYY-MM-DDTHH:mm:ssZ");
       if (viewModel.viewType === ViewType.Day) {
-        startDate = dayjs(start).startOf("day").format("YYYY-MM-DD HH:mm:ss");
-        endDate = dayjs(start).endOf("day").format("YYYY-MM-DD HH:mm:ss");
+        startDate = dayjs(start).tz("Asia/Ho_Chi_Minh").startOf("day").format("YYYY-MM-DDTHH:mm:ssZ");
+        endDate = dayjs(start).tz("Asia/Ho_Chi_Minh").endOf("day").format("YYYY-MM-DDTHH:mm:ssZ");
       } else if (viewModel.viewType === ViewType.Week) {
-        startDate = dayjs(start).startOf("week").format("YYYY-MM-DD HH:mm:ss");
-        endDate = dayjs(end).endOf("week").format("YYYY-MM-DD HH:mm:ss");
+        startDate = dayjs(start).tz("Asia/Ho_Chi_Minh").startOf("week").format("YYYY-MM-DDTHH:mm:ssZ");
+        endDate = dayjs(end).tz("Asia/Ho_Chi_Minh").endOf("week").format("YYYY-MM-DDTHH:mm:ssZ");
       } else {
-        startDate = dayjs(start).format("YYYY-MM-DD HH:mm:ss");
-        endDate = dayjs(end).format("YYYY-MM-DD HH:mm:ss");
+        startDate = dayjs(start).tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm:ssZ");
+        endDate = dayjs(end).tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm:ssZ");
       }
 
       const url = `http://localhost:3000/appointments/by-time-range?startDate=${encodeURIComponent(
@@ -172,10 +172,10 @@ class Basic extends Component {
           ownerId &&
           String(ownerId) === String(currentPatient._id);
 
-        const start = dayjs(a.appointmentStartTime).format(
+        const start = dayjs(a.appointmentStart || a.appointmentStartTime).format(
           "YYYY-MM-DDTHH:mm:ss"
         );
-        const end = dayjs(a.appointmentEndTime).format("YYYY-MM-DDTHH:mm:ss");
+        const end = dayjs(a.appointmentEnd || a.appointmentEndTime).format("YYYY-MM-DDTHH:mm:ss");
         console.log("start:", start, "| raw:", a.appointmentStartTime);
 
         const bgColor = isOwn ? statusColor : "#bfbfbf";
@@ -208,6 +208,7 @@ class Basic extends Component {
 
   render() {
     const { viewModel, loading } = this.state;
+    const canDelete = !!(this.state.selectedEvent && this.isOwnerOf(this.state.selectedEvent));
     if (loading) {
       return (
         <div
@@ -430,9 +431,19 @@ class Basic extends Component {
             title="Chỉnh sửa lịch hẹn"
             open={this.state.editModalVisible}
             onCancel={() => this.setState({ editModalVisible: false })}
-            onOk={this.handleEditAppointment}
-            okText="Lưu"
-            cancelText="Hủy"
+            footer={[
+              <Button key="cancel" onClick={() => this.setState({ editModalVisible: false })}>
+                Hủy
+              </Button>,
+              canDelete && (
+                <Button key="delete" danger onClick={this.handleDeleteAppointment}>
+                  Xóa
+                </Button>
+              ),
+              <Button key="save" type="primary" onClick={this.handleEditAppointment}>
+                Lưu
+              </Button>,
+            ]}
             style={{ top: 20 }}
           >
             <Form layout="vertical">
@@ -714,6 +725,9 @@ class Basic extends Component {
       isModalVisible: true,
       tempEvent: { schedulerData, slotId, slotName, start, end },
       formValues: { title: "", start, end },
+      selectedServices: [],
+      totalPrice: 0,
+      isEmergency: false,
     });
   };
 
@@ -756,6 +770,7 @@ class Basic extends Component {
         patientId: patientInfo._id,
         doctorId: "655f8c123456789012345679",
         serviceIds: this.state.selectedServices.map((s) => s._id),
+        appointmentDate: startTime.format("YYYY-MM-DD"),
         appointmentStartTime: startTime.format("YYYY-MM-DD HH:mm:ss"),
         appointmentEndTime: endTime.format("YYYY-MM-DD HH:mm:ss"),
         note: `${title} | Dịch vụ: ${this.state.selectedServices
@@ -777,6 +792,8 @@ class Basic extends Component {
         tempEvent: null,
         formValues: { title: "", start: null, end: null },
         isEmergency: false,
+        selectedServices: [],
+        totalPrice: 0,
       });
 
       message.success("Tạo lịch hẹn thành công!");
@@ -794,6 +811,7 @@ class Basic extends Component {
     try {
       this.setState({ loading: true });
       const payload = {
+        appointmentDate: dayjs(formValues.start).format("YYYY-MM-DD"),
         appointmentStartTime: dayjs(formValues.start).format(
           "YYYY-MM-DD HH:mm:ss"
         ),
@@ -831,6 +849,10 @@ class Basic extends Component {
 
   handleDeleteAppointment = async () => {
     const { selectedEvent } = this.state;
+    if (!selectedEvent || !this.isOwnerOf(selectedEvent)) {
+      message.warning("Bạn không có quyền xóa lịch hẹn của người khác.");
+      return;
+    }
     if (!window.confirm("Bạn có chắc muốn xóa lịch hẹn này không?")) return;
 
     try {
@@ -893,6 +915,7 @@ class Basic extends Component {
 
     try {
       const payload = {
+        appointmentDate: startTime.format("YYYY-MM-DD"),
         appointmentStartTime: startTime.format("YYYY-MM-DD HH:mm:ss"),
         appointmentEndTime: endTime.format("YYYY-MM-DD HH:mm:ss"),
         bedId: slotId,
@@ -994,6 +1017,7 @@ class Basic extends Component {
     try {
       this.setState({ loading: true });
       const payload = {
+        appointmentDate: endTime.format("YYYY-MM-DD"),
         appointmentEndTime: endTime.format("YYYY-MM-DD HH:mm:ss"),
       };
 
@@ -1018,27 +1042,13 @@ class Basic extends Component {
   };
 
   onScrollRight = async (schedulerData, schedulerContent, maxScrollLeft) => {
-    if (schedulerData.viewType === ViewType.Day) {
-      schedulerData.next();
-      await this.fetchAppointmentsByRange(
-        schedulerData.startDate,
-        schedulerData.endDate
-      );
-      this.setState({ viewModel: schedulerData });
-      schedulerContent.scrollLeft = maxScrollLeft - 10;
-    }
+    // Prevent auto-advancing day on scroll to avoid flicker
+    return;
   };
 
   onScrollLeft = async (schedulerData, schedulerContent) => {
-    if (schedulerData.viewType === ViewType.Day) {
-      schedulerData.prev();
-      await this.fetchAppointmentsByRange(
-        schedulerData.startDate,
-        schedulerData.endDate
-      );
-      this.setState({ viewModel: schedulerData });
-      schedulerContent.scrollLeft = 10;
-    }
+    // Prevent auto-moving to previous day on scroll
+    return;
   };
 
   onScrollTop = () => console.log("onScrollTop");

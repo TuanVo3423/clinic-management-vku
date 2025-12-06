@@ -140,17 +140,17 @@ class Basic extends Component {
         department: bed.department,
       }));
 
-      let startDate = dayjs(start).startOf("day").format("YYYY-MM-DD HH:mm:ss");
-      let endDate = dayjs(start).endOf("day").format("YYYY-MM-DD HH:mm:ss");
+      let startDate = dayjs(start).tz("Asia/Ho_Chi_Minh").startOf("day").format("YYYY-MM-DDTHH:mm:ssZ");
+      let endDate = dayjs(start).tz("Asia/Ho_Chi_Minh").endOf("day").format("YYYY-MM-DDTHH:mm:ssZ");
       if (viewModel.viewType === ViewType.Day) {
-        startDate = dayjs(start).startOf("day").format("YYYY-MM-DD HH:mm:ss");
-        endDate = dayjs(start).endOf("day").format("YYYY-MM-DD HH:mm:ss");
+        startDate = dayjs(start).tz("Asia/Ho_Chi_Minh").startOf("day").format("YYYY-MM-DDTHH:mm:ssZ");
+        endDate = dayjs(start).tz("Asia/Ho_Chi_Minh").endOf("day").format("YYYY-MM-DDTHH:mm:ssZ");
       } else if (viewModel.viewType === ViewType.Week) {
-        startDate = dayjs(start).startOf("week").format("YYYY-MM-DD HH:mm:ss");
-        endDate = dayjs(end).endOf("week").format("YYYY-MM-DD HH:mm:ss");
+        startDate = dayjs(start).tz("Asia/Ho_Chi_Minh").startOf("week").format("YYYY-MM-DDTHH:mm:ssZ");
+        endDate = dayjs(end).tz("Asia/Ho_Chi_Minh").endOf("week").format("YYYY-MM-DDTHH:mm:ssZ");
       } else {
-        startDate = dayjs(start).format("YYYY-MM-DD HH:mm:ss");
-        endDate = dayjs(end).format("YYYY-MM-DD HH:mm:ss");
+        startDate = dayjs(start).tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm:ssZ");
+        endDate = dayjs(end).tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm:ssZ");
       }
 
       const url = `http://localhost:3000/appointments/by-time-range?startDate=${encodeURIComponent(
@@ -175,10 +175,10 @@ class Basic extends Component {
             bgColor = "#d9d9d9";
         }
 
-        const start = dayjs(a.appointmentStartTime).format(
+        const start = dayjs(a.appointmentStart || a.appointmentStartTime).format(
           "YYYY-MM-DDTHH:mm:ss"
         );
-        const end = dayjs(a.appointmentEndTime).format("YYYY-MM-DDTHH:mm:ss");
+        const end = dayjs(a.appointmentEnd || a.appointmentEndTime).format("YYYY-MM-DDTHH:mm:ss");
         console.log("start:", start, "| raw:", a.appointmentStartTime);
 
         return {
@@ -569,6 +569,7 @@ class Basic extends Component {
         patientId: patientId,
         doctorId: "655f8c123456789012345679",
         serviceIds: selectedServices.map((s) => s._id),
+        appointmentDate: startTime.format("YYYY-MM-DD"),
         appointmentStartTime: startTime.format("YYYY-MM-DD HH:mm:ss"),
         appointmentEndTime: endTime.format("YYYY-MM-DD HH:mm:ss"),
         status: formValues.status || "pending",
@@ -613,6 +614,7 @@ class Basic extends Component {
 
     try {
       const payload = {
+        appointmentDate: dayjs(formValues.start).format("YYYY-MM-DD"),
         appointmentStartTime: dayjs(formValues.start).format(
           "YYYY-MM-DD HH:mm:ss"
         ),
@@ -703,6 +705,7 @@ class Basic extends Component {
 
     try {
       const payload = {
+        appointmentDate: startTime.format("YYYY-MM-DD"),
         appointmentStartTime: startTime.format("YYYY-MM-DD HH:mm:ss"),
         appointmentEndTime: endTime.format("YYYY-MM-DD HH:mm:ss"),
         bedId: slotId,
@@ -782,6 +785,7 @@ class Basic extends Component {
 
     try {
       const payload = {
+        appointmentDate: endTime.format("YYYY-MM-DD"),
         appointmentEndTime: endTime.format("YYYY-MM-DD HH:mm:ss"),
       };
 
@@ -804,27 +808,13 @@ class Basic extends Component {
   };
 
   onScrollRight = async (schedulerData, schedulerContent, maxScrollLeft) => {
-    if (schedulerData.viewType === ViewType.Day) {
-      schedulerData.next();
-      await this.fetchAppointmentsByRange(
-        schedulerData.startDate,
-        schedulerData.endDate
-      );
-      this.setState({ viewModel: schedulerData });
-      schedulerContent.scrollLeft = maxScrollLeft - 10;
-    }
+    // Prevent auto-advancing day on scroll to avoid flicker
+    return;
   };
 
   onScrollLeft = async (schedulerData, schedulerContent) => {
-    if (schedulerData.viewType === ViewType.Day) {
-      schedulerData.prev();
-      await this.fetchAppointmentsByRange(
-        schedulerData.startDate,
-        schedulerData.endDate
-      );
-      this.setState({ viewModel: schedulerData });
-      schedulerContent.scrollLeft = 10;
-    }
+    // Prevent auto-moving to previous day on scroll
+    return;
   };
 
   onScrollTop = () => console.log("onScrollTop");

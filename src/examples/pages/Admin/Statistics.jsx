@@ -12,6 +12,7 @@ import {
   Spin,
   Tabs,
   Input,
+  Empty,
 } from "antd";
 import {
   CalendarOutlined,
@@ -23,12 +24,15 @@ import {
   DollarOutlined,
   WalletOutlined,
   SearchOutlined,
+  BarChartOutlined,
+  RiseOutlined,
+  FallOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import dayjs from "dayjs";
 import { Column } from "@ant-design/plots";
 import { useNavigate } from "react-router-dom";
-
+import "./Statistics.css";
 
 const { RangePicker } = DatePicker;
 
@@ -361,198 +365,270 @@ const Statistics = () => {
   };
 
   return (
-    <div style={{ padding: "20px", height: "100vh", overflow: "scroll" }}>
-      <div style={{ marginBottom: 20 }}>
-        <Space>
-          <span>Chọn khoảng thời gian:</span>
-          <RangePicker
-            value={dateRange}
-            onChange={(dates) => dates && setDateRange(dates)}
-            format="DD/MM/YYYY"
-          />
-        </Space>
+    <div className="statistics-container">
+      {/* Header Section */}
+      <div className="statistics-header">
+        <div className="header-content">
+          <div className="header-left">
+            <div className="header-icon-wrapper">
+              <BarChartOutlined className="header-icon" />
+            </div>
+            <div>
+              <h2 className="statistics-title">Thống kê & Báo cáo</h2>
+              <p className="statistics-subtitle">
+                Phân tích dữ liệu và theo dõi hiệu suất
+              </p>
+            </div>
+          </div>
+          <div className="header-right">
+            <Space size="middle">
+              <span className="date-label">Khoảng thời gian:</span>
+              <RangePicker
+                value={dateRange}
+                onChange={(dates) => dates && setDateRange(dates)}
+                format="DD/MM/YYYY"
+                className="date-range-picker"
+                size="large"
+              />
+            </Space>
+          </div>
+        </div>
       </div>
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: "50px" }}>
-          <Spin size="large" />
+        <div className="loading-container">
+          <Spin size="large" tip="Đang tải dữ liệu thống kê..." />
         </div>
       ) : (
         <>
           {/* Thống kê trạng thái */}
-          <Row gutter={16} style={{ marginBottom: 20 }}>
-            <Col span={6}>
-              <Card>
-                <Statistic
-                  title="Tổng lịch khám"
-                  value={stats.total}
-                  prefix={<CalendarOutlined />}
-                  valueStyle={{ color: "#1890ff" }}
-                />
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card>
-                <Statistic
-                  title="Chờ xác nhận"
-                  value={stats.pending}
-                  prefix={<ClockCircleOutlined />}
-                  valueStyle={{ color: "#faad14" }}
-                />
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card>
-                <Statistic
-                  title="Đã xác nhận"
-                  value={stats.confirmed}
-                  prefix={<CheckCircleOutlined />}
-                  valueStyle={{ color: "#52c41a" }}
-                />
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card>
-                <Statistic
-                  title="Đã hoàn thành"
-                  value={stats.completed}
-                  prefix={<CheckCircleOutlined />}
-                  valueStyle={{ color: "#52c41a" }}
-                />
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card>
-                <Statistic
-                  title="Đã hủy"
-                  value={stats.cancelled}
-                  prefix={<CloseCircleOutlined />}
-                  valueStyle={{ color: "#ff4d4f" }}
-                />
-              </Card>
-            </Col>
-          </Row>
+          <div className="stats-section">
+            <h3 className="section-title">
+              <CalendarOutlined /> Tổng quan lịch khám
+            </h3>
+            <Row gutter={[16, 16]}>
+              <Col xs={24} sm={12} lg={8} xl={4}>
+                <Card className="stat-card total" bordered={false}>
+                  <div className="stat-icon-wrapper total">
+                    <CalendarOutlined />
+                  </div>
+                  <Statistic
+                    title="Tổng lịch khám"
+                    value={stats.total}
+                    valueStyle={{ color: "#1e3c72", fontWeight: 700 }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} lg={8} xl={4}>
+                <Card className="stat-card pending" bordered={false}>
+                  <div className="stat-icon-wrapper pending">
+                    <ClockCircleOutlined />
+                  </div>
+                  <Statistic
+                    title="Chờ xác nhận"
+                    value={stats.pending}
+                    valueStyle={{ color: "#fa8c16", fontWeight: 700 }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} lg={8} xl={4}>
+                <Card className="stat-card confirmed" bordered={false}>
+                  <div className="stat-icon-wrapper confirmed">
+                    <CheckCircleOutlined />
+                  </div>
+                  <Statistic
+                    title="Đã xác nhận"
+                    value={stats.confirmed}
+                    valueStyle={{ color: "#52c41a", fontWeight: 700 }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} lg={8} xl={4}>
+                <Card className="stat-card completed" bordered={false}>
+                  <div className="stat-icon-wrapper completed">
+                    <CheckCircleOutlined />
+                  </div>
+                  <Statistic
+                    title="Đã hoàn thành"
+                    value={stats.completed}
+                    valueStyle={{ color: "#1890ff", fontWeight: 700 }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} lg={8} xl={4}>
+                <Card className="stat-card cancelled" bordered={false}>
+                  <div className="stat-icon-wrapper cancelled">
+                    <CloseCircleOutlined />
+                  </div>
+                  <Statistic
+                    title="Đã hủy"
+                    value={stats.cancelled}
+                    valueStyle={{ color: "#ff4d4f", fontWeight: 700 }}
+                  />
+                </Card>
+              </Col>
+            </Row>
+          </div>
 
           {/* Thống kê doanh thu */}
-          <Row gutter={16} style={{ marginBottom: 20 }}>
-            <Col span={8}>
-              <Card>
-                <Statistic
-                  title="Tổng doanh thu"
-                  value={revenueStats.totalRevenue}
-                  prefix={<DollarOutlined />}
-                  valueStyle={{ color: "#1890ff" }}
-                  suffix="đ"
-                  formatter={(value) => value.toLocaleString("vi-VN")}
-                />
-              </Card>
-            </Col>
-            <Col span={8}>
-              <Card>
-                <Statistic
-                  title={`Đã thanh toán (${revenueStats.paidCount} đơn)`}
-                  value={revenueStats.paidRevenue}
-                  prefix={<CheckCircleOutlined />}
-                  valueStyle={{ color: "#52c41a" }}
-                  suffix="đ"
-                  formatter={(value) => value.toLocaleString("vi-VN")}
-                />
-              </Card>
-            </Col>
-            <Col span={8}>
-              <Card>
-                <Statistic
-                  title={`Chưa thanh toán (${revenueStats.unpaidCount} đơn)`}
-                  value={revenueStats.unpaidRevenue}
-                  prefix={<WalletOutlined />}
-                  valueStyle={{ color: "#ff4d4f" }}
-                  suffix="đ"
-                  formatter={(value) => value.toLocaleString("vi-VN")}
-                />
-              </Card>
-            </Col>
-          </Row>
+          <div className="stats-section">
+            <h3 className="section-title">
+              <DollarOutlined /> Tổng quan doanh thu
+            </h3>
+            <Row gutter={[16, 16]}>
+              <Col xs={24} md={8}>
+                <Card className="revenue-card total" bordered={false}>
+                  <div className="revenue-icon-wrapper total">
+                    <DollarOutlined />
+                  </div>
+                  <Statistic
+                    title="Tổng doanh thu"
+                    value={revenueStats.totalRevenue}
+                    valueStyle={{
+                      color: "#1e3c72",
+                      fontWeight: 700,
+                      fontSize: 28,
+                    }}
+                    suffix="đ"
+                    formatter={(value) => value.toLocaleString("vi-VN")}
+                  />
+                  <div className="revenue-subtitle">
+                    {appointments.length} lịch khám
+                  </div>
+                </Card>
+              </Col>
+              <Col xs={24} md={8}>
+                <Card className="revenue-card paid" bordered={false}>
+                  <div className="revenue-icon-wrapper paid">
+                    <CheckCircleOutlined />
+                  </div>
+                  <Statistic
+                    title="Đã thanh toán"
+                    value={revenueStats.paidRevenue}
+                    valueStyle={{
+                      color: "#52c41a",
+                      fontWeight: 700,
+                      fontSize: 28,
+                    }}
+                    suffix="đ"
+                    formatter={(value) => value.toLocaleString("vi-VN")}
+                  />
+                  <div className="revenue-subtitle">
+                    {revenueStats.paidCount} đơn đã thanh toán
+                  </div>
+                </Card>
+              </Col>
+              <Col xs={24} md={8}>
+                <Card className="revenue-card unpaid" bordered={false}>
+                  <div className="revenue-icon-wrapper unpaid">
+                    <WalletOutlined />
+                  </div>
+                  <Statistic
+                    title="Chưa thanh toán"
+                    value={revenueStats.unpaidRevenue}
+                    valueStyle={{
+                      color: "#ff4d4f",
+                      fontWeight: 700,
+                      fontSize: 28,
+                    }}
+                    suffix="đ"
+                    formatter={(value) => value.toLocaleString("vi-VN")}
+                  />
+                  <div className="revenue-subtitle">
+                    {revenueStats.unpaidCount} đơn chưa thanh toán
+                  </div>
+                </Card>
+              </Col>
+            </Row>
+          </div>
 
           {/* Chi tiết thanh toán */}
-          <Card style={{ marginBottom: 20 }}>
-            <Tabs
-              defaultActiveKey="paid"
-              items={[
-                {
-                  key: "paid",
-                  label: `Đã thanh toán (${paidAppointments.length})`,
-                  children: (
-                    <div>
-                      <Space style={{ marginBottom: 16 }}>
-                        <Input
-                          placeholder="Tìm kiếm bệnh nhân..."
-                          prefix={<SearchOutlined />}
-                          value={paidSearchText}
-                          onChange={(e) => setPaidSearchText(e.target.value)}
-                          style={{ width: 250 }}
-                          allowClear
+          <div className="stats-section">
+            <Card className="payment-details-card" bordered={false}>
+              <Tabs
+                defaultActiveKey="paid"
+                className="payment-tabs"
+                style={{ padding: "0 10px" }}
+                size="large"
+                items={[
+                  {
+                    key: "paid",
+                    label: `Đã thanh toán (${paidAppointments.length})`,
+                    children: (
+                      <div>
+                        <Space style={{ marginBottom: 16, marginTop: 16 }}>
+                          <Input
+                            placeholder="Tìm kiếm bệnh nhân..."
+                            prefix={<SearchOutlined />}
+                            value={paidSearchText}
+                            onChange={(e) => setPaidSearchText(e.target.value)}
+                            style={{ width: 250 }}
+                            allowClear
+                          />
+                        </Space>
+                        <Table
+                          columns={appointmentColumns}
+                          dataSource={paidAppointments}
+                          rowKey="_id"
+                          onRow={(record) => ({
+                            onClick: () => {
+                              navigate(`/admin/appointment/${record._id}`);
+                            },
+                            style: { cursor: "pointer" },
+                          })}
+                          pagination={{
+                            pageSize: 10,
+                            showTotal: (total) => `Tổng ${total} lịch khám`,
+                            showSizeChanger: true,
+                            pageSizeOptions: ["5", "10", "20", "50"],
+                          }}
+                          scroll={{ x: 800 }}
                         />
-                      </Space>
-                      <Table
-                        columns={appointmentColumns}
-                        dataSource={paidAppointments}
-                        rowKey="_id"
-                        onRow={(record) => ({
-                          onClick: () => {
-                            navigate(`/admin/appointment/${record._id}`);
-                          },
-                          style: { cursor: "pointer" },
-                        })}
-                        pagination={{
-                          pageSize: 10,
-                          showTotal: (total) => `Tổng ${total} lịch khám`,
-                          showSizeChanger: true,
-                          pageSizeOptions: ["5", "10", "20", "50"],
-                        }}
-                        scroll={{ x: 800 }}
-                      />
-                    </div>
-                  ),
-                },
-                {
-                  key: "unpaid",
-                  label: `Chưa thanh toán (${unpaidAppointments.length})`,
-                  children: (
-                    <div>
-                      <Space style={{ marginBottom: 16 }}>
-                        <Input
-                          placeholder="Tìm kiếm bệnh nhân..."
-                          prefix={<SearchOutlined />}
-                          value={unpaidSearchText}
-                          onChange={(e) => setUnpaidSearchText(e.target.value)}
-                          style={{ width: 250 }}
-                          allowClear
+                      </div>
+                    ),
+                  },
+                  {
+                    key: "unpaid",
+                    label: `Chưa thanh toán (${unpaidAppointments.length})`,
+                    children: (
+                      <div>
+                        <Space style={{ marginBottom: 16, marginTop: 16 }}>
+                          <Input
+                            placeholder="Tìm kiếm bệnh nhân..."
+                            prefix={<SearchOutlined />}
+                            value={unpaidSearchText}
+                            onChange={(e) =>
+                              setUnpaidSearchText(e.target.value)
+                            }
+                            style={{ width: 250 }}
+                            allowClear
+                          />
+                        </Space>
+                        <Table
+                          columns={appointmentColumns}
+                          dataSource={unpaidAppointments}
+                          onRow={(record) => ({
+                            onClick: () => {
+                              navigate(`/admin/appointment/${record._id}`);
+                            },
+                            style: { cursor: "pointer" },
+                          })}
+                          rowKey="_id"
+                          pagination={{
+                            pageSize: 10,
+                            showTotal: (total) => `Tổng ${total} lịch khám`,
+                            showSizeChanger: true,
+                            pageSizeOptions: ["5", "10", "20", "50"],
+                          }}
+                          scroll={{ x: 800 }}
                         />
-                      </Space>
-                      <Table
-                        columns={appointmentColumns}
-                        dataSource={unpaidAppointments}
-                        onRow={(record) => ({
-                          onClick: () => {
-                            navigate(`/admin/appointment/${record._id}`);
-                          },
-                          style: { cursor: "pointer" },
-                        })}
-                        rowKey="_id"
-                        pagination={{
-                          pageSize: 10,
-                          showTotal: (total) => `Tổng ${total} lịch khám`,
-                          showSizeChanger: true,
-                          pageSizeOptions: ["5", "10", "20", "50"],
-                        }}
-                        scroll={{ x: 800 }}
-                      />
-                    </div>
-                  ),
-                },
-              ]}
-            />
-          </Card>
+                      </div>
+                    ),
+                  },
+                ]}
+              />
+            </Card>
+          </div>
         </>
       )}
     </div>

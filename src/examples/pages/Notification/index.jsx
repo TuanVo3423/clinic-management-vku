@@ -11,6 +11,7 @@ import {
   message,
   Avatar,
   Tabs,
+  Space,
 } from "antd";
 import {
   BellOutlined,
@@ -19,6 +20,8 @@ import {
   ReloadOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
+  ArrowLeftOutlined,
+  InboxOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -49,15 +52,19 @@ const Notification = () => {
 
   useEffect(() => {
     console.log("notificationsUnRead ahaha", notificationsUnRead);
-  }, [notificationsUnRead])
+  }, [notificationsUnRead]);
 
   const handleMaskReadNotification = async (notificationId) => {
     try {
-      await axios.patch(`http://localhost:3000/notifications/${notificationId}/read`, null, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      });
+      await axios.patch(
+        `http://localhost:3000/notifications/${notificationId}/read`,
+        null,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        }
+      );
     } catch (error) {
       console.error("Error marking notification as read:", error);
       message.error("Không thể đánh dấu thông báo là đã đọc");
@@ -66,11 +73,14 @@ const Notification = () => {
 
   const fetchNotificationUnread = async () => {
     try {
-      const res = await axios.get(`http://localhost:3000/notifications/status/false`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      });
+      const res = await axios.get(
+        `http://localhost:3000/notifications/status/false`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        }
+      );
       if (res.data && res.data.notifications) {
         setNotificationsUnRead(res.data.notifications);
       }
@@ -81,11 +91,14 @@ const Notification = () => {
 
   const fetchNotificationCountRead = async () => {
     try {
-      const res = await axios.get(`http://localhost:3000/notifications/status/true`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      });
+      const res = await axios.get(
+        `http://localhost:3000/notifications/status/true`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        }
+      );
       if (res.data && res.data.notifications) {
         setNotificationsRead(res.data.notifications);
       }
@@ -97,7 +110,10 @@ const Notification = () => {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      Promise.all([fetchNotificationUnread(), fetchNotificationCountRead()]).then(() => {
+      Promise.all([
+        fetchNotificationUnread(),
+        fetchNotificationCountRead(),
+      ]).then(() => {
         setLoading(false);
       });
     } catch (error) {
@@ -165,245 +181,319 @@ const Notification = () => {
     await handleMaskReadNotification(notificationId);
     minusUnreadCount(1);
     navigate(`/admin/appointment/${appointmentId}`);
-  }
+  };
 
   return (
     <div className="notification-page">
-      <Card
-        className="notification-card"
-        title={
-          <div className="notification-header">
-            <div className="header-left">
-              <BellOutlined className="header-icon" />
-              <Title level={3} style={{ margin: 0 }}>
-                Thông báo
-              </Title>
-              <Badge
-                count={unreadCount.length}
-                style={{ backgroundColor: "#1890ff" }}
-              />
-            </div>
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={fetchNotifications}
-              loading={loading}
-            >
-              Tải lại
-            </Button>
+      <div className="notification-wrapper">
+        {/* Modern Header */}
+        <div className="notification-header-gradient">
+          <div className="notification-header-content">
+            <Space size="middle" className="header-left-section">
+              <Button
+                icon={<ArrowLeftOutlined />}
+                onClick={() => navigate("/admin")}
+                className="back-button"
+                size="large"
+              >
+                Quay lại
+              </Button>
+              <div className="header-title-wrapper">
+                <div className="header-icon-wrapper">
+                  <BellOutlined className="header-bell-icon" />
+                </div>
+                <div>
+                  <h1 className="notification-page-title">
+                    Trung tâm thông báo
+                  </h1>
+                  <p className="notification-page-subtitle">
+                    Quản lý và theo dõi các thông báo của bạn
+                  </p>
+                </div>
+              </div>
+            </Space>
+            <Space size="middle" className="header-actions">
+              <div className="unread-counter">
+                <Badge
+                  count={notificationsUnRead.length}
+                  overflowCount={99}
+                  className="unread-badge"
+                />
+                <span className="unread-label">Chưa đọc</span>
+              </div>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={fetchNotifications}
+                loading={loading}
+                size="large"
+                className="reload-button"
+              >
+                Tải lại
+              </Button>
+            </Space>
           </div>
-        }
-        extra={
-          <Button type="link" onClick={() => navigate("/admin")}>
-            Quay lại
-          </Button>
-        }
-      >
-        <Tabs
-          activeKey={activeTab}
-          onChange={handleTabChange}
-          tabBarStyle={{ marginLeft: 30 }}
-          items={[
-            {
-              key: "unread",
-              label: (
-                <span>
-                  Chưa đọc 
-                  <Badge count={notificationsUnRead.length} style={{ backgroundColor: "#1890ff", marginLeft: 8 }} />
-                </span>
-              ),
-              children: loading ? (
-                <div className="loading-container">
-                  <Spin size="large" tip="Đang tải thông báo..." />
-                </div>
-              ) : notificationsUnRead.length === 0 ? (
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description="Không có thông báo chưa đọc"
-                />
-              ) : (
-                <List
-                  itemLayout="horizontal"
-                  dataSource={notificationsUnRead}
-                  pagination={{
-                    current: currentPage,
-                    pageSize: pageSize,
-                    total: notificationsUnRead.length,
-                    onChange: handlePageChange,
-                    onShowSizeChange: handlePageChange,
-                    showSizeChanger: true,
-                    showTotal: (total) => `Tổng ${total} thông báo`,
-                    pageSizeOptions: ["5", "10", "20", "50"],
-                  }}
-                  renderItem={(item) => (
-                    <List.Item className={`notification-item ${item.isRead ? "read" : "unread"}`} onClick={() => handleNavigateToDetailPage(item.appointmentId, item._id)} key={item._id}>
-                      <List.Item.Meta
-                        avatar={
-                          <div style={{ position: "relative" }}>
-                            <Avatar
-                              icon={getNotificationIcon(item.type)}
-                              size={48}
-                              style={{
-                                backgroundColor:
-                                  item.type === "appointment_created"
-                                    ? "#f6ffed"
-                                    : item.type === "appointment_updated"
-                                    ? "#e6f7ff"
-                                    : item.type === "appointment_cancelled"
-                                    ? "#fff1f0"
-                                    : "#fafafa",
-                              }}
-                            />
-                            {!item.isRead && (
-                              <span className="unread-dot" />
-                            )}
-                          </div>
+        </div>
+
+        {/* Content Card */}
+        <Card className="notification-card" bordered={false}>
+          <Tabs
+            activeKey={activeTab}
+            onChange={handleTabChange}
+            className="notification-tabs"
+            size="large"
+            items={[
+              {
+                key: "unread",
+                label: (
+                  <span className="tab-label">
+                    <InboxOutlined className="tab-icon" />
+                    <span>Chưa đọc</span>
+                    <Badge
+                      count={notificationsUnRead.length}
+                      className="tab-badge"
+                      overflowCount={99}
+                    />
+                  </span>
+                ),
+                children: loading ? (
+                  <div className="loading-container">
+                    <Spin size="large" tip="Đang tải thông báo..." />
+                  </div>
+                ) : notificationsUnRead.length === 0 ? (
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description="Không có thông báo chưa đọc"
+                  />
+                ) : (
+                  <List
+                    itemLayout="horizontal"
+                    dataSource={notificationsUnRead}
+                    pagination={{
+                      current: currentPage,
+                      pageSize: pageSize,
+                      total: notificationsUnRead.length,
+                      onChange: handlePageChange,
+                      onShowSizeChange: handlePageChange,
+                      showSizeChanger: true,
+                      showTotal: (total) => `Tổng ${total} thông báo`,
+                      pageSizeOptions: ["5", "10", "20", "50"],
+                    }}
+                    renderItem={(item) => (
+                      <List.Item
+                        className={`notification-item ${
+                          item.isRead ? "read" : "unread"
+                        }`}
+                        onClick={() =>
+                          handleNavigateToDetailPage(
+                            item.appointmentId,
+                            item._id
+                          )
                         }
-                        title={
-                          <div className="notification-title">
-                            <Text strong={!item.isRead}>{getNotificationTitle(item.type)}</Text>
-                            <Tag color={getNotificationColor(item.type)}>
-                              {item.recipientType === "patient"
-                                ? "Bệnh nhân"
-                                : "Bác sĩ"}
-                            </Tag>
-                            <span className="channel-icon">
-                              {getChannelIcon(item.channel)}
-                            </span>
-                          </div>
-                        }
-                        description={
-                          <div className="notification-content">
-                            <Text>{item.message}</Text>
-                            <div className="notification-footer">
-                              <Text type="secondary" className="notification-time">
-                                <ClockCircleOutlined />
-                                {dayjs(item.createdAt).fromNow()}
-                              </Text>
-                              {item.status && (
-                                <Tag
-                                  icon={
-                                    item.status === "sent" ? (
-                                      <CheckCircleOutlined />
-                                    ) : (
-                                      <CloseCircleOutlined />
-                                    )
-                                  }
-                                  color={item.status === "sent" ? "success" : "error"}
-                                >
-                                  {item.status === "sent" ? "Đã gửi" : "Thất bại"}
-                                </Tag>
-                              )}
+                        key={item._id}
+                      >
+                        <List.Item.Meta
+                          avatar={
+                            <div style={{ position: "relative" }}>
+                              <Avatar
+                                icon={getNotificationIcon(item.type)}
+                                size={48}
+                                style={{
+                                  backgroundColor:
+                                    item.type === "appointment_created"
+                                      ? "#f6ffed"
+                                      : item.type === "appointment_updated"
+                                      ? "#e6f7ff"
+                                      : item.type === "appointment_cancelled"
+                                      ? "#fff1f0"
+                                      : "#fafafa",
+                                }}
+                              />
+                              {!item.isRead && <span className="unread-dot" />}
                             </div>
-                          </div>
-                        }
-                      />
-                    </List.Item>
-                  )}
-                />
-              ),
-            },
-            {
-              key: "read",
-              label: (
-                <span>
-                  Đã đọc 
-                  <Badge count={notificationsRead.length} style={{ backgroundColor: "#52c41a", marginLeft: 8 }} />
-                </span>
-              ),
-              children: loading ? (
-                <div className="loading-container">
-                  <Spin size="large" tip="Đang tải thông báo..." />
-                </div>
-              ) : notificationsRead.length === 0 ? (
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description="Không có thông báo đã đọc"
-                />
-              ) : (
-                <List
-                  itemLayout="horizontal"
-                  dataSource={notificationsRead}
-                  pagination={{
-                    current: currentPage,
-                    pageSize: pageSize,
-                    total: notificationsRead.length,
-                    onChange: handlePageChange,
-                    onShowSizeChange: handlePageChange,
-                    showSizeChanger: true,
-                    showTotal: (total) => `Tổng ${total} thông báo`,
-                    pageSizeOptions: ["5", "10", "20", "50"],
-                  }}
-                  renderItem={(item) => (
-                    <List.Item className={`notification-item ${item.isRead ? "read" : "unread"}`} onClick={() => handleNavigateToDetailPage(item.appointmentId, item._id)} key={item._id}>
-                      <List.Item.Meta
-                        avatar={
-                          <div style={{ position: "relative" }}>
-                            <Avatar
-                              icon={getNotificationIcon(item.type)}
-                              size={48}
-                              style={{
-                                backgroundColor:
-                                  item.type === "appointment_created"
-                                    ? "#f6ffed"
-                                    : item.type === "appointment_updated"
-                                    ? "#e6f7ff"
-                                    : item.type === "appointment_cancelled"
-                                    ? "#fff1f0"
-                                    : "#fafafa",
-                              }}
-                            />
-                            {!item.isRead && (
-                              <span className="unread-dot" />
-                            )}
-                          </div>
-                        }
-                        title={
-                          <div className="notification-title">
-                            <Text strong={!item.isRead}>{getNotificationTitle(item.type)}</Text>
-                            <Tag color={getNotificationColor(item.type)}>
-                              {item.recipientType === "patient"
-                                ? "Bệnh nhân"
-                                : "Bác sĩ"}
-                            </Tag>
-                            <span className="channel-icon">
-                              {getChannelIcon(item.channel)}
-                            </span>
-                          </div>
-                        }
-                        description={
-                          <div className="notification-content">
-                            <Text>{item.message}</Text>
-                            <div className="notification-footer">
-                              <Text type="secondary" className="notification-time">
-                                <ClockCircleOutlined />
-                                {dayjs(item.createdAt).fromNow()}
+                          }
+                          title={
+                            <div className="notification-title">
+                              <Text strong={!item.isRead}>
+                                {getNotificationTitle(item.type)}
                               </Text>
-                              {item.status && (
-                                <Tag
-                                  icon={
-                                    item.status === "sent" ? (
-                                      <CheckCircleOutlined />
-                                    ) : (
-                                      <CloseCircleOutlined />
-                                    )
-                                  }
-                                  color={item.status === "sent" ? "success" : "error"}
-                                >
-                                  {item.status === "sent" ? "Đã gửi" : "Thất bại"}
-                                </Tag>
-                              )}
+                              <Tag color={getNotificationColor(item.type)}>
+                                {item.recipientType === "patient"
+                                  ? "Bệnh nhân"
+                                  : "Bác sĩ"}
+                              </Tag>
+                              <span className="channel-icon">
+                                {getChannelIcon(item.channel)}
+                              </span>
                             </div>
-                          </div>
+                          }
+                          description={
+                            <div className="notification-content">
+                              <Text>{item.message}</Text>
+                              <div className="notification-footer">
+                                <Text
+                                  type="secondary"
+                                  className="notification-time"
+                                >
+                                  <ClockCircleOutlined />
+                                  {dayjs(item.createdAt).fromNow()}
+                                </Text>
+                                {item.status && (
+                                  <Tag
+                                    icon={
+                                      item.status === "sent" ? (
+                                        <CheckCircleOutlined />
+                                      ) : (
+                                        <CloseCircleOutlined />
+                                      )
+                                    }
+                                    color={
+                                      item.status === "sent"
+                                        ? "success"
+                                        : "error"
+                                    }
+                                  >
+                                    {item.status === "sent"
+                                      ? "Đã gửi"
+                                      : "Thất bại"}
+                                  </Tag>
+                                )}
+                              </div>
+                            </div>
+                          }
+                        />
+                      </List.Item>
+                    )}
+                  />
+                ),
+              },
+              {
+                key: "read",
+                label: (
+                  <span className="tab-label">
+                    <CheckCircleOutlined className="tab-icon" />
+                    <span>Đã đọc</span>
+                    <Badge
+                      count={notificationsRead.length}
+                      className="tab-badge success"
+                      overflowCount={99}
+                    />
+                  </span>
+                ),
+                children: loading ? (
+                  <div className="loading-container">
+                    <Spin size="large" tip="Đang tải thông báo..." />
+                  </div>
+                ) : notificationsRead.length === 0 ? (
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description="Không có thông báo đã đọc"
+                  />
+                ) : (
+                  <List
+                    itemLayout="horizontal"
+                    dataSource={notificationsRead}
+                    pagination={{
+                      current: currentPage,
+                      pageSize: pageSize,
+                      total: notificationsRead.length,
+                      onChange: handlePageChange,
+                      onShowSizeChange: handlePageChange,
+                      showSizeChanger: true,
+                      showTotal: (total) => `Tổng ${total} thông báo`,
+                      pageSizeOptions: ["5", "10", "20", "50"],
+                    }}
+                    renderItem={(item) => (
+                      <List.Item
+                        className={`notification-item ${
+                          item.isRead ? "read" : "unread"
+                        }`}
+                        onClick={() =>
+                          handleNavigateToDetailPage(
+                            item.appointmentId,
+                            item._id
+                          )
                         }
-                      />
-                    </List.Item>
-                  )}
-                />
-              ),
-            },
-          ]}
-        />
-      </Card>
+                        key={item._id}
+                      >
+                        <List.Item.Meta
+                          avatar={
+                            <div style={{ position: "relative" }}>
+                              <Avatar
+                                icon={getNotificationIcon(item.type)}
+                                size={48}
+                                style={{
+                                  backgroundColor:
+                                    item.type === "appointment_created"
+                                      ? "#f6ffed"
+                                      : item.type === "appointment_updated"
+                                      ? "#e6f7ff"
+                                      : item.type === "appointment_cancelled"
+                                      ? "#fff1f0"
+                                      : "#fafafa",
+                                }}
+                              />
+                              {!item.isRead && <span className="unread-dot" />}
+                            </div>
+                          }
+                          title={
+                            <div className="notification-title">
+                              <Text strong={!item.isRead}>
+                                {getNotificationTitle(item.type)}
+                              </Text>
+                              <Tag color={getNotificationColor(item.type)}>
+                                {item.recipientType === "patient"
+                                  ? "Bệnh nhân"
+                                  : "Bác sĩ"}
+                              </Tag>
+                              <span className="channel-icon">
+                                {getChannelIcon(item.channel)}
+                              </span>
+                            </div>
+                          }
+                          description={
+                            <div className="notification-content">
+                              <Text>{item.message}</Text>
+                              <div className="notification-footer">
+                                <Text
+                                  type="secondary"
+                                  className="notification-time"
+                                >
+                                  <ClockCircleOutlined />
+                                  {dayjs(item.createdAt).fromNow()}
+                                </Text>
+                                {item.status && (
+                                  <Tag
+                                    icon={
+                                      item.status === "sent" ? (
+                                        <CheckCircleOutlined />
+                                      ) : (
+                                        <CloseCircleOutlined />
+                                      )
+                                    }
+                                    color={
+                                      item.status === "sent"
+                                        ? "success"
+                                        : "error"
+                                    }
+                                  >
+                                    {item.status === "sent"
+                                      ? "Đã gửi"
+                                      : "Thất bại"}
+                                  </Tag>
+                                )}
+                              </div>
+                            </div>
+                          }
+                        />
+                      </List.Item>
+                    )}
+                  />
+                ),
+              },
+            ]}
+          />
+        </Card>
+      </div>
     </div>
   );
 };

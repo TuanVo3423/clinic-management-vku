@@ -1,0 +1,630 @@
+/* ============================================
+   STATISTICS PAGE MODERN UI
+   ============================================ */
+
+/* Main Container */
+.statistics-container {
+  height: 100%;
+  overflow-y: auto;
+  padding: 0;
+}
+
+/* Header Section */
+.statistics-header {
+  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+  padding: 24px;
+  /* margin: -24px -24px 24px -24px; */
+  margin-bottom: 20px;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+  position: sticky;
+  top: -24px;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.header-icon-wrapper {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.header-icon-wrapper:hover {
+  transform: translateY(-2px) rotate(5deg);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.header-icon {
+  font-size: 28px;
+  color: white;
+}
+
+.statistics-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e3c72;
+  line-height: 1.2;
+}
+
+.statistics-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.date-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.date-range-picker {
+  border-radius: 10px !important;
+  border: 2px solid rgba(102, 126, 234, 0.2) !important;
+  transition: all 0.3s ease;
+}
+
+.date-range-picker:hover,
+.date-range-picker:focus {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+/* Loading Container */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 100px 20px;
+  min-height: 400px;
+}
+
+.loading-container .ant-spin {
+  color: #667eea;
+}
+
+/* Stats Section */
+.stats-section {
+  margin-bottom: 32px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e3c72;
+  margin: 0 0 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+.section-title .anticon {
+  font-size: 22px;
+  color: #667eea;
+}
+
+/* Stat Cards */
+.stat-card {
+  border-radius: 16px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  position: relative;
+  border: none !important;
+}
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  transition: all 0.3s ease;
+}
+
+.stat-card.total::before {
+  background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%);
+}
+
+.stat-card.pending::before {
+  background: linear-gradient(90deg, #fa8c16 0%, #ffc53d 100%);
+}
+
+.stat-card.confirmed::before {
+  background: linear-gradient(90deg, #52c41a 0%, #73d13d 100%);
+}
+
+.stat-card.completed::before {
+  background: linear-gradient(90deg, #1890ff 0%, #40a9ff 100%);
+}
+
+.stat-card.cancelled::before {
+  background: linear-gradient(90deg, #ff4d4f 0%, #ff7875 100%);
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2) !important;
+}
+
+.stat-card:hover::before {
+  height: 6px;
+}
+
+.stat-card .ant-card-body {
+  padding: 20px;
+}
+
+.stat-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.stat-card:hover .stat-icon-wrapper {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.stat-icon-wrapper.total {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  box-shadow: 0 4px 12px rgba(30, 60, 114, 0.3);
+}
+
+.stat-icon-wrapper.pending {
+  background: linear-gradient(135deg, #fa8c16 0%, #ffc53d 100%);
+  box-shadow: 0 4px 12px rgba(250, 140, 22, 0.3);
+}
+
+.stat-icon-wrapper.confirmed {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  box-shadow: 0 4px 12px rgba(82, 196, 26, 0.3);
+}
+
+.stat-icon-wrapper.completed {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+.stat-icon-wrapper.cancelled {
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+  box-shadow: 0 4px 12px rgba(255, 77, 79, 0.3);
+}
+
+.stat-card .ant-statistic-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.stat-card .ant-statistic-content {
+  font-size: 28px;
+}
+
+/* Revenue Cards */
+.revenue-card {
+  border-radius: 16px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  position: relative;
+  border: none !important;
+  min-height: 180px;
+  padding: 10px;
+}
+
+.revenue-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.05;
+  transition: opacity 0.3s ease;
+}
+
+.revenue-card.total::before {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+}
+
+.revenue-card.paid::before {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+}
+
+.revenue-card.unpaid::before {
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+}
+
+.revenue-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.2) !important;
+}
+
+.revenue-card:hover::before {
+  opacity: 0.1;
+}
+
+.revenue-card .ant-card-body {
+  padding: 24px;
+}
+
+.revenue-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.revenue-card:hover .revenue-icon-wrapper {
+  transform: scale(1.1) rotate(-5deg);
+}
+
+.revenue-icon-wrapper.total {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  box-shadow: 0 6px 16px rgba(30, 60, 114, 0.3);
+}
+
+.revenue-icon-wrapper.paid {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  box-shadow: 0 6px 16px rgba(82, 196, 26, 0.3);
+}
+
+.revenue-icon-wrapper.unpaid {
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+  box-shadow: 0 6px 16px rgba(255, 77, 79, 0.3);
+}
+
+.revenue-card .ant-statistic-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+.revenue-card .ant-statistic-content {
+  font-size: 32px;
+}
+
+.revenue-subtitle {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Payment Details Card */
+.payment-details-card {
+  border-radius: 16px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+  overflow: hidden;
+  border: none !important;
+}
+
+.payment-details-card .ant-card-body {
+  padding: 0;
+}
+
+/* Payment Tabs */
+.payment-tabs .ant-tabs-nav {
+  /* padding: 0 24px; */
+  margin: 0;
+}
+
+.payment-tabs .ant-tabs-nav::before {
+  border-bottom: 2px solid rgba(0, 0, 0, 0.06);
+}
+
+.payment-tabs .ant-tabs-tab {
+  padding: 16px 24px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #64748b;
+  transition: all 0.3s ease;
+}
+
+.payment-tabs .ant-tabs-tab:hover {
+  color: #667eea;
+}
+
+.payment-tabs .ant-tabs-tab-active {
+  background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+}
+
+.payment-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #667eea !important;
+  font-weight: 600;
+}
+
+.payment-tabs .ant-tabs-ink-bar {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+}
+
+.payment-tabs .ant-tabs-content {
+  padding: 24px;
+}
+
+/* Table Enhancements */
+.payment-tabs .ant-table {
+  border-radius: 0;
+}
+
+.payment-tabs .ant-table-thead > tr > th {
+  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+  font-weight: 600;
+  color: #1e3c72;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+  padding: 16px;
+}
+
+.payment-tabs .ant-table-tbody > tr {
+  transition: all 0.3s ease;
+}
+
+.payment-tabs .ant-table-tbody > tr:hover > td {
+  background: rgba(102, 126, 234, 0.05);
+  cursor: pointer;
+}
+
+.payment-tabs .ant-table-tbody > tr > td {
+  padding: 16px;
+}
+
+/* Search Input */
+.payment-tabs .ant-input-affix-wrapper {
+  border-radius: 10px !important;
+  border: 2px solid rgba(102, 126, 234, 0.2) !important;
+  transition: all 0.3s ease;
+}
+
+.payment-tabs .ant-input-affix-wrapper:hover,
+.payment-tabs .ant-input-affix-wrapper:focus,
+.payment-tabs .ant-input-affix-wrapper-focused {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+/* Tags Enhancement */
+.ant-tag {
+  border-radius: 6px;
+  font-weight: 500;
+  padding: 2px 10px;
+  border: none;
+}
+
+/* Pagination Enhancement */
+.payment-tabs .ant-pagination {
+  margin-top: 24px;
+}
+
+.payment-tabs .ant-pagination-item-active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+}
+
+.payment-tabs .ant-pagination-item-active a {
+  color: white;
+}
+
+.payment-tabs .ant-pagination-item:hover {
+  border-color: #667eea;
+}
+
+.payment-tabs .ant-pagination-item:hover a {
+  color: #667eea;
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+  .header-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-right {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .statistics-header {
+    padding: 20px;
+    margin: -24px -24px 20px -24px;
+  }
+
+  .header-left {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-icon-wrapper {
+    width: 48px;
+    height: 48px;
+  }
+
+  .header-icon {
+    font-size: 24px;
+  }
+
+  .statistics-title {
+    font-size: 20px;
+    margin-top: 12px;
+  }
+
+  .statistics-subtitle {
+    font-size: 13px;
+  }
+
+  .header-right {
+    width: 100%;
+  }
+
+  .date-label {
+    display: none;
+  }
+
+  .date-range-picker {
+    width: 100%;
+  }
+
+  .section-title {
+    font-size: 16px;
+  }
+
+  .stat-card .ant-card-body {
+    padding: 16px;
+  }
+
+  .stat-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+
+  .stat-card .ant-statistic-content {
+    font-size: 24px;
+  }
+
+  .revenue-card {
+    min-height: 160px;
+  }
+
+  .revenue-card .ant-card-body {
+    padding: 20px;
+  }
+
+  .revenue-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+
+  .revenue-card .ant-statistic-content {
+    font-size: 28px;
+  }
+
+  .payment-tabs .ant-tabs-nav {
+    padding: 0 16px;
+  }
+
+  .payment-tabs .ant-tabs-tab {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .payment-tabs .ant-tabs-content {
+    padding: 16px;
+  }
+
+  .payment-tabs .ant-table-thead > tr > th,
+  .payment-tabs .ant-table-tbody > tr > td {
+    padding: 12px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .statistics-header {
+    padding: 16px;
+  }
+
+  .statistics-title {
+    font-size: 18px;
+  }
+
+  .stat-card .ant-statistic-content {
+    font-size: 20px;
+  }
+
+  .revenue-card .ant-statistic-content {
+    font-size: 24px;
+  }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-card,
+.revenue-card,
+.payment-details-card {
+  animation: fadeInUp 0.5s ease;
+}
+
+.stats-section {
+  animation: fadeInUp 0.6s ease;
+}
+
+/* Scrollbar */
+.statistics-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.statistics-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.statistics-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+}
+
+.statistics-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #7e8ef6 0%, #8a5cb2 100%);
+}

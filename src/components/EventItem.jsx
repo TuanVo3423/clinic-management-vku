@@ -428,6 +428,15 @@ class EventItem extends Component {
     const content = <EventItemPopover {...this.props} eventItem={eventItem} title={eventItem.title} startTime={eventItem.start} endTime={eventItem.end} statusColor={bgColor} />;
 
     const start = localeDayjs(new Date(eventItem.start));
+    const end = localeDayjs(new Date(eventItem.end));
+    const startEndFormat = localeDayjs(new Date(eventItem.start)).isSame(
+      localeDayjs(new Date(eventItem.end)),
+      "day"
+    )
+      ? `${start.format("HH:mm")} - ${end.format("HH:mm")}`
+      : `${start.format("YYYY-MM-DD HH:mm")} - ${end.format(
+          "YYYY-MM-DD HH:mm"
+        )}`;
     const eventTitle = isInPopover ? `${start.format('HH:mm')} ${titleText}` : titleText;
     let startResizeDiv = <div />;
     if (startResizable(this.props)) startResizeDiv = <div className="event-resizer event-start-resizer" ref={ref => (this.startResizer = ref)} />;
@@ -435,8 +444,9 @@ class EventItem extends Component {
     if (endResizable(this.props)) endResizeDiv = <div className="event-resizer event-end-resizer" ref={ref => (this.endResizer = ref)} />;
 
     let eventItemTemplate = (
-      <div className={`${roundCls} event-item`} key={eventItem.id} style={{ height: config.eventItemHeight, backgroundColor: bgColor }}>
-        <span style={{ marginLeft: '10px', lineHeight: `${config.eventItemHeight}px` }}>{eventTitle}</span>
+      <div className={`${roundCls} event-item`} key={eventItem.id} style={{ height: config.eventItemHeight, backgroundColor: bgColor, display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingLeft: '5px', paddingRight: '5px', boxSizing: 'border-box', overflow: 'hidden' }}>
+        <span style={{ marginLeft: '10px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{eventTitle}</span>
+        <span style={{ marginLeft: '10px', fontSize: '11px', lineHeight: 'normal', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{startEndFormat}</span>
       </div>
     );
     if (eventItemTemplateResolver !== undefined) {

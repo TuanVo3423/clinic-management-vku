@@ -6,27 +6,37 @@
 }
 
 .bell-button {
-  font-size: 20px;
-  padding: 8px;
+  font-size: 22px;
+  padding: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  height: 44px;
+  width: 44px;
 }
 
 .bell-button:hover {
-  background-color: rgba(24, 144, 255, 0.1);
-  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .bell-icon {
-  color: #595959;
-  transition: color 0.3s ease;
+  color: white;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .bell-button:hover .bell-icon {
-  color: #1890ff;
+  color: white;
   animation: ring 0.5s ease-in-out;
+  filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.3));
 }
 
 @keyframes ring {
@@ -54,35 +64,38 @@
 }
 
 .notification-badge.disconnected .bell-icon {
-  color: #d9d9d9;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .notification-badge .ant-badge-count {
-  background-color: #ff4d4f;
-  font-size: 12px;
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+  font-size: 11px;
   height: 20px;
   min-width: 20px;
   line-height: 20px;
   padding: 0 6px;
-  box-shadow: 0 2px 8px rgba(255, 77, 79, 0.3);
+  box-shadow: 0 2px 12px rgba(255, 77, 79, 0.5);
+  font-weight: 600;
+  border: 2px solid white;
 }
 
 .connection-indicator {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 12px;
-  height: 12px;
-  background-color: #52c41a;
+  bottom: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
   border-radius: 50%;
-  border: 2px solid #fff;
+  border: 2px solid rgba(255, 255, 255, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 6px rgba(82, 196, 26, 0.4);
 }
 
 .wifi-icon {
-  font-size: 8px;
+  font-size: 6px;
   color: #fff;
   animation: pulse 2s infinite;
 }

@@ -1,10 +1,21 @@
 /* eslint-disable */
 import React, { useState, useEffect } from "react";
-import { Button, Space, Modal, Form, message, Spin } from "antd";
+import {
+  Button,
+  Space,
+  Modal,
+  Form,
+  message,
+  Spin,
+  Row,
+  Col,
+  Card,
+} from "antd";
 import {
   EditOutlined,
   DeleteOutlined,
   ArrowLeftOutlined,
+  SafetyOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -13,6 +24,7 @@ import VerificationCard from "./components/VerificationCard.jsx";
 import AppointmentInfoCard from "./components/AppointmentInfoCard.jsx";
 import AppointmentHistoryCard from "./components/AppointmentHistoryCard.jsx";
 import EditAppointmentDetailModal from "./components/EditAppointmentDetailModal.jsx";
+import "./AppointmentDetail.css";
 
 const AppointmentDetail = () => {
   const { id } = useParams();
@@ -42,7 +54,7 @@ const AppointmentDetail = () => {
         `http://localhost:3000/appointments/${id}`
       );
 
-      console.log("response 123", response.data.appointment)
+      console.log("response 123", response.data.appointment);
       setAppointment(response.data.appointment);
     } catch (error) {
       message.error("Không thể tải thông tin lịch khám!");
@@ -234,17 +246,23 @@ const AppointmentDetail = () => {
 
   if (loading) {
     return (
-      <div style={{ textAlign: "center", padding: "50px" }}>
-        <Spin size="large" />
+      <div className="appointment-detail-container">
+        <div className="loading-container">
+          <Spin size="large" tip="Đang tải thông tin..." />
+        </div>
       </div>
     );
   }
 
   if (!appointment) {
     return (
-      <div style={{ textAlign: "center", padding: "50px" }}>
-        <p>Không tìm thấy thông tin lịch khám</p>
-        <Button onClick={() => navigate(-1)}>Quay lại</Button>
+      <div className="appointment-detail-container">
+        <div className="empty-container">
+          <p>Không tìm thấy thông tin lịch khám</p>
+          <Button onClick={() => navigate(-1)} size="large" type="primary">
+            Quay lại
+          </Button>
+        </div>
       </div>
     );
   }
@@ -253,65 +271,84 @@ const AppointmentDetail = () => {
   const bed = beds.find((b) => b._id === appointment.bedId);
 
   return (
-    <div
-      style={{
-        padding: "20px",
-        margin: "0 auto",
-        height: "100vh",
-        overflow: "scroll",
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          marginBottom: 20,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Space>
-          <Button
-            icon={<ArrowLeftOutlined />}
-            onClick={() => navigate(-1)}
-          >
-            Quay lại
-          </Button>
-          <h2 style={{ margin: 0 }}>Chi tiết lịch khám</h2>
-        </Space>
-        <Space>
-          <Button type="primary" icon={<EditOutlined />} onClick={handleEdit}>
-            Chỉnh sửa
-          </Button>
-          <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
-            Xóa
-          </Button>
-        </Space>
+    <div className="appointment-detail-container">
+      <div className="appointment-detail-wrapper">
+        {/* Modern Header Card */}
+        <Card className="detail-header-card" bordered={false}>
+          <div className="detail-header-content">
+            <Space size="middle" className="header-left-section">
+              <Button
+                icon={<ArrowLeftOutlined />}
+                onClick={() => navigate(-1)}
+                className="back-button"
+                size="large"
+              >
+                Quay lại
+              </Button>
+              <div className="header-title-section">
+                <h1 className="detail-page-title">Chi tiết lịch khám</h1>
+                <p className="detail-page-subtitle">
+                  Thông tin chi tiết và lịch sử thay đổi
+                </p>
+              </div>
+            </Space>
+            <Space size="middle" className="header-actions">
+              <Button
+                type="primary"
+                icon={<EditOutlined />}
+                onClick={handleEdit}
+                size="large"
+                className="edit-button"
+              >
+                Chỉnh sửa
+              </Button>
+              <Button
+                danger
+                icon={<DeleteOutlined />}
+                onClick={handleDelete}
+                size="large"
+                className="delete-button"
+              >
+                Xóa
+              </Button>
+            </Space>
+          </div>
+        </Card>
+
+        {/* Content Grid */}
+        <Row gutter={[24, 24]}>
+          {/* Left Column - Main Info */}
+          <Col xs={24} lg={16}>
+            <Space direction="vertical" size="large" style={{ width: "100%" }}>
+              {/* Verification Status Card */}
+              <VerificationCard
+                verificationStatus={verificationStatus}
+                verifyLoading={verifyLoading}
+                onVerify={verifyAppointment}
+              />
+
+              {/* Main Info Card */}
+              <AppointmentInfoCard
+                appointment={appointment}
+                patient={patient}
+                bed={bed}
+                availableServices={availableServices}
+                getStatusColor={getStatusColor}
+                getStatusText={getStatusText}
+              />
+            </Space>
+          </Col>
+
+          {/* Right Column - History */}
+          <Col xs={24} lg={8}>
+            <AppointmentHistoryCard
+              history={appointment.history}
+              getActionText={getActionText}
+              getActionColor={getActionColor}
+            />
+          </Col>
+        </Row>
       </div>
-
-      {/* Verification Status Card */}
-      <VerificationCard
-        verificationStatus={verificationStatus}
-        verifyLoading={verifyLoading}
-        onVerify={verifyAppointment}
-      />
-
-      {/* Main Info Card */}
-      <AppointmentInfoCard
-        appointment={appointment}
-        patient={patient}
-        bed={bed}
-        availableServices={availableServices}
-        getStatusColor={getStatusColor}
-        getStatusText={getStatusText}
-      />
-
-      {/* History Card */}
-      <AppointmentHistoryCard
-        history={appointment.history}
-        getActionText={getActionText}
-        getActionColor={getActionColor}
-      />
 
       {/* Edit Modal */}
       <EditAppointmentDetailModal
