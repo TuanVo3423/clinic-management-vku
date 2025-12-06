@@ -1,18 +1,22 @@
 /* eslint-disable */
 import React from "react";
 import { Card, Timeline, Tag, Space } from "antd";
-import { HistoryOutlined } from "@ant-design/icons";
+import { HistoryOutlined, ClockCircleOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
 const AppointmentHistoryCard = ({ history, getActionText, getActionColor }) => {
   return (
     <Card
+      className="history-card"
       title={
-        <Space>
-          <HistoryOutlined />
+        <Space className="card-title">
+          <div className="card-title-icon">
+            <HistoryOutlined />
+          </div>
           <span>Lịch sử thay đổi</span>
         </Space>
       }
+      bordered={false}
     >
       {history && history.length > 0 ? (
         <Timeline

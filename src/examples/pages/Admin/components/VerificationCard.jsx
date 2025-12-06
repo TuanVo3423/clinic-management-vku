@@ -5,47 +5,60 @@ import {
   SafetyOutlined,
   CheckCircleOutlined,
   WarningOutlined,
+  SyncOutlined,
 } from "@ant-design/icons";
 
 const VerificationCard = ({ verificationStatus, verifyLoading, onVerify }) => {
   if (!verificationStatus) return null;
 
+  const isValid = verificationStatus.isValid;
+
   return (
     <Card
-      style={{ marginBottom: 20 }}
-      bordered={!verificationStatus.isValid}
-      styles={{
-        body: {
-          backgroundColor: verificationStatus.isValid ? "#f6ffed" : "#fff2e8",
-        },
-      }}
+      className={`verification-card ${isValid ? "valid" : "invalid"}`}
+      bordered={false}
     >
-      <Space direction="vertical" style={{ width: "100%" }} size="middle">
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Space>
-            <SafetyOutlined style={{ fontSize: "16px" }} />
-            <strong>Trạng thái xác thực Blockchain:</strong>
-            {verificationStatus.isValid ? (
-              <Tag color="success" icon={<CheckCircleOutlined />}>
-                Dữ liệu hợp lệ
-              </Tag>
-            ) : (
-              <Tag color="error" icon={<WarningOutlined />}>
-                Dữ liệu bị thay đổi trái phép
-              </Tag>
-            )}
-          </Space>
-          <Button size="small" loading={verifyLoading} onClick={onVerify}>
-            Kiểm tra lại
-          </Button>
+      <div className="verification-content">
+        <div className="verification-left">
+          <div
+            className={`verification-icon-wrapper ${
+              isValid ? "valid" : "invalid"
+            }`}
+          >
+            <SafetyOutlined className="verification-icon" />
+          </div>
+          <div className="verification-info">
+            <h4 className="verification-title">Xác thực Blockchain</h4>
+            <Space size="small">
+              {isValid ? (
+                <Tag
+                  color="success"
+                  icon={<CheckCircleOutlined />}
+                  className="verification-tag"
+                >
+                  Dữ liệu hợp lệ
+                </Tag>
+              ) : (
+                <Tag
+                  color="error"
+                  icon={<WarningOutlined />}
+                  className="verification-tag"
+                >
+                  Dữ liệu bị thay đổi trái phép
+                </Tag>
+              )}
+            </Space>
+          </div>
         </div>
-      </Space>
+        <Button
+          icon={<SyncOutlined />}
+          loading={verifyLoading}
+          onClick={onVerify}
+          className="verify-button"
+        >
+          Kiểm tra lại
+        </Button>
+      </div>
     </Card>
   );
 };

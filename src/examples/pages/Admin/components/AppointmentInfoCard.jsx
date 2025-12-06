@@ -1,7 +1,11 @@
 /* eslint-disable */
 import React from "react";
 import { Card, Descriptions, Tag, Space } from "antd";
-import { UserOutlined, ClockCircleOutlined } from "@ant-design/icons";
+import {
+  UserOutlined,
+  ClockCircleOutlined,
+  CalendarOutlined,
+} from "@ant-design/icons";
 import dayjs from "dayjs";
 
 const AppointmentInfoCard = ({
@@ -14,13 +18,16 @@ const AppointmentInfoCard = ({
 }) => {
   return (
     <Card
+      className="info-card"
       title={
-        <Space>
-          <UserOutlined />
+        <Space className="card-title">
+          <div className="card-title-icon">
+            <CalendarOutlined />
+          </div>
           <span>Thông tin lịch khám</span>
         </Space>
       }
-      style={{ marginBottom: 20 }}
+      bordered={false}
     >
       <Descriptions bordered column={2}>
         <Descriptions.Item label="Mã lịch khám" span={2}>

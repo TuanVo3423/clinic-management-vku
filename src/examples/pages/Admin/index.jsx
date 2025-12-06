@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Tabs, Badge, Dropdown, Avatar } from "antd";
+import { Tabs, Badge, Dropdown, Avatar, Card } from "antd";
 import {
   CalendarOutlined,
   UnorderedListOutlined,
   BarChartOutlined,
   UserOutlined,
   LogoutOutlined,
+  MedicineBoxOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import ClassBased from "./class-based";
@@ -18,7 +19,7 @@ import dayjs from "dayjs";
 
 const { TabPane } = Tabs;
 
-function Admin() {    
+function Admin() {
   const [activeTab, setActiveTab] = useState(
     () => localStorage.getItem("adminActiveTab") || "timeline"
   );
@@ -88,50 +89,33 @@ function Admin() {
 
   return (
     <div className="admin-container">
-      <div className="admin-header">
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <div>
-            <h1>🏥 Quản lý lịch khám - Trang bác sĩ</h1>
-            <p style={{ margin: 0, color: "#666" }}>
-              Xem và quản lý lịch khám, điều chỉnh giờ khám, theo dõi thống kê
-            </p>
+      <div className="admin-header-gradient">
+        <div className="admin-header-content">
+          <div className="header-left">
+            <div className="brand-section">
+              <div className="brand-icon">
+                <MedicineBoxOutlined />
+              </div>
+              <div className="brand-text">
+                <h1 className="brand-title">Hệ thống quản lý khám bệnh</h1>
+                <p className="brand-subtitle">Trang quản lý dành cho bác sĩ</p>
+              </div>
+            </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <div className="header-right">
             <NotificationBell />
             <Dropdown menu={{ items: menuItems }} placement="bottomRight">
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  cursor: "pointer",
-                  padding: "8px 16px",
-                  borderRadius: "8px",
-                  transition: "background 0.3s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#f0f0f0";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "transparent";
-                }}
-              >
+              <div className="user-profile-dropdown">
                 <Avatar
                   icon={<UserOutlined />}
-                  style={{ backgroundColor: "#1890ff" }}
+                  className="user-avatar"
                   size="large"
                 />
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontWeight: 600, color: "#262626" }}>
+                <div className="user-info">
+                  <div className="user-name">
                     {doctorInfo?.name || "Bác sĩ"}
                   </div>
-                  <div style={{ fontSize: "12px", color: "#8c8c8c" }}>
+                  <div className="user-role">
                     {doctorInfo?.specialization || "Chuyên khoa"}
                   </div>
                 </div>
@@ -141,56 +125,75 @@ function Admin() {
         </div>
       </div>
 
-      <Tabs
-        activeKey={activeTab}
-        onChange={setActiveTab}
-        className="admin-tabs"
-      >
-        <TabPane
-          tab={
-            <span>
-              <CalendarOutlined />
-              Timeline
-            </span>
-          }
-          key="timeline"
-        >
-          <div className="scheduler-container">
-            <ClassBased />
-          </div>
-        </TabPane>
+      <div className="admin-content-wrapper">
+        <Card className="admin-tabs-card" bordered={false}>
+          {/* <div className="quick-stats">
+            <div className="stat-item">
+              <CalendarOutlined className="stat-icon" />
+              <div className="stat-content">
+                <div className="stat-value">{appointmentCount}</div>
+                <div className="stat-label">Lịch khám gần đây</div>
+              </div>
+            </div>
+          </div> */}
 
-        <TabPane
-          tab={
-            <span>
-              <UnorderedListOutlined />
-              Danh sách
-              {appointmentCount > 0 && (
-                <Badge
-                  count={appointmentCount}
-                  style={{ marginLeft: 8 }}
-                  overflowCount={999}
-                />
-              )}
-            </span>
-          }
-          key="list"
-        >
-          <ListView />
-        </TabPane>
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            className="admin-tabs"
+            size="large"
+          >
+            <TabPane
+              tab={
+                <span className="tab-label">
+                  <CalendarOutlined className="tab-icon" />
+                  <span>Lịch khám</span>
+                </span>
+              }
+              key="timeline"
+            >
+              <div className="tab-content scheduler-container">
+                <ClassBased />
+              </div>
+            </TabPane>
 
-        <TabPane
-          tab={
-            <span>
-              <BarChartOutlined />
-              Thống kê
-            </span>
-          }
-          key="statistics"
-        >
-          <Statistics />
-        </TabPane>
-      </Tabs>
+            <TabPane
+              tab={
+                <span className="tab-label">
+                  <UnorderedListOutlined className="tab-icon" />
+                  <span>Danh sách</span>
+                  {appointmentCount > 0 && (
+                    <Badge
+                      count={appointmentCount}
+                      className="tab-badge"
+                      overflowCount={999}
+                    />
+                  )}
+                </span>
+              }
+              key="list"
+            >
+              <div className="tab-content">
+                <ListView />
+              </div>
+            </TabPane>
+
+            <TabPane
+              tab={
+                <span className="tab-label">
+                  <BarChartOutlined className="tab-icon" />
+                  <span>Thống kê</span>
+                </span>
+              }
+              key="statistics"
+            >
+              <div className="tab-content">
+                <Statistics />
+              </div>
+            </TabPane>
+          </Tabs>
+        </Card>
+      </div>
     </div>
   );
 }
