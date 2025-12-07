@@ -22,7 +22,18 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        use: ["style-loader", "css-loader"],
+        use: [
+          "style-loader",
+          "css-loader",
+          {
+            loader: "postcss-loader",
+            options: {
+              postcssOptions: {
+                plugins: [require("tailwindcss"), require("autoprefixer")],
+              },
+            },
+          },
+        ],
       },
       {
         test: /\.(svg|png|jpe?g|gif|woff|woff2|eot|ttf|otf|pdf)$/i,
