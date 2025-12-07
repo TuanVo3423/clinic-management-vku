@@ -54,6 +54,7 @@ export default function ChatWidget() {
     new Promise((resolve) => {
       if (typingTimers.current[id]) clearInterval(typingTimers.current[id]);
       if (inputRef.current) inputRef.current.blur();
+
       let i = 0;
 
       setMessages((prev) =>
@@ -133,7 +134,10 @@ export default function ChatWidget() {
       const botMessage =
         data.data?.response?.message || "Xin lỗi, tôi không hiểu yêu cầu.";
       const services =
-        data.data?.response?.services || data.service || data.services || [];
+        data.data?.response?.services ||
+        data.service ||
+        data.services ||
+        [];
 
       await typeText(botId, botMessage, 24);
 
@@ -152,7 +156,6 @@ export default function ChatWidget() {
   };
 
   const handleKey = (e) => e.key === "Enter" && send();
-
   const handleSuggestionClick = (svc) => {
     localStorage.setItem("selectedServiceFromChat", JSON.stringify(svc));
     window.location.href = "/scheduler";
@@ -165,7 +168,7 @@ export default function ChatWidget() {
         onClick={() => setOpen(true)}
         className="
           fixed bottom-6 right-6 w-16 h-16 rounded-full
-          bg-gradient-to-br from-blue-600 to-indigo-500
+          bg-gradient-to-br from-emerald-400 to-emerald-600
           text-white shadow-xl flex items-center justify-center
           text-4xl hover:scale-110 transition-transform z-50
         "
@@ -178,22 +181,22 @@ export default function ChatWidget() {
         <div
           className="
             fixed bottom-6 right-6 w-[410px] h-[600px]
-            bg-white/90 backdrop-blur-xl shadow-2xl rounded-3xl
-            overflow-hidden flex flex-col border border-blue-200
+            bg-emerald-50/90 backdrop-blur-xl shadow-2xl rounded-3xl
+            overflow-hidden flex flex-col border border-emerald-200
             animate-[fadeInUp_.25s_ease] z-50
           "
         >
           {/* Header */}
           <div
             className="
-            bg-gradient-to-r from-blue-600 to-indigo-600
-            text-white px-5 py-4 flex justify-between items-center shadow-md
+            bg-gradient-to-r from-emerald-500 to-emerald-600
+            text-white px-5 py-4 flex justify-between items-center shadow
           "
           >
             <div className="font-semibold text-xl flex gap-3 items-center">
               <img
                 src="https://cdn-icons-png.flaticon.com/512/4712/4712106.png"
-                className="w-9 h-9 rounded-full shadow-md"
+                className="w-10 h-10 rounded-full shadow"
                 alt="bot"
               />
               Trợ lý ảo
@@ -211,7 +214,7 @@ export default function ChatWidget() {
             ref={messagesRef}
             className="
               flex-1 overflow-y-auto p-5 space-y-4
-              bg-gradient-to-b from-blue-50/50 to-white
+              bg-gradient-to-b from-emerald-50/70 to-white
             "
           >
             {messages.map((m) => (
@@ -235,16 +238,16 @@ export default function ChatWidget() {
                       rounded-2xl px-4 py-3 shadow
                       ${
                         m.from === "user"
-                          ? "bg-blue-600 text-white rounded-br-none"
-                          : "bg-white text-gray-800 rounded-bl-none"
+                          ? "bg-emerald-500 text-white rounded-br-none"
+                          : "bg-white text-gray-800 rounded-bl-none border border-emerald-100"
                       }
                     `}
                   >
                     {m.status === "thinking" ? (
                       <div className="flex gap-1">
-                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-150" />
-                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-300" />
+                        <span className="w-2 h-2 bg-emerald-300 rounded-full animate-bounce" />
+                        <span className="w-2 h-2 bg-emerald-300 rounded-full animate-bounce delay-150" />
+                        <span className="w-2 h-2 bg-emerald-300 rounded-full animate-bounce delay-300" />
                       </div>
                     ) : (
                       <span className="leading-relaxed">{m.text}</span>
@@ -258,7 +261,7 @@ export default function ChatWidget() {
                             key={i}
                             onClick={() => handleSuggestionClick(s)}
                             className="
-                              block w-full text-left bg-blue-100 hover:bg-blue-200
+                              block w-full text-left bg-emerald-100 hover:bg-emerald-200
                               px-3 py-2 rounded-lg text-sm font-medium transition
                             "
                           >
@@ -269,8 +272,8 @@ export default function ChatWidget() {
                         <button
                           onClick={() => handleSuggestionClick({})}
                           className="
-                            block w-full bg-blue-600 text-white px-4 py-2
-                            rounded-lg text-sm font-semibold hover:bg-blue-700
+                            block w-full bg-emerald-600 text-white px-4 py-2
+                            rounded-lg text-sm font-semibold hover:bg-emerald-700
                           "
                         >
                           Đặt lịch ngay
@@ -291,17 +294,18 @@ export default function ChatWidget() {
               onChange={(e) => setText(e.target.value)}
               onKeyDown={handleKey}
               className="
-                flex-1 px-4 py-3 bg-gray-100 rounded-xl 
-                focus:outline-none focus:ring-2 focus:ring-blue-500
-                text-sm
+                flex-1 px-4 py-3 bg-emerald-50 rounded-xl 
+                focus:outline-none focus:ring-2 focus:ring-emerald-500
+                text-sm border border-emerald-200
               "
               placeholder="Nhập tin nhắn..."
             />
             <button
               onClick={send}
               className="
-                px-5 py-3 bg-blue-600 text-white rounded-xl
-                font-semibold hover:bg-blue-700 shadow-sm
+                px-5 py-3 bg-emerald-600 text-white rounded-xl
+                font-semibold hover:bg-emerald-700 shadow-sm
+                transition
               "
             >
               Gửi

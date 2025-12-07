@@ -32,18 +32,18 @@ export default function SiteLayout({ children, headerClassName }) {
   return (
     <div
       className="site-layout"
-      style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
+      style={{ minHeight: "80vh", display: "flex", flexDirection: "column" }}
     >
-      <header className="fixed top-0 left-0 w-full z-50 bg-white/40 backdrop-blur-xl border-b border-white/40 shadow-sm">
-        <nav className="max-w-7xl mx-auto px-6 py-2 relative flex items-center">
+      <header className="fixed top-0 left-0 w-full z-50 bg-emerald-100/70 backdrop-blur-xl shadow-md border-b border-emerald-200/60">
+        <nav className="w-full px-4 sm:px-6 py-2 flex items-center justify-between">
           <div className="flex-shrink-0">
-            <a href="/" className="text-2xl font-bold text-gray-800">
+            <a href="/" className="text-2xl font-bold text-emerald-800">
               Health<span className="text-emerald-600">Care</span>
             </a>
           </div>
 
           <div className="hidden md:block absolute left-1/2 transform -translate-x-1/2">
-            <ul className="flex items-center gap-2 text-gray-700 font-medium">
+            <ul className="flex items-center gap-2 text-emerald-800 font-medium">
               {[
                 { label: "Home", href: "/" },
                 { label: "About Us", href: "/about" },
@@ -54,7 +54,7 @@ export default function SiteLayout({ children, headerClassName }) {
                 <li key={i}>
                   <a
                     href={item.href}
-                    className="px-4 py-2 rounded-lg hover:bg-blue-100 transition whitespace-nowrap"
+                    className="px-4 py-2 rounded-lg hover:bg-emerald-200 transition whitespace-nowrap"
                   >
                     {item.label}
                   </a>
@@ -63,17 +63,19 @@ export default function SiteLayout({ children, headerClassName }) {
             </ul>
           </div>
 
-          <div className="ml-auto flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-3">
             {patient ? (
               <>
-                <span className="text-gray-700 text-sm whitespace-nowrap mr-2">
+                <span className="hidden md:inline text-emerald-900 text-sm whitespace-nowrap mr-1">
                   Xin chào, <b>{patient.data.patient.fullName}</b>
                 </span>
+
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="w-9 h-9 rounded-full bg-red-500 flex items-center justify-center text-white hover:bg-red-600 transition"
                   title="Đăng xuất"
+                  className="hidden md:flex w-9 h-9 rounded-full bg-rose-500 items-center justify-center 
+              text-white hover:bg-rose-600 transition"
                 >
                   <i className="ri-logout-box-r-line text-lg" />
                 </button>
@@ -82,7 +84,8 @@ export default function SiteLayout({ children, headerClassName }) {
               <button
                 type="button"
                 onClick={() => setAuthModalVisible(true)}
-                className="px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition"
+                className="hidden md:block px-4 py-2 rounded-lg bg-emerald-600 text-white 
+            hover:bg-emerald-700 transition"
               >
                 Đăng nhập
               </button>
@@ -90,7 +93,7 @@ export default function SiteLayout({ children, headerClassName }) {
 
             {/* Mobile toggle */}
             <button
-              className="md:hidden text-3xl text-gray-800 ml-2"
+              className="md:hidden text-3xl text-emerald-900"
               onClick={() =>
                 document.querySelector(".mobile-menu")?.classList.toggle("open")
               }
@@ -103,33 +106,35 @@ export default function SiteLayout({ children, headerClassName }) {
         {/* Mobile Menu */}
         <div
           className="mobile-menu hidden flex-col gap-3 px-6 pb-4 md:hidden
-      bg-white/80 backdrop-blur-xl border-t border-white/30 transition-all"
+      bg-emerald-100/90 backdrop-blur-xl border-t border-emerald-200/60 transition-all"
         >
-          <a href="/" className="py-2 text-gray-800">
+          <a href="/" className="py-2 text-emerald-900">
             Home
           </a>
-          <a href="/about" className="py-2 text-gray-800">
+          <a href="/about" className="py-2 text-emerald-900">
             About Us
           </a>
-          <a href="/scheduler" className="py-2 text-gray-800">
+          <a href="/scheduler" className="py-2 text-emerald-900">
             Services
           </a>
-          <a href="/pages" className="py-2 text-gray-800">
+          <a href="/pages" className="py-2 text-emerald-900">
             Pages
           </a>
-          <a href="/blog" className="py-2 text-gray-800">
+          <a href="/blog" className="py-2 text-emerald-900">
             Blog
           </a>
 
-          <div className="h-px bg-gray-300/40 my-1" />
+          <div className="h-px bg-emerald-300/40 my-1" />
 
+          {/* Chỉ hiển thị ở mobile */}
           {patient ? (
             <>
-              <div className="text-gray-700">
+              <div className="text-emerald-900">
                 {patient.data.patient.fullName}
               </div>
+
               <button
-                className="px-4 py-2 rounded-lg bg-red-500 text-white"
+                className="px-4 py-2 rounded-lg bg-rose-500 text-white"
                 onClick={handleLogout}
               >
                 Đăng xuất
@@ -150,51 +155,87 @@ export default function SiteLayout({ children, headerClassName }) {
 
       <main style={{ flex: 1 }}>{children}</main>
 
-      <footer className="footer" style={{ marginTop: "auto" }}>
-        <div className="section__container footer__container">
-          <div className="footer__col">
-            <h3>
-              Health <span>Care</span>
+      <footer className="bg-emerald-100/60 border-t border-emerald-200/60 mt-20">
+        <div className="max-w-7xl mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-4 gap-10 text-emerald-900">
+          {/* Logo + intro */}
+          <div>
+            <h3 className="text-3xl font-bold text-emerald-800">
+              Health <span className="text-emerald-600">Care</span>
             </h3>
-            <p>
+            <p className="mt-4 leading-relaxed text-emerald-700">
               We are honored to be a part of your healthcare journey and
               committed to delivering compassionate and top-notch care.
             </p>
           </div>
-          <div className="footer__col">
-            <h4>About Us</h4>
-            <p>Home</p>
-            <p>About Us</p>
-            <p>Work With Us</p>
+
+          {/* About */}
+          <div>
+            <h4 className="text-xl font-semibold mb-4 text-emerald-800">
+              About Us
+            </h4>
+            <ul className="space-y-2 text-emerald-700">
+              <li className="hover:text-emerald-900 cursor-pointer">Home</li>
+              <li className="hover:text-emerald-900 cursor-pointer">
+                About Us
+              </li>
+              <li className="hover:text-emerald-900 cursor-pointer">
+                Work With Us
+              </li>
+            </ul>
           </div>
-          <div className="footer__col">
-            <h4>Services</h4>
-            <p>Search Terms</p>
-            <p>Advance Search</p>
-            <p>Privacy Policy</p>
+
+          {/* Services */}
+          <div>
+            <h4 className="text-xl font-semibold mb-4 text-emerald-800">
+              Services
+            </h4>
+            <ul className="space-y-2 text-emerald-700">
+              <li className="hover:text-emerald-900 cursor-pointer">
+                Search Terms
+              </li>
+              <li className="hover:text-emerald-900 cursor-pointer">
+                Advanced Search
+              </li>
+              <li className="hover:text-emerald-900 cursor-pointer">
+                Privacy Policy
+              </li>
+            </ul>
           </div>
-          <div className="footer__col">
-            <h4>Contact Us</h4>
-            <p>
-              <i className="ri-map-pin-2-fill" /> Redfort Bridge Street, Delhi
+
+          {/* Contact */}
+          <div>
+            <h4 className="text-xl font-semibold mb-4 text-emerald-800">
+              Contact Us
+            </h4>
+
+            <p className="flex items-start gap-3 text-emerald-700 hover:text-emerald-900 cursor-pointer">
+              <i className="ri-map-pin-2-fill text-xl" />
+              Redfort Bridge Street, Delhi
             </p>
-            <p>
-              <i className="ri-mail-fill" /> support@care.com
+
+            <p className="flex items-start gap-3 text-emerald-700 hover:text-emerald-900 cursor-pointer mt-2">
+              <i className="ri-mail-fill text-xl" />
+              support@care.com
             </p>
-            <p>
-              <i className="ri-phone-fill" /> (+91) 93456 87989
+
+            <p className="flex items-start gap-3 text-emerald-700 hover:text-emerald-900 cursor-pointer mt-2">
+              <i className="ri-phone-fill text-xl" />
+              (+91) 93456 87989
             </p>
           </div>
         </div>
-        <div className="footer__bar">
-          <div className="footer__bar__content">
-            <p>Copyright © 2024 codeaashu. All rights reserved.</p>
-            <div className="footer__socials">
-              <span>
-                <i className="ri-instagram-line" />
+
+        {/* Bottom bar */}
+        <div className="border-t border-emerald-200/60">
+          <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center text-emerald-800">
+            <p className="text-sm">© 2024 HealthCare. All rights reserved.</p>
+
+            <div className="flex gap-4 mt-3 md:mt-0">
+              <span className="w-9 h-9 flex items-center justify-center rounded-full bg-emerald-200 text-emerald-800 hover:bg-emerald-300 cursor-pointer transition">
+                <i className="ri-instagram-line text-lg" />
               </span>
-              <span>
-                <i className="ri-facebook-fill" />
+              <span className="w-9 h-9 flex items-center justify-center rounded-full bg-emerald-200 text-emerald-800 hover:bg-emerald-300 cursor-pointer transition">
+                <i className="ri-facebook-fill text-lg" />
               </span>
             </div>
           </div>
