@@ -826,3 +826,9 @@ header {
   color: var(--primary-color);
   transform: translateY(-2px);
 }
+.mobile-menu {
+  display: none;
+}
+.mobile-menu.open {
+  display: flex;
+}

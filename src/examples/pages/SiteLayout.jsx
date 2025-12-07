@@ -34,41 +34,39 @@ export default function SiteLayout({ children, headerClassName }) {
       className="site-layout"
       style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
     >
-      <header className="backdrop-blur-xl bg-white/30 border-b border-white/40 sticky top-0 z-50 w-full">
-        <nav
-          className="max-w-7xl mx-auto px-6 py-3 
-                  grid grid-cols-3 items-center"
-        >
-          <div className="text-2xl font-bold text-gray-800">
-            Health<span className="text-emerald-600">Care</span>
+      <header className="fixed top-0 left-0 w-full z-50 bg-white/40 backdrop-blur-xl border-b border-white/40 shadow-sm">
+        <nav className="max-w-7xl mx-auto px-6 py-2 relative flex items-center">
+          <div className="flex-shrink-0">
+            <a href="/" className="text-2xl font-bold text-gray-800">
+              Health<span className="text-emerald-600">Care</span>
+            </a>
           </div>
 
-          <ul
-            className="hidden md:flex items-center gap-1 
-                   text-gray-700 font-medium justify-center"
-          >
-            {[
-              { label: "Home", href: "/" },
-              { label: "About Us", href: "/about" },
-              { label: "Services", href: "/scheduler" },
-              { label: "Pages", href: "/pages" },
-              { label: "Blog", href: "/blog" },
-            ].map((item, i) => (
-              <li key={i}>
-                <a
-                  href={item.href}
-                  className="px-4 py-2 rounded-lg hover:bg-blue-100 transition whitespace-nowrap"
-                >
-                  {item.label}
-                </a>
-              </li>
-            ))}
-          </ul>
+          <div className="hidden md:block absolute left-1/2 transform -translate-x-1/2">
+            <ul className="flex items-center gap-2 text-gray-700 font-medium">
+              {[
+                { label: "Home", href: "/" },
+                { label: "About Us", href: "/about" },
+                { label: "Services", href: "/scheduler" },
+                { label: "Pages", href: "/pages" },
+                { label: "Blog", href: "/blog" },
+              ].map((item, i) => (
+                <li key={i}>
+                  <a
+                    href={item.href}
+                    className="px-4 py-2 rounded-lg hover:bg-blue-100 transition whitespace-nowrap"
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-          <div className="hidden md:flex justify-end items-center gap-3 min-w-max">
+          <div className="ml-auto flex items-center gap-3 flex-shrink-0">
             {patient ? (
               <>
-                <span className="text-gray-700 text-sm whitespace-nowrap">
+                <span className="text-gray-700 text-sm whitespace-nowrap mr-2">
                   Xin chào, <b>{patient.data.patient.fullName}</b>
                 </span>
                 <button
@@ -77,7 +75,7 @@ export default function SiteLayout({ children, headerClassName }) {
                   className="w-9 h-9 rounded-full bg-red-500 flex items-center justify-center text-white hover:bg-red-600 transition"
                   title="Đăng xuất"
                 >
-                  <i className="ri-logout-box-r-line text-lg"></i>
+                  <i className="ri-logout-box-r-line text-lg" />
                 </button>
               </>
             ) : (
@@ -89,9 +87,65 @@ export default function SiteLayout({ children, headerClassName }) {
                 Đăng nhập
               </button>
             )}
+
+            {/* Mobile toggle */}
+            <button
+              className="md:hidden text-3xl text-gray-800 ml-2"
+              onClick={() =>
+                document.querySelector(".mobile-menu")?.classList.toggle("open")
+              }
+            >
+              ☰
+            </button>
           </div>
         </nav>
+
+        {/* Mobile Menu */}
+        <div
+          className="mobile-menu hidden flex-col gap-3 px-6 pb-4 md:hidden
+      bg-white/80 backdrop-blur-xl border-t border-white/30 transition-all"
+        >
+          <a href="/" className="py-2 text-gray-800">
+            Home
+          </a>
+          <a href="/about" className="py-2 text-gray-800">
+            About Us
+          </a>
+          <a href="/scheduler" className="py-2 text-gray-800">
+            Services
+          </a>
+          <a href="/pages" className="py-2 text-gray-800">
+            Pages
+          </a>
+          <a href="/blog" className="py-2 text-gray-800">
+            Blog
+          </a>
+
+          <div className="h-px bg-gray-300/40 my-1" />
+
+          {patient ? (
+            <>
+              <div className="text-gray-700">
+                {patient.data.patient.fullName}
+              </div>
+              <button
+                className="px-4 py-2 rounded-lg bg-red-500 text-white"
+                onClick={handleLogout}
+              >
+                Đăng xuất
+              </button>
+            </>
+          ) : (
+            <button
+              className="px-4 py-2 rounded-lg bg-emerald-600 text-white"
+              onClick={() => setAuthModalVisible(true)}
+            >
+              Đăng nhập
+            </button>
+          )}
+        </div>
       </header>
+
       <HeroSlider />
 
       <main style={{ flex: 1 }}>{children}</main>
