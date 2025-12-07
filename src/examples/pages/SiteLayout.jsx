@@ -11,6 +11,7 @@ import React, { useEffect, useState } from "react";
 import "./styles.css";
 import ChatWidget from "../components/ChatWidget";
 import AuthPatientModal from "../../components/AuthPatientmModal";
+import HeroSlider from "../components/HeroSlider";
 
 export default function SiteLayout({ children, headerClassName }) {
   const [patient, setPatient] = useState(
@@ -33,86 +34,110 @@ export default function SiteLayout({ children, headerClassName }) {
       className="site-layout"
       style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
     >
-      <header className={headerClassName ?? (patient ? "header-side" : "header-main")}>
-        <nav
-          className="section__container nav__container"
-          style={{ paddingTop: 12, paddingBottom: 12 }}
-        >
-          <div className="nav__logo">
-            Health <span>Care</span>
+      <header
+        className="header-glass"
+        style={{
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          background: "rgba(255, 255, 255, 0.35)",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.4)",
+        }}
+      >
+        <nav className="header-nav">
+          <div className="logo">
+            Health<span>Care</span>
           </div>
-          <ul className="nav__links">
-            <li className="link">
+
+          {/* Desktop menu */}
+          <ul className="nav-links">
+            <li>
               <a href="/">Home</a>
             </li>
-            <li className="link">
+            <li>
               <a href="/about">About Us</a>
             </li>
-            <li className="link">
+            <li>
               <a href="/scheduler">Services</a>
             </li>
-            <li className="link">
+            <li>
               <a href="/pages">Pages</a>
             </li>
-            <li className="link">
+            <li>
               <a href="/blog">Blog</a>
             </li>
           </ul>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+
+          <div className="nav-actions">
             {patient ? (
               <>
-                <div
-                  style={{
-                    color: "var(--primary-color-dark)",
-                    fontWeight: 600,
-                  }}
+                <span className="patient-greeting">
+                  Xin chào, <b>{patient.data.patient.fullName}</b>
+                </span>
+                <button
+                  type="button"
+                  className="btn nav-btn logout-btn"
+                  onClick={handleLogout}
                 >
-                  {patient.fullName}
-                </div>
-                <button type="button" className="btn" onClick={handleLogout}>
-                  Log out
+                  Đăng xuất
                 </button>
               </>
             ) : (
               <button
                 type="button"
-                className="btn"
+                className="btn nav-btn login-btn"
                 onClick={() => setAuthModalVisible(true)}
               >
                 Đăng nhập
               </button>
             )}
           </div>
-        </nav>
-        <div className="section__container header__container">
-          <div className="header__content">
-            <h1>Providing an Exceptional Patient Experience</h1>
-            <p>
-              Welcome, where exceptional patient experiences are our priority.
-              With compassionate care, state-of-the-art facilities, and a
-              patient-centered approach, we&apos;re dedicated to your well-being.
-              Trust us with your health and experience the difference.
-            </p>
-            <button type="button" className="btn">See Services</button>
-          </div>
 
-          <div className="header__form">
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>
-             <button
+          {/* Mobile toggle */}
+          <button
+            type="button"
+            className="mobile-toggle"
+            onClick={() =>
+              document.querySelector(".mobile-menu")?.classList.toggle("open")
+            }
+          >
+            ☰
+          </button>
+        </nav>
+
+        {/* Mobile menu */}
+        <div className="mobile-menu">
+          <a href="/">Home</a>
+          <a href="/about">About Us</a>
+          <a href="/scheduler">Services</a>
+          <a href="/pages">Pages</a>
+          <a href="/blog">Blog</a>
+          <div className="mobile-line" />
+
+          {patient ? (
+            <>
+              <div className="patient-name mobile">{patient.fullName}</div>
+              <button
                 type="button"
-                className="btn book-btn"
-                onClick={() => (window.location.href = "/scheduler")}
-               aria-label="Đặt lịch hẹn"
-             >
-                Đặt lịch hẹn
+                className="btn nav-btn"
+                onClick={handleLogout}
+              >
+                Log out
               </button>
-           </div>
-          </div>
+            </>
+          ) : (
+            <button
+              type="button"
+              className="btn nav-btn"
+              onClick={() => setAuthModalVisible(true)}
+            >
+              Đăng nhập
+            </button>
+          )}
         </div>
       </header>
+      <HeroSlider />
 
       <main style={{ flex: 1 }}>{children}</main>
-
 
       <footer className="footer" style={{ marginTop: "auto" }}>
         <div className="section__container footer__container">
