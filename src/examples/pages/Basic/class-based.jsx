@@ -70,7 +70,7 @@ class Basic extends Component {
       editModalVisible: false,
       selectedEvent: null,
       showAuthModal: false,
-      patientInfo: JSON.parse(localStorage.getItem("patientInfo")) || null,
+      patientInfo: JSON.parse(localStorage.getItem("patientInfo")).data.patient || null,
       isEmergency: false,
       availableServices: [],
       selectedServices: [],
