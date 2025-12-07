@@ -7,7 +7,7 @@
 /* eslint-disable */
 import React, { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
-import "./AuthPatientModal.css";
+import { message } from "antd";
 const API_BASE = "http://localhost:3000";
 
 function OtpInput({ length = 6, value = "", onChange }) {
@@ -29,9 +29,8 @@ function OtpInput({ length = 6, value = "", onChange }) {
   };
 
   const handleKey = (idx, e) => {
-    if (e.key === "Backspace" && !value[idx] && idx > 0) {
+    if (e.key === "Backspace" && !value[idx] && idx > 0)
       refs.current[idx - 1].focus();
-    }
     if (e.key === "ArrowLeft" && idx > 0) refs.current[idx - 1].focus();
     if (e.key === "ArrowRight" && idx < length - 1)
       refs.current[idx + 1].focus();
@@ -47,13 +46,14 @@ function OtpInput({ length = 6, value = "", onChange }) {
   };
 
   return (
-    <div className="otp-row" onPaste={handlePaste}>
+    <div className="flex gap-2 my-4 justify-center" onPaste={handlePaste}>
       {Array.from({ length }).map((_, i) => (
         <input
           key={i}
           ref={(el) => (refs.current[i] = el)}
-          className="otp-input"
+          className="w-12 h-12 text-center border-2 rounded-xl text-xl font-semibold focus:ring-2 focus:ring-blue-500"
           inputMode="numeric"
+          maxLength={1}
           value={value[i] || ""}
           onChange={(e) => handleChange(i, e)}
           onKeyDown={(e) => handleKey(i, e)}
@@ -156,9 +156,11 @@ export default function AuthPatientModal({ visible, onClose, onSuccess }) {
       });
       setStep("otp");
       startTimer(60);
+      message.success("Đã gửi mã OTP!");
     } catch (err) {
       console.error("login start err", err);
       setError(err?.message || "Gửi OTP thất bại.");
+      message.error(err?.message || "Gửi OTP thất bại");
     } finally {
       setLoading(false);
     }
@@ -179,12 +181,13 @@ export default function AuthPatientModal({ visible, onClose, onSuccess }) {
       });
       const patient = data.patient || data;
       localStorage.setItem("patientInfo", JSON.stringify(patient));
+      message.success("Đăng nhập thành công!");
       onSuccess && onSuccess(patient);
       onClose && onClose();
       window.location.reload();
     } catch (err) {
       console.error("complete login err", err);
-      setError(err?.message || "Xác thực OTP thất bại");
+      message.success("Xác thự OTP thất bại!");
     } finally {
       setLoading(false);
     }
@@ -217,6 +220,7 @@ export default function AuthPatientModal({ visible, onClose, onSuccess }) {
       setTempPayload({ ...reg });
       setStep("otp");
       startTimer(60);
+      message.success("Đã gửi OTP để đăng ký!");
     } catch (err) {
       console.error("register start err", err);
       setError(err?.message || "Đăng ký thất bại");
@@ -240,6 +244,7 @@ export default function AuthPatientModal({ visible, onClose, onSuccess }) {
       onSuccess && onSuccess(patient);
       onClose && onClose();
       window.location.reload();
+      message.success("Đăng ký thành công!");
     } catch (err) {
       console.error("complete register err", err);
       setError(err?.message || "Xác thực OTP thất bại");
@@ -259,6 +264,7 @@ export default function AuthPatientModal({ visible, onClose, onSuccess }) {
         await postJson("/patients/register", { ...tempPayload });
       }
       startTimer(60);
+      message.success("Đã gửi lại OTP!");
     } catch (err) {
       console.error("resend err", err);
       setError("Gửi lại OTP thất bại");
@@ -272,259 +278,289 @@ export default function AuthPatientModal({ visible, onClose, onSuccess }) {
   return (
     <div className="auth-overlay">
       <div
-        className="auth-card glass"
-        role="dialog"
-        aria-modal="true"
-        ref={containerRef}
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-[2000]"
+        aria-hidden={false}
       >
-        <div className="auth-header">
-          <div className="brand">
-            Health <span>Care</span>
+        <div
+          ref={containerRef}
+          className="relative w-full max-w-5xl bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl p-6 border border-white/20 overflow-hidden"
+        >
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold text-gray-800">
+              Health<span className="text-blue-600">Care</span>
+            </h2>
+            <button onClick={onClose} className="text-2xl hover:text-red-500">
+              ✕
+            </button>
           </div>
-          <button
-            className="close-btn"
-            onClick={() => {
-              onClose && onClose();
-            }}
-            aria-label="Close auth"
-          >
-            ✕
-          </button>
-        </div>
 
-        <div className="pill-toggle">
-          <button
-            className={`pill ${activeTab === "login" ? "active" : ""}`}
-            onClick={() => {
-              setActiveTab("login");
-              setStep("form");
-              setError("");
-              setOtp("");
-            }}
-          >
-            Đăng nhập
-          </button>
-          <button
-            className={`pill ${activeTab === "register" ? "active" : ""}`}
-            onClick={() => {
-              setActiveTab("register");
-              setStep("form");
-              setError("");
-              setOtp("");
-            }}
-          >
-            Đăng ký
-          </button>
-          <div className={`pill-slider ${activeTab}`} />
-        </div>
+          <div className="relative flex mx-auto w-[260px] bg-gray-200 rounded-full mt-4 p-1">
+            <button
+              className={`flex-1 py-2 rounded-full font-semibold transition ${
+                activeTab === "login"
+                  ? "bg-blue-600 text-white shadow-lg"
+                  : "text-gray-700"
+              }`}
+              onClick={() => {
+                setActiveTab("login");
+                setStep("form");
+                setError("");
+                setOtp("");
+              }}
+            >
+              Đăng nhập
+            </button>
+            <button
+              className={`flex-1 py-2 rounded-full font-semibold transition ${
+                activeTab === "register"
+                  ? "bg-blue-600 text-white shadow-lg"
+                  : "text-gray-700"
+              }`}
+              onClick={() => {
+                setActiveTab("register");
+                setStep("form");
+                setError("");
+                setOtp("");
+              }}
+            >
+              Đăng ký
+            </button>
+            <div className={`pill-slider ${activeTab}`} />
+          </div>
 
-        <div className={`auth-body ${activeTab} ${step}`}>
-          {/* Left: Forms (visible on mobile too) */}
-          <div className="panel left-panel">
-            {step === "form" && activeTab === "login" && (
-              <div className="form">
-                <h3 className="title">Đăng nhập</h3>
-                <p className="subtitle">Nhập số điện thoại để nhận mã OTP.</p>
-                <label className="field">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <div>
+              {step === "form" && activeTab === "login" && (
+                <div>
+                  <h3 className="text-xl font-bold mb-1">Đăng nhập</h3>
+                  <p className="text-gray-600 mb-3">
+                    Nhập số điện thoại để nhận mã OTP
+                  </p>
                   <input
                     type="text"
                     placeholder="Số điện thoại"
+                    className="w-full p-3 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500"
                     value={loginPhone}
                     onChange={(e) => setLoginPhone(e.target.value)}
                   />
-                </label>
-                {error && <div className="error">{error}</div>}
-                <div className="actions">
-                  <button
-                    className="btn ghost"
-                    onClick={() => {
-                      onClose && onClose();
-                    }}
-                  >
-                    Hủy
-                  </button>
-                  <button
-                    className="btn primary"
-                    onClick={handleLoginStart}
-                    disabled={loading}
-                  >
-                    {loading ? "Đang gửi..." : "Gửi mã OTP"}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {step === "otp" && activeTab === "login" && (
-              <div className="form">
-                <h3 className="title">Xác thực OTP</h3>
-                <p className="subtitle">
-                  Nhập mã 6 chữ số được gửi tới {tempPayload?.phone}
-                </p>
-                <OtpInput length={6} value={otp} onChange={setOtp} />
-                {error && <div className="error">{error}</div>}
-                <div className="actions">
-                  <button
-                    className="btn ghost"
-                    onClick={() => {
-                      setStep("form");
-                      setOtp("");
-                      setError("");
-                    }}
-                  >
-                    Quay lại
-                  </button>
-                  <div
-                    style={{ display: "flex", gap: 8, alignItems: "center" }}
-                  >
+                  {error && <div className="text-red-500 mt-2">{error}</div>}
+                  <div className="flex justify-end gap-3 mt-4">
                     <button
-                      className="btn primary"
-                      onClick={handleLoginComplete}
-                      disabled={loading || otp.length < 6}
+                      className="px-4 py-2 rounded-xl border"
+                      onClick={onClose}
                     >
-                      {loading ? "Xử lý..." : "Xác thực"}
+                      Hủy
                     </button>
                     <button
-                      className="resend"
-                      onClick={handleResend}
-                      disabled={timer > 0}
+                      onClick={handleLoginStart}
+                      className="px-5 py-2 bg-blue-600 text-white rounded-xl shadow-lg disabled:opacity-50"
+                      disabled={loading}
                     >
-                      {timer > 0 ? `Gửi lại sau ${timer}s` : "Gửi lại"}
+                      {loading ? "Đang gửi..." : "Gửi OTP"}
                     </button>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {step === "form" && activeTab === "register" && (
-              <div className="form">
-                <h3 className="title">Tạo tài khoản mới</h3>
-                <p className="subtitle">Nhanh chóng — An toàn — Tiện lợi</p>
-                <label className="field">
-                  <input
-                    placeholder="Họ và tên"
-                    value={reg.fullName}
-                    onChange={(e) =>
-                      setReg((s) => ({ ...s, fullName: e.target.value }))
-                    }
-                  />
-                </label>
-                <label className="field">
-                  <input
-                    placeholder="Email (tuỳ chọn)"
-                    value={reg.email}
-                    onChange={(e) =>
-                      setReg((s) => ({ ...s, email: e.target.value }))
-                    }
-                  />
-                </label>
-                <label className="field">
-                  <input
-                    placeholder="Số điện thoại"
-                    value={reg.phone}
-                    onChange={(e) =>
-                      setReg((s) => ({ ...s, phone: e.target.value }))
-                    }
-                  />
-                </label>
-                <label className="field">
-                  <input
-                    type="date"
-                    placeholder="Ngày sinh"
-                    value={reg.dateOfBirth}
-                    onChange={(e) =>
-                      setReg((s) => ({ ...s, dateOfBirth: e.target.value }))
-                    }
-                  />
-                </label>
-                <label className="field select">
-                  <select
-                    value={reg.gender}
-                    onChange={(e) =>
-                      setReg((s) => ({ ...s, gender: e.target.value }))
-                    }
-                  >
-                    <option value="male">Nam</option>
-                    <option value="female">Nữ</option>
-                    <option value="other">Khác</option>
-                  </select>
-                </label>
-                {error && <div className="error">{error}</div>}
-                <div className="actions">
-                  <button
-                    className="btn ghost"
-                    onClick={() => {
-                      setActiveTab("login");
-                      setError("");
-                    }}
-                  >
-                    Đã có tài khoản
-                  </button>
-                  <button
-                    className="btn primary"
-                    onClick={handleRegisterStart}
-                    disabled={loading}
-                  >
-                    {loading ? "Đang gửi..." : "Đăng ký & gửi OTP"}
-                  </button>
-                </div>
-              </div>
-            )}
+              {step === "otp" && activeTab === "login" && (
+                <div>
+                  <h3 className="text-xl font-bold mb-2">Xác thực OTP</h3>
+                  <p className="text-gray-600">
+                    Nhập mã 6 chữ số được gửi tới {tempPayload?.phone}
+                  </p>
 
-            {step === "otp" && activeTab === "register" && (
-              <div className="form">
-                <h3 className="title">Xác thực đăng ký</h3>
-                <p className="subtitle">
-                  Nhập mã đã gửi tới {tempPayload?.email || tempPayload?.phone}
-                </p>
-                <OtpInput length={6} value={otp} onChange={setOtp} />
-                {error && <div className="error">{error}</div>}
-                <div className="actions">
-                  <button
-                    className="btn ghost"
-                    onClick={() => {
-                      setStep("form");
-                      setOtp("");
-                      setError("");
-                    }}
-                  >
-                    Quay lại
-                  </button>
-                  <div
-                    style={{ display: "flex", gap: 8, alignItems: "center" }}
-                  >
+                  <OtpInput length={6} value={otp} onChange={setOtp} />
+
+                  {error && <div className="text-red-500 mt-2">{error}</div>}
+
+                  <div className="flex justify-between mt-4">
                     <button
-                      className="btn primary"
-                      onClick={handleRegisterComplete}
-                      disabled={loading || otp.length < 6}
+                      className="text-gray-600"
+                      onClick={() => {
+                        setStep("form");
+                        setOtp("");
+                        setError("");
+                      }}
                     >
-                      {loading ? "Xử lý..." : "Xác thực & Hoàn tất"}
+                      ← Trở lại
                     </button>
+
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={handleLoginComplete}
+                        className="px-5 py-2 bg-blue-600 text-white rounded-xl shadow-lg disabled:opacity-50"
+                        disabled={loading || otp.length < 6}
+                      >
+                        {loading ? "Xử lý..." : "Xác thực"}
+                      </button>
+
+                      <button
+                        onClick={handleResend}
+                        className="text-blue-600"
+                        disabled={timer > 0}
+                      >
+                        {timer > 0 ? `Gửi lại sau ${timer}s` : "Gửi lại mã"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {step === "form" && activeTab === "register" && (
+                <div>
+                  <h3 className="text-xl font-bold mb-1">Tạo tài khoản mới</h3>
+                  <p className="text-gray-600 mb-3">
+                    Nhanh chóng — An toàn — Tiện lợi
+                  </p>
+
+                  <div className="grid gap-3 mt-3">
+                    <input
+                      placeholder="Họ và tên"
+                      className="p-3 border rounded-xl shadow-sm"
+                      value={reg.fullName}
+                      onChange={(e) =>
+                        setReg((s) => ({ ...s, fullName: e.target.value }))
+                      }
+                    />
+                    <input
+                      placeholder="Email (tuỳ chọn)"
+                      className="p-3 border rounded-xl shadow-sm"
+                      value={reg.email}
+                      onChange={(e) =>
+                        setReg((s) => ({ ...s, email: e.target.value }))
+                      }
+                    />
+                    <input
+                      placeholder="Số điện thoại"
+                      className="p-3 border rounded-xl shadow-sm"
+                      value={reg.phone}
+                      onChange={(e) =>
+                        setReg((s) => ({ ...s, phone: e.target.value }))
+                      }
+                    />
+                    <input
+                      type="date"
+                      placeholder="Ngày sinh"
+                      className="p-3 border rounded-xl shadow-sm"
+                      value={reg.dateOfBirth}
+                      onChange={(e) =>
+                        setReg((s) => ({ ...s, dateOfBirth: e.target.value }))
+                      }
+                    />
+                    <div className="relative">
+                      <select
+                        className="w-full p-3 pr-10 border rounded-xl shadow-sm appearance-none"
+                        value={reg.gender}
+                        onChange={(e) =>
+                          setReg((s) => ({ ...s, gender: e.target.value }))
+                        }
+                      >
+                        <option value="male">Nam</option>
+                        <option value="female">Nữ</option>
+                        <option value="other">Khác</option>
+                      </select>
+
+                      {/* Custom Arrow */}
+                      <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
+                        ▼
+                      </div>
+                    </div>
+                  </div>
+
+                  {error && <div className="text-red-500 mt-2">{error}</div>}
+
+                  <div className="flex justify-end gap-3 mt-4">
                     <button
-                      className="resend"
-                      onClick={handleResend}
-                      disabled={timer > 0}
+                      className="px-4 py-2 rounded-xl border"
+                      onClick={() => {
+                        setActiveTab("login");
+                        setError("");
+                      }}
                     >
-                      {timer > 0 ? `Gửi lại sau ${timer}s` : "Gửi lại"}
+                      Đã có tài khoản
+                    </button>
+
+                    <button
+                      onClick={handleRegisterStart}
+                      className="px-5 py-2 bg-blue-600 text-white rounded-xl shadow-lg disabled:opacity-50"
+                      disabled={loading}
+                    >
+                      {loading ? "Đang gửi..." : "Đăng ký & gửi OTP"}
                     </button>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
 
-          {/* Right showcase on desktop */}
-          <div className="panel right-panel">
-            <div className="showcase">
-              <div className="show-title">Chăm sóc sức khỏe chuyên nghiệp</div>
-              <div className="show-desc">
-                Quy trình đặt lịch nhanh — bảo mật OTP — thông tin cá nhân an
-                toàn.
-              </div>
-              <div className="illustration" aria-hidden />
-              <div className="cta">
+              {step === "otp" && activeTab === "register" && (
+                <div>
+                  <h3 className="text-xl font-bold mb-2">Xác thực đăng ký</h3>
+                  <p className="text-gray-600">
+                    Nhập mã đã gửi tới{" "}
+                    {tempPayload?.email || tempPayload?.phone}
+                  </p>
+
+                  <OtpInput length={6} value={otp} onChange={setOtp} />
+
+                  {error && <div className="text-red-500 mt-2">{error}</div>}
+
+                  <div className="flex justify-between mt-4">
+                    <button
+                      className="text-gray-600"
+                      onClick={() => {
+                        setStep("form");
+                        setOtp("");
+                        setError("");
+                      }}
+                    >
+                      ← Trở lại
+                    </button>
+
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={handleRegisterComplete}
+                        className="px-5 py-2 bg-blue-600 text-white rounded-xl shadow-lg disabled:opacity-50"
+                        disabled={loading || otp.length < 6}
+                      >
+                        {loading ? "Xử lý..." : "Xác thực & Hoàn tất"}
+                      </button>
+
+                      <button
+                        onClick={handleResend}
+                        className="text-blue-600"
+                        disabled={timer > 0}
+                      >
+                        {timer > 0 ? `Gửi lại sau ${timer}s` : "Gửi lại mã"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="hidden md:flex flex-col justify-center text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl shadow-inner">
+              <h3 className="text-2xl font-bold mb-4 text-blue-700">
+                Chăm sóc sức khoẻ chuyên nghiệp
+              </h3>
+
+              <p className="text-gray-600 mb-6">
+                Quy trình đặt lịch nhanh — bảo mật — thông tin cá nhân an toàn.
+              </p>
+
+              <div className="w-full h-48 bg-blue-200 rounded-2xl animate-pulse mb-6" />
+
+              <p className="mt-2 font-medium text-gray-700">
                 {activeTab === "login"
-                  ? "Chưa có tài khoản? Đăng ký ngay"
-                  : "Đã có tài khoản? Đăng nhập"}
+                  ? "Chưa có tài khoản? Đăng ký ngay!"
+                  : "Đã có tài khoản? Đăng nhập ngay!"}
+              </p>
+
+              <div className="mt-6">
+                <a
+                  href="/about"
+                  className="inline-block px-5 py-2 bg-white/80 rounded-xl shadow hover:bg-white"
+                >
+                  Tìm hiểu thêm
+                </a>
               </div>
             </div>
           </div>
@@ -539,4 +575,3 @@ AuthPatientModal.propTypes = {
   onClose: PropTypes.func,
   onSuccess: PropTypes.func,
 };
-

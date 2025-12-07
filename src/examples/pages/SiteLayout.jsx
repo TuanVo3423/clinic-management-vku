@@ -34,106 +34,63 @@ export default function SiteLayout({ children, headerClassName }) {
       className="site-layout"
       style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
     >
-      <header
-        className="header-glass"
-        style={{
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          background: "rgba(255, 255, 255, 0.35)",
-          borderBottom: "1px solid rgba(255, 255, 255, 0.4)",
-        }}
-      >
-        <nav className="header-nav">
-          <div className="logo">
-            Health<span>Care</span>
+      <header className="backdrop-blur-xl bg-white/30 border-b border-white/40 sticky top-0 z-50 w-full">
+        <nav
+          className="max-w-7xl mx-auto px-6 py-3 
+                  grid grid-cols-3 items-center"
+        >
+          <div className="text-2xl font-bold text-gray-800">
+            Health<span className="text-emerald-600">Care</span>
           </div>
 
-          {/* Desktop menu */}
-          <ul className="nav-links">
-            <li>
-              <a href="/">Home</a>
-            </li>
-            <li>
-              <a href="/about">About Us</a>
-            </li>
-            <li>
-              <a href="/scheduler">Services</a>
-            </li>
-            <li>
-              <a href="/pages">Pages</a>
-            </li>
-            <li>
-              <a href="/blog">Blog</a>
-            </li>
+          <ul
+            className="hidden md:flex items-center gap-1 
+                   text-gray-700 font-medium justify-center"
+          >
+            {[
+              { label: "Home", href: "/" },
+              { label: "About Us", href: "/about" },
+              { label: "Services", href: "/scheduler" },
+              { label: "Pages", href: "/pages" },
+              { label: "Blog", href: "/blog" },
+            ].map((item, i) => (
+              <li key={i}>
+                <a
+                  href={item.href}
+                  className="px-4 py-2 rounded-lg hover:bg-blue-100 transition whitespace-nowrap"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
           </ul>
 
-          <div className="nav-actions">
+          <div className="hidden md:flex justify-end items-center gap-3 min-w-max">
             {patient ? (
               <>
-                <span className="patient-greeting">
+                <span className="text-gray-700 text-sm whitespace-nowrap">
                   Xin chào, <b>{patient.data.patient.fullName}</b>
                 </span>
                 <button
                   type="button"
-                  className="btn nav-btn logout-btn"
                   onClick={handleLogout}
+                  className="w-9 h-9 rounded-full bg-red-500 flex items-center justify-center text-white hover:bg-red-600 transition"
+                  title="Đăng xuất"
                 >
-                  Đăng xuất
+                  <i className="ri-logout-box-r-line text-lg"></i>
                 </button>
               </>
             ) : (
               <button
                 type="button"
-                className="btn nav-btn login-btn"
                 onClick={() => setAuthModalVisible(true)}
+                className="px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition"
               >
                 Đăng nhập
               </button>
             )}
           </div>
-
-          {/* Mobile toggle */}
-          <button
-            type="button"
-            className="mobile-toggle"
-            onClick={() =>
-              document.querySelector(".mobile-menu")?.classList.toggle("open")
-            }
-          >
-            ☰
-          </button>
         </nav>
-
-        {/* Mobile menu */}
-        <div className="mobile-menu">
-          <a href="/">Home</a>
-          <a href="/about">About Us</a>
-          <a href="/scheduler">Services</a>
-          <a href="/pages">Pages</a>
-          <a href="/blog">Blog</a>
-          <div className="mobile-line" />
-
-          {patient ? (
-            <>
-              <div className="patient-name mobile">{patient.fullName}</div>
-              <button
-                type="button"
-                className="btn nav-btn"
-                onClick={handleLogout}
-              >
-                Log out
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              className="btn nav-btn"
-              onClick={() => setAuthModalVisible(true)}
-            >
-              Đăng nhập
-            </button>
-          )}
-        </div>
       </header>
       <HeroSlider />
 
