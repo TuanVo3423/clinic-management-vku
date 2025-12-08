@@ -127,17 +127,39 @@ class Basic extends Component {
       const currentPatient =
         this.state.patientInfo ||
         JSON.parse(localStorage.getItem("patientInfo"));
-      let startDate = dayjs(start).tz("Asia/Ho_Chi_Minh").startOf("day").format("YYYY-MM-DDTHH:mm:ssZ");
-      let endDate = dayjs(start).tz("Asia/Ho_Chi_Minh").endOf("day").format("YYYY-MM-DDTHH:mm:ssZ");
+      let startDate = dayjs(start)
+        .tz("Asia/Ho_Chi_Minh")
+        .startOf("day")
+        .format("YYYY-MM-DDTHH:mm:ssZ");
+      let endDate = dayjs(start)
+        .tz("Asia/Ho_Chi_Minh")
+        .endOf("day")
+        .format("YYYY-MM-DDTHH:mm:ssZ");
       if (viewModel.viewType === ViewType.Day) {
-        startDate = dayjs(start).tz("Asia/Ho_Chi_Minh").startOf("day").format("YYYY-MM-DDTHH:mm:ssZ");
-        endDate = dayjs(start).tz("Asia/Ho_Chi_Minh").endOf("day").format("YYYY-MM-DDTHH:mm:ssZ");
+        startDate = dayjs(start)
+          .tz("Asia/Ho_Chi_Minh")
+          .startOf("day")
+          .format("YYYY-MM-DDTHH:mm:ssZ");
+        endDate = dayjs(start)
+          .tz("Asia/Ho_Chi_Minh")
+          .endOf("day")
+          .format("YYYY-MM-DDTHH:mm:ssZ");
       } else if (viewModel.viewType === ViewType.Week) {
-        startDate = dayjs(start).tz("Asia/Ho_Chi_Minh").startOf("week").format("YYYY-MM-DDTHH:mm:ssZ");
-        endDate = dayjs(end).tz("Asia/Ho_Chi_Minh").endOf("week").format("YYYY-MM-DDTHH:mm:ssZ");
+        startDate = dayjs(start)
+          .tz("Asia/Ho_Chi_Minh")
+          .startOf("week")
+          .format("YYYY-MM-DDTHH:mm:ssZ");
+        endDate = dayjs(end)
+          .tz("Asia/Ho_Chi_Minh")
+          .endOf("week")
+          .format("YYYY-MM-DDTHH:mm:ssZ");
       } else {
-        startDate = dayjs(start).tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm:ssZ");
-        endDate = dayjs(end).tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm:ssZ");
+        startDate = dayjs(start)
+          .tz("Asia/Ho_Chi_Minh")
+          .format("YYYY-MM-DDTHH:mm:ssZ");
+        endDate = dayjs(end)
+          .tz("Asia/Ho_Chi_Minh")
+          .format("YYYY-MM-DDTHH:mm:ssZ");
       }
 
       const url = `http://localhost:3000/appointments/by-time-range?startDate=${encodeURIComponent(
@@ -171,10 +193,12 @@ class Basic extends Component {
           ownerId &&
           String(ownerId) === String(currentPatient._id);
 
-        const start = dayjs(a.appointmentStart || a.appointmentStartTime).format(
+        const start = dayjs(
+          a.appointmentStart || a.appointmentStartTime
+        ).format("YYYY-MM-DDTHH:mm:ss");
+        const end = dayjs(a.appointmentEnd || a.appointmentEndTime).format(
           "YYYY-MM-DDTHH:mm:ss"
         );
-        const end = dayjs(a.appointmentEnd || a.appointmentEndTime).format("YYYY-MM-DDTHH:mm:ss");
         console.log("start:", start, "| raw:", a.appointmentStartTime);
 
         const bgColor = isOwn ? statusColor : "#bfbfbf";
@@ -207,7 +231,9 @@ class Basic extends Component {
 
   render() {
     const { viewModel, loading } = this.state;
-    const canDelete = !!(this.state.selectedEvent && this.isOwnerOf(this.state.selectedEvent));
+    const canDelete = !!(
+      this.state.selectedEvent && this.isOwnerOf(this.state.selectedEvent)
+    );
     if (loading) {
       return (
         <div
@@ -251,28 +277,193 @@ class Basic extends Component {
             toggleExpandFunc={this.toggleExpandFunc}
           />
           <Modal
-            title="Tạo lịch hẹn mới"
+            title={
+              <div
+                style={{
+                  background:
+                    "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+                  margin: "-20px -24px 20px",
+                  padding: "20px 24px",
+                  borderRadius: "8px 8px 0 0",
+                  color: "white",
+                  fontSize: "20px",
+                  fontWeight: "600",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  boxShadow: "0 2px 8px rgba(5, 150, 105, 0.15)",
+                }}
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                  <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" />
+                </svg>
+                Tạo lịch hẹn mới
+              </div>
+            }
             open={this.state.isModalVisible}
             onCancel={() => this.setState({ isModalVisible: false })}
             onOk={this.handleCreateEvent}
-            okText="Lưu"
-            cancelText="Hủy"
+            okText="Xác nhận đặt lịch"
+            cancelText="Hủy bỏ"
+            width={680}
             style={{ top: 20 }}
+            okButtonProps={{
+              style: {
+                background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+                borderColor: "#059669",
+                height: "40px",
+                fontSize: "15px",
+                fontWeight: "600",
+                boxShadow: "0 2px 8px rgba(5, 150, 105, 0.3)",
+                transition: "all 0.3s ease",
+              },
+            }}
+            cancelButtonProps={{
+              style: {
+                height: "40px",
+                fontSize: "15px",
+                borderColor: "#d9d9d9",
+              },
+            }}
           >
-            <Form layout="vertical">
-              <Form.Item label="Tên bệnh nhân">
-                <Input
-                  value={this.state.patientInfo?.fullName || ""}
-                  disabled
-                />
-              </Form.Item>
+            <Form layout="vertical" style={{ marginTop: "8px" }}>
+              {/* Patient Info Section */}
+              <div
+                style={{
+                  background:
+                    "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)",
+                  padding: "16px",
+                  borderRadius: "12px",
+                  marginBottom: "20px",
+                  border: "1px solid #a7f3d0",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    color: "#059669",
+                    marginBottom: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  Thông tin bệnh nhân
+                </div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "12px",
+                  }}
+                >
+                  <Form.Item
+                    label={
+                      <span style={{ color: "#065f46", fontWeight: "500" }}>
+                        Tên bệnh nhân
+                      </span>
+                    }
+                    style={{ marginBottom: 0 }}
+                  >
+                    <Input
+                      value={this.state.patientInfo?.fullName || ""}
+                      disabled
+                      style={{
+                        background: "white",
+                        border: "1px solid #a7f3d0",
+                        borderRadius: "8px",
+                        color: "#064e3b",
+                        fontWeight: "500",
+                      }}
+                      prefix={
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="#059669"
+                          strokeWidth="2"
+                        >
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
+                        </svg>
+                      }
+                    />
+                  </Form.Item>
 
-              <Form.Item label="Số điện thoại">
-                <Input value={this.state.patientInfo?.phone || ""} disabled />
-              </Form.Item>
+                  <Form.Item
+                    label={
+                      <span style={{ color: "#065f46", fontWeight: "500" }}>
+                        Số điện thoại
+                      </span>
+                    }
+                    style={{ marginBottom: 0 }}
+                  >
+                    <Input
+                      value={this.state.patientInfo?.phone || ""}
+                      disabled
+                      style={{
+                        background: "white",
+                        border: "1px solid #a7f3d0",
+                        borderRadius: "8px",
+                        color: "#064e3b",
+                        fontWeight: "500",
+                      }}
+                      prefix={
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="#059669"
+                          strokeWidth="2"
+                        >
+                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                        </svg>
+                      }
+                    />
+                  </Form.Item>
+                </div>
+              </div>
 
-              <Form.Item label="Ghi chú">
-                <Input
+              {/* Note Section */}
+              <Form.Item
+                label={
+                  <span
+                    style={{
+                      color: "#065f46",
+                      fontWeight: "500",
+                      fontSize: "14px",
+                    }}
+                  >
+                    Ghi chú
+                  </span>
+                }
+              >
+                <Input.TextArea
                   value={this.state.formValues.title}
                   onChange={(e) =>
                     this.setState({
@@ -282,13 +473,32 @@ class Basic extends Component {
                       },
                     })
                   }
-                  placeholder="Nhập ghi chú (nếu có)"
+                  placeholder="Nhập ghi chú hoặc lý do khám (nếu có)..."
+                  rows={3}
+                  style={{
+                    borderRadius: "8px",
+                    border: "1px solid #d1d5db",
+                    resize: "none",
+                  }}
                 />
               </Form.Item>
 
+              {/* Emergency Checkbox */}
               <Form.Item>
                 <label
-                  style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "12px 16px",
+                    background: this.state.isEmergency ? "#fef2f2" : "#f9fafb",
+                    border: this.state.isEmergency
+                      ? "2px solid #ef4444"
+                      : "2px solid #e5e7eb",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                  }}
                 >
                   <input
                     type="checkbox"
@@ -296,158 +506,514 @@ class Basic extends Component {
                     onChange={(e) =>
                       this.setState({ isEmergency: e.target.checked })
                     }
+                    style={{
+                      width: "18px",
+                      height: "18px",
+                      cursor: "pointer",
+                      accentColor: "#ef4444",
+                    }}
                   />
-                  <span>Lịch khẩn cấp</span>
+                  <span
+                    style={{
+                      fontWeight: "600",
+                      color: this.state.isEmergency ? "#dc2626" : "#374151",
+                      fontSize: "14px",
+                    }}
+                  >
+                    🚨 Lịch khẩn cấp
+                  </span>
+                  {this.state.isEmergency && (
+                    <span
+                      style={{
+                        marginLeft: "auto",
+                        fontSize: "12px",
+                        color: "#dc2626",
+                        fontWeight: "500",
+                      }}
+                    >
+                      Ưu tiên cao
+                    </span>
+                  )}
                 </label>
               </Form.Item>
 
-              <Form.Item label="Dịch vụ khám">
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {this.state.availableServices.map((svc) => {
-                    const isSelected = this.state.selectedServices.some(
-                      (s) => s._id === svc._id
-                    );
-                    return (
-                      <button
-                        key={svc._id}
-                        type="button"
-                        onClick={() => {
-                          if (isSelected) return;
-                          this.setState((prev) => ({
-                            selectedServices: [...prev.selectedServices, svc],
-                            totalPrice: prev.totalPrice + svc.price,
-                          }));
-                        }}
-                        style={{
-                          backgroundColor: isSelected ? "#52c41a" : "#f0f0f0",
-                          color: isSelected ? "#fff" : "#000",
-                          border: "1px solid #ccc",
-                          borderRadius: 6,
-                          padding: "4px 10px",
-                          cursor: "pointer",
-                        }}
-                      >
-                        {svc.name} ({svc.price.toLocaleString()}đ)
-                      </button>
-                    );
-                  })}
-                </div>
-
+              {/* Services Section */}
+              <Form.Item
+                label={
+                  <span
+                    style={{
+                      color: "#065f46",
+                      fontWeight: "500",
+                      fontSize: "14px",
+                    }}
+                  >
+                    Dịch vụ khám ({this.state.selectedServices.length} đã chọn)
+                  </span>
+                }
+              >
                 <div
                   style={{
-                    marginTop: 12,
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: 8,
+                    background: "#f9fafb",
+                    padding: "16px",
+                    borderRadius: "10px",
+                    border: "1px solid #e5e7eb",
                   }}
                 >
-                  {this.state.selectedServices.map((svc) => (
-                    <span
-                      key={svc._id}
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fill, minmax(200px, 1fr))",
+                      gap: 10,
+                    }}
+                  >
+                    {this.state.availableServices.map((svc) => {
+                      const isSelected = this.state.selectedServices.some(
+                        (s) => s._id === svc._id
+                      );
+                      return (
+                        <button
+                          key={svc._id}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) return;
+                            this.setState((prev) => ({
+                              selectedServices: [...prev.selectedServices, svc],
+                              totalPrice: prev.totalPrice + svc.price,
+                            }));
+                          }}
+                          style={{
+                            background: isSelected
+                              ? "linear-gradient(135deg, #059669 0%, #10b981 100%)"
+                              : "white",
+                            color: isSelected ? "#fff" : "#374151",
+                            border: isSelected
+                              ? "2px solid #059669"
+                              : "2px solid #e5e7eb",
+                            borderRadius: 8,
+                            padding: "10px 14px",
+                            cursor: isSelected ? "default" : "pointer",
+                            fontSize: "13px",
+                            fontWeight: "500",
+                            transition: "all 0.2s ease",
+                            opacity: isSelected ? 1 : 0.9,
+                            textAlign: "left",
+                            boxShadow: isSelected
+                              ? "0 2px 8px rgba(5, 150, 105, 0.2)"
+                              : "none",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.borderColor = "#059669";
+                              e.currentTarget.style.transform =
+                                "translateY(-1px)";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.borderColor = "#e5e7eb";
+                              e.currentTarget.style.transform = "translateY(0)";
+                            }
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            <span>{svc.name}</span>
+                            {isSelected && <span>✓</span>}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "12px",
+                              marginTop: "4px",
+                              fontWeight: "600",
+                              color: isSelected ? "#d1fae5" : "#059669",
+                            }}
+                          >
+                            {svc.price.toLocaleString()}đ
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Selected Services Tags */}
+                  {this.state.selectedServices.length > 0 && (
+                    <div
                       style={{
-                        background: "#1890ff",
-                        color: "white",
-                        padding: "4px 10px",
-                        borderRadius: 12,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
+                        marginTop: 16,
+                        paddingTop: 16,
+                        borderTop: "2px dashed #d1d5db",
                       }}
                     >
-                      {svc.name}
-                      <span
+                      <div
                         style={{
-                          background: "white",
-                          color: "#1890ff",
-                          borderRadius: "50%",
-                          width: 16,
-                          height: 16,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                          fontSize: 12,
-                          fontWeight: "bold",
-                        }}
-                        onClick={() => {
-                          this.setState((prev) => ({
-                            selectedServices: prev.selectedServices.filter(
-                              (s) => s._id !== svc._id
-                            ),
-                            totalPrice: prev.totalPrice - svc.price,
-                          }));
+                          fontSize: "13px",
+                          color: "#065f46",
+                          marginBottom: "10px",
+                          fontWeight: "600",
                         }}
                       >
-                        ×
-                      </span>
-                    </span>
-                  ))}
+                        Dịch vụ đã chọn:
+                      </div>
+                      <div
+                        style={{ display: "flex", flexWrap: "wrap", gap: 8 }}
+                      >
+                        {this.state.selectedServices.map((svc) => (
+                          <span
+                            key={svc._id}
+                            style={{
+                              background:
+                                "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+                              color: "white",
+                              padding: "8px 14px",
+                              borderRadius: 20,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 8,
+                              fontSize: "13px",
+                              fontWeight: "500",
+                              boxShadow: "0 2px 6px rgba(5, 150, 105, 0.25)",
+                            }}
+                          >
+                            <span>{svc.name}</span>
+                            <span
+                              style={{
+                                background: "rgba(255, 255, 255, 0.3)",
+                                color: "white",
+                                borderRadius: "50%",
+                                width: 20,
+                                height: 20,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                cursor: "pointer",
+                                fontSize: 14,
+                                fontWeight: "bold",
+                                transition: "all 0.2s ease",
+                              }}
+                              onClick={() => {
+                                this.setState((prev) => ({
+                                  selectedServices:
+                                    prev.selectedServices.filter(
+                                      (s) => s._id !== svc._id
+                                    ),
+                                  totalPrice: prev.totalPrice - svc.price,
+                                }));
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background =
+                                  "rgba(255, 255, 255, 0.5)";
+                                e.currentTarget.style.transform = "scale(1.1)";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background =
+                                  "rgba(255, 255, 255, 0.3)";
+                                e.currentTarget.style.transform = "scale(1)";
+                              }}
+                            >
+                              ×
+                            </span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Form.Item>
 
-              <Form.Item label="Tổng giá dịch vụ">
-                <Input
-                  value={`${this.state.totalPrice.toLocaleString()} đ`}
-                  disabled
-                  style={{ fontWeight: "bold", color: "#d4380d" }}
-                />
+              {/* Total Price */}
+              <Form.Item
+                label={
+                  <span
+                    style={{
+                      color: "#065f46",
+                      fontWeight: "500",
+                      fontSize: "14px",
+                    }}
+                  >
+                    Tổng giá dịch vụ
+                  </span>
+                }
+              >
+                <div
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
+                    padding: "16px 20px",
+                    borderRadius: "10px",
+                    border: "2px solid #fbbf24",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "15px",
+                      fontWeight: "600",
+                      color: "#92400e",
+                    }}
+                  >
+                    Tổng thanh toán:
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "24px",
+                      fontWeight: "700",
+                      color: "#b45309",
+                    }}
+                  >
+                    {this.state.totalPrice.toLocaleString()} đ
+                  </span>
+                </div>
               </Form.Item>
 
-              <Form.Item label="Thời gian bắt đầu">
-                <DatePicker
-                  showTime
-                  value={
-                    this.state.formValues.start
-                      ? dayjs(this.state.formValues.start)
-                      : null
+              {/* Time Selection */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 16,
+                  marginTop: "8px",
+                }}
+              >
+                <Form.Item
+                  label={
+                    <span
+                      style={{
+                        color: "#065f46",
+                        fontWeight: "500",
+                        fontSize: "14px",
+                      }}
+                    >
+                      🕐 Thời gian bắt đầu
+                    </span>
                   }
-                  onChange={(value) =>
-                    this.setState({
-                      formValues: { ...this.state.formValues, start: value },
-                    })
-                  }
-                />
-              </Form.Item>
+                >
+                  <DatePicker
+                    showTime
+                    value={
+                      this.state.formValues.start
+                        ? dayjs(this.state.formValues.start)
+                        : null
+                    }
+                    onChange={(value) =>
+                      this.setState({
+                        formValues: { ...this.state.formValues, start: value },
+                      })
+                    }
+                    style={{
+                      width: "100%",
+                      height: "40px",
+                      borderRadius: "8px",
+                      border: "1px solid #d1d5db",
+                    }}
+                    placeholder="Chọn thời gian bắt đầu"
+                  />
+                </Form.Item>
 
-              <Form.Item label="Thời gian kết thúc">
-                <DatePicker
-                  showTime
-                  value={
-                    this.state.formValues.end
-                      ? dayjs(this.state.formValues.end)
-                      : null
+                <Form.Item
+                  label={
+                    <span
+                      style={{
+                        color: "#065f46",
+                        fontWeight: "500",
+                        fontSize: "14px",
+                      }}
+                    >
+                      🕐 Thời gian kết thúc
+                    </span>
                   }
-                  onChange={(value) =>
-                    this.setState({
-                      formValues: { ...this.state.formValues, end: value },
-                    })
-                  }
-                />
-              </Form.Item>
+                >
+                  <DatePicker
+                    showTime
+                    value={
+                      this.state.formValues.end
+                        ? dayjs(this.state.formValues.end)
+                        : null
+                    }
+                    onChange={(value) =>
+                      this.setState({
+                        formValues: { ...this.state.formValues, end: value },
+                      })
+                    }
+                    style={{
+                      width: "100%",
+                      height: "40px",
+                      borderRadius: "8px",
+                      border: "1px solid #d1d5db",
+                    }}
+                    placeholder="Chọn thời gian kết thúc"
+                  />
+                </Form.Item>
+              </div>
+
+              {/* Info Note */}
+              <div
+                style={{
+                  background: "#eff6ff",
+                  padding: "12px 16px",
+                  borderRadius: "8px",
+                  border: "1px solid #bfdbfe",
+                  marginTop: "4px",
+                  fontSize: "13px",
+                  color: "#1e40af",
+                  lineHeight: "1.6",
+                }}
+              >
+                <strong>ℹ️ Lưu ý:</strong> Giờ khám từ 16:30 - 22:00. Vui lòng
+                chọn thời gian phù hợp.
+              </div>
             </Form>
           </Modal>
           <Modal
-            title="Chỉnh sửa lịch hẹn"
+            title={
+              <div
+                style={{
+                  background:
+                    "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+                  margin: "-20px -24px 20px",
+                  padding: "20px 24px",
+                  borderRadius: "8px 8px 0 0",
+                  color: "white",
+                  fontSize: "20px",
+                  fontWeight: "600",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  boxShadow: "0 2px 8px rgba(8, 145, 178, 0.15)",
+                }}
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                Chỉnh sửa lịch hẹn
+              </div>
+            }
             open={this.state.editModalVisible}
             onCancel={() => this.setState({ editModalVisible: false })}
-            footer={[
-              <Button key="cancel" onClick={() => this.setState({ editModalVisible: false })}>
-                Hủy
-              </Button>,
-              canDelete && (
-                <Button key="delete" danger onClick={this.handleDeleteAppointment}>
-                  Xóa
-                </Button>
-              ),
-              <Button key="save" type="primary" onClick={this.handleEditAppointment}>
-                Lưu
-              </Button>,
-            ]}
+            footer={
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "8px 0",
+                }}
+              >
+                <div>
+                  {canDelete && (
+                    <Button
+                      key="delete"
+                      danger
+                      onClick={this.handleDeleteAppointment}
+                      style={{
+                        height: "40px",
+                        fontSize: "15px",
+                        fontWeight: "600",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        boxShadow: "0 2px 6px rgba(239, 68, 68, 0.2)",
+                      }}
+                      icon={
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          <line x1="10" y1="11" x2="10" y2="17" />
+                          <line x1="14" y1="11" x2="14" y2="17" />
+                        </svg>
+                      }
+                    >
+                      Xóa lịch hẹn
+                    </Button>
+                  )}
+                </div>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <Button
+                    key="cancel"
+                    onClick={() => this.setState({ editModalVisible: false })}
+                    style={{
+                      height: "40px",
+                      fontSize: "15px",
+                      borderColor: "#d9d9d9",
+                    }}
+                  >
+                    Hủy bỏ
+                  </Button>
+                  <Button
+                    key="save"
+                    type="primary"
+                    onClick={this.handleEditAppointment}
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+                      borderColor: "#059669",
+                      height: "40px",
+                      fontSize: "15px",
+                      fontWeight: "600",
+                      boxShadow: "0 2px 8px rgba(5, 150, 105, 0.3)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                    icon={
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    }
+                  >
+                    Lưu thay đổi
+                  </Button>
+                </div>
+              </div>
+            }
+            width={680}
             style={{ top: 20 }}
           >
-            <Form layout="vertical">
-              <Form.Item label="Ghi chú / tiêu đề">
-                <Input
+            <Form layout="vertical" style={{ marginTop: "8px" }}>
+              {/* Note Section */}
+              <Form.Item
+                label={
+                  <span
+                    style={{
+                      color: "#065f46",
+                      fontWeight: "500",
+                      fontSize: "14px",
+                    }}
+                  >
+                    Ghi chú / Lý do khám
+                  </span>
+                }
+              >
+                <Input.TextArea
                   value={this.state.formValues.title}
                   onChange={(e) =>
                     this.setState({
@@ -457,128 +1023,348 @@ class Basic extends Component {
                       },
                     })
                   }
+                  placeholder="Nhập ghi chú hoặc lý do khám..."
+                  rows={3}
+                  style={{
+                    borderRadius: "8px",
+                    border: "1px solid #d1d5db",
+                    resize: "none",
+                  }}
                 />
               </Form.Item>
-              <Form.Item label="Dịch vụ khám">
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {this.state.availableServices.map((svc) => {
-                    const isSelected = this.state.selectedServices.some(
-                      (s) => s._id === svc._id
-                    );
-                    return (
-                      <button
-                        key={svc._id}
-                        type="button"
-                        onClick={() => {
-                          if (isSelected) return;
-                          this.setState((prev) => ({
-                            selectedServices: [...prev.selectedServices, svc],
-                            totalPrice: prev.totalPrice + svc.price,
-                          }));
-                        }}
-                        style={{
-                          backgroundColor: isSelected ? "#52c41a" : "#f0f0f0",
-                          color: isSelected ? "#fff" : "#000",
-                          border: "1px solid #ccc",
-                          borderRadius: 6,
-                          padding: "4px 10px",
-                          cursor: "pointer",
-                        }}
-                      >
-                        {svc.name} ({svc.price.toLocaleString()}đ)
-                      </button>
-                    );
-                  })}
-                </div>
 
+              {/* Services Section */}
+              <Form.Item
+                label={
+                  <span
+                    style={{
+                      color: "#065f46",
+                      fontWeight: "500",
+                      fontSize: "14px",
+                    }}
+                  >
+                    Dịch vụ khám ({this.state.selectedServices.length} đã chọn)
+                  </span>
+                }
+              >
                 <div
                   style={{
-                    marginTop: 12,
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: 8,
+                    background: "#f9fafb",
+                    padding: "16px",
+                    borderRadius: "10px",
+                    border: "1px solid #e5e7eb",
                   }}
                 >
-                  {this.state.selectedServices.map((svc) => (
-                    <span
-                      key={svc._id}
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fill, minmax(200px, 1fr))",
+                      gap: 10,
+                    }}
+                  >
+                    {this.state.availableServices.map((svc) => {
+                      const isSelected = this.state.selectedServices.some(
+                        (s) => s._id === svc._id
+                      );
+                      return (
+                        <button
+                          key={svc._id}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) return;
+                            this.setState((prev) => ({
+                              selectedServices: [...prev.selectedServices, svc],
+                              totalPrice: prev.totalPrice + svc.price,
+                            }));
+                          }}
+                          style={{
+                            background: isSelected
+                              ? "linear-gradient(135deg, #059669 0%, #10b981 100%)"
+                              : "white",
+                            color: isSelected ? "#fff" : "#374151",
+                            border: isSelected
+                              ? "2px solid #059669"
+                              : "2px solid #e5e7eb",
+                            borderRadius: 8,
+                            padding: "10px 14px",
+                            cursor: isSelected ? "default" : "pointer",
+                            fontSize: "13px",
+                            fontWeight: "500",
+                            transition: "all 0.2s ease",
+                            opacity: isSelected ? 1 : 0.9,
+                            textAlign: "left",
+                            boxShadow: isSelected
+                              ? "0 2px 8px rgba(5, 150, 105, 0.2)"
+                              : "none",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.borderColor = "#059669";
+                              e.currentTarget.style.transform =
+                                "translateY(-1px)";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.borderColor = "#e5e7eb";
+                              e.currentTarget.style.transform = "translateY(0)";
+                            }
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            <span>{svc.name}</span>
+                            {isSelected && <span>✓</span>}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "12px",
+                              marginTop: "4px",
+                              fontWeight: "600",
+                              color: isSelected ? "#d1fae5" : "#059669",
+                            }}
+                          >
+                            {svc.price.toLocaleString()}đ
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Selected Services Tags */}
+                  {this.state.selectedServices.length > 0 && (
+                    <div
                       style={{
-                        background: "#1890ff",
-                        color: "white",
-                        padding: "4px 10px",
-                        borderRadius: 12,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
+                        marginTop: 16,
+                        paddingTop: 16,
+                        borderTop: "2px dashed #d1d5db",
                       }}
                     >
-                      {svc.name}
-                      <span
+                      <div
                         style={{
-                          background: "white",
-                          color: "#1890ff",
-                          borderRadius: "50%",
-                          width: 16,
-                          height: 16,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                          fontSize: 12,
-                          fontWeight: "bold",
-                        }}
-                        onClick={() => {
-                          this.setState((prev) => ({
-                            selectedServices: prev.selectedServices.filter(
-                              (s) => s._id !== svc._id
-                            ),
-                            totalPrice: prev.totalPrice - svc.price,
-                          }));
+                          fontSize: "13px",
+                          color: "#065f46",
+                          marginBottom: "10px",
+                          fontWeight: "600",
                         }}
                       >
-                        ×
-                      </span>
-                    </span>
-                  ))}
+                        Dịch vụ đã chọn:
+                      </div>
+                      <div
+                        style={{ display: "flex", flexWrap: "wrap", gap: 8 }}
+                      >
+                        {this.state.selectedServices.map((svc) => (
+                          <span
+                            key={svc._id}
+                            style={{
+                              background:
+                                "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+                              color: "white",
+                              padding: "8px 14px",
+                              borderRadius: 20,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 8,
+                              fontSize: "13px",
+                              fontWeight: "500",
+                              boxShadow: "0 2px 6px rgba(5, 150, 105, 0.25)",
+                            }}
+                          >
+                            <span>{svc.name}</span>
+                            <span
+                              style={{
+                                background: "rgba(255, 255, 255, 0.3)",
+                                color: "white",
+                                borderRadius: "50%",
+                                width: 20,
+                                height: 20,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                cursor: "pointer",
+                                fontSize: 14,
+                                fontWeight: "bold",
+                                transition: "all 0.2s ease",
+                              }}
+                              onClick={() => {
+                                this.setState((prev) => ({
+                                  selectedServices:
+                                    prev.selectedServices.filter(
+                                      (s) => s._id !== svc._id
+                                    ),
+                                  totalPrice: prev.totalPrice - svc.price,
+                                }));
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background =
+                                  "rgba(255, 255, 255, 0.5)";
+                                e.currentTarget.style.transform = "scale(1.1)";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background =
+                                  "rgba(255, 255, 255, 0.3)";
+                                e.currentTarget.style.transform = "scale(1)";
+                              }}
+                            >
+                              ×
+                            </span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Form.Item>
-              <Form.Item label="Tổng giá dịch vụ">
-                <Input
-                  value={`${this.state.totalPrice.toLocaleString()} đ`}
-                  disabled
-                  style={{ fontWeight: "bold", color: "#d4380d" }}
-                />
+
+              {/* Total Price */}
+              <Form.Item
+                label={
+                  <span
+                    style={{
+                      color: "#065f46",
+                      fontWeight: "500",
+                      fontSize: "14px",
+                    }}
+                  >
+                    Tổng giá dịch vụ
+                  </span>
+                }
+              >
+                <div
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
+                    padding: "16px 20px",
+                    borderRadius: "10px",
+                    border: "2px solid #fbbf24",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "15px",
+                      fontWeight: "600",
+                      color: "#92400e",
+                    }}
+                  >
+                    Tổng thanh toán:
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "24px",
+                      fontWeight: "700",
+                      color: "#b45309",
+                    }}
+                  >
+                    {this.state.totalPrice.toLocaleString()} đ
+                  </span>
+                </div>
               </Form.Item>
-              <Form.Item label="Thời gian bắt đầu">
-                <DatePicker
-                  showTime
-                  value={
-                    this.state.formValues.start
-                      ? dayjs(this.state.formValues.start)
-                      : null
+
+              {/* Time Selection */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 16,
+                  marginTop: "8px",
+                }}
+              >
+                <Form.Item
+                  label={
+                    <span
+                      style={{
+                        color: "#065f46",
+                        fontWeight: "500",
+                        fontSize: "14px",
+                      }}
+                    >
+                      🕐 Thời gian bắt đầu
+                    </span>
                   }
-                  onChange={(value) =>
-                    this.setState({
-                      formValues: { ...this.state.formValues, start: value },
-                    })
+                >
+                  <DatePicker
+                    showTime
+                    value={
+                      this.state.formValues.start
+                        ? dayjs(this.state.formValues.start)
+                        : null
+                    }
+                    onChange={(value) =>
+                      this.setState({
+                        formValues: { ...this.state.formValues, start: value },
+                      })
+                    }
+                    style={{
+                      width: "100%",
+                      height: "40px",
+                      borderRadius: "8px",
+                      border: "1px solid #d1d5db",
+                    }}
+                    placeholder="Chọn thời gian bắt đầu"
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  label={
+                    <span
+                      style={{
+                        color: "#065f46",
+                        fontWeight: "500",
+                        fontSize: "14px",
+                      }}
+                    >
+                      🕐 Thời gian kết thúc
+                    </span>
                   }
-                />
-              </Form.Item>
-              <Form.Item label="Thời gian kết thúc">
-                <DatePicker
-                  showTime
-                  value={
-                    this.state.formValues.end
-                      ? dayjs(this.state.formValues.end)
-                      : null
-                  }
-                  onChange={(value) =>
-                    this.setState({
-                      formValues: { ...this.state.formValues, end: value },
-                    })
-                  }
-                />
-              </Form.Item>
+                >
+                  <DatePicker
+                    showTime
+                    value={
+                      this.state.formValues.end
+                        ? dayjs(this.state.formValues.end)
+                        : null
+                    }
+                    onChange={(value) =>
+                      this.setState({
+                        formValues: { ...this.state.formValues, end: value },
+                      })
+                    }
+                    style={{
+                      width: "100%",
+                      height: "40px",
+                      borderRadius: "8px",
+                      border: "1px solid #d1d5db",
+                    }}
+                    placeholder="Chọn thời gian kết thúc"
+                  />
+                </Form.Item>
+              </div>
+
+              {/* Info Note */}
+              <div
+                style={{
+                  background: "#eff6ff",
+                  padding: "12px 16px",
+                  borderRadius: "8px",
+                  border: "1px solid #bfdbfe",
+                  marginTop: "4px",
+                  fontSize: "13px",
+                  color: "#1e40af",
+                  lineHeight: "1.6",
+                }}
+              >
+                <strong>ℹ️ Lưu ý:</strong> Giờ khám từ 16:30 - 22:00. Vui lòng
+                chọn thời gian phù hợp.
+              </div>
             </Form>
           </Modal>
           <AuthPatientModal
@@ -683,7 +1469,10 @@ class Basic extends Component {
         );
       }
 
-      const totalPrice = selectedServices.reduce((sum, s) => sum + (s.price || 0), 0);
+      const totalPrice = selectedServices.reduce(
+        (sum, s) => sum + (s.price || 0),
+        0
+      );
 
       this.setState({
         editModalVisible: true,
@@ -776,7 +1565,7 @@ class Basic extends Component {
           .map((s) => s.name)
           .join(", ")}`,
         isEmergency: this.state.isEmergency,
-        createdBy : 'patient',
+        createdBy: "patient",
       };
 
       await axios.post("http://localhost:3000/appointments", payload);
@@ -945,7 +1734,9 @@ class Basic extends Component {
       return;
     }
     if (!this.isOwnerOf(event)) {
-      message.warning("Bạn không thể chỉnh sửa thời gian của lịch hẹn của người khác.");
+      message.warning(
+        "Bạn không thể chỉnh sửa thời gian của lịch hẹn của người khác."
+      );
       return;
     }
 
@@ -996,7 +1787,9 @@ class Basic extends Component {
       return;
     }
     if (!this.isOwnerOf(event)) {
-      message.warning("Bạn không thể chỉnh sửa thời gian của lịch hẹn của người khác.");
+      message.warning(
+        "Bạn không thể chỉnh sửa thời gian của lịch hẹn của người khác."
+      );
       return;
     }
 
