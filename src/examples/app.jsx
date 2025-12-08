@@ -18,6 +18,9 @@ const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const AppointmentDetail = lazy(() => import("./pages/Admin/AppointmentDetail"));
 const Notification = lazy(() => import("./pages/Notification"));
+const BlogPage = lazy(() => import("./pages/Blog"));
+const BlogDetail = lazy(() => import("./pages/Blog/BlogDetail"));
+const AboutPage = lazy(() => import("./pages/About"));
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
@@ -40,6 +43,34 @@ function App() {
           element: (
             <Suspense fallback={<Fallback />}>
               <Landing />
+            </Suspense>
+          ),
+        },
+
+        {
+          path: "/blog",
+          element: (
+            <Suspense fallback={<Fallback />}>
+              <Outlet />
+            </Suspense>
+          ),
+          children: [
+            {
+              path: "",
+              element: <BlogPage />,
+            },
+            {
+              path: ":id",
+              element: <BlogDetail />,
+            },
+          ],
+        },
+
+        {
+          path: "/about",
+          element: (
+            <Suspense fallback={<Fallback />}>
+              <AboutPage />
             </Suspense>
           ),
         },
