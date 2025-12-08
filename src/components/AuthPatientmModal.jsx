@@ -51,7 +51,7 @@ function OtpInput({ length = 6, value = "", onChange }) {
         <input
           key={i}
           ref={(el) => (refs.current[i] = el)}
-          className="w-12 h-12 text-center border-2 rounded-xl text-xl font-semibold focus:ring-2 focus:ring-blue-500"
+          className="w-12 h-12 text-center border-2 rounded-xl text-xl font-semibold focus:ring-2 focus:ring-emerald-500"
           inputMode="numeric"
           maxLength={1}
           value={value[i] || ""}
@@ -287,7 +287,7 @@ export default function AuthPatientModal({ visible, onClose, onSuccess }) {
         >
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-gray-800">
-              Health<span className="text-blue-600">Care</span>
+              Health<span className="text-emerald-500">Care</span>
             </h2>
             <button onClick={onClose} className="text-2xl hover:text-red-500">
               ✕
@@ -298,7 +298,7 @@ export default function AuthPatientModal({ visible, onClose, onSuccess }) {
             <button
               className={`flex-1 py-2 rounded-full font-semibold transition ${
                 activeTab === "login"
-                  ? "bg-blue-600 text-white shadow-lg"
+                  ? "bg-emerald-600 text-white shadow-lg"
                   : "text-gray-700"
               }`}
               onClick={() => {
@@ -313,7 +313,7 @@ export default function AuthPatientModal({ visible, onClose, onSuccess }) {
             <button
               className={`flex-1 py-2 rounded-full font-semibold transition ${
                 activeTab === "register"
-                  ? "bg-blue-600 text-white shadow-lg"
+                  ? "bg-emerald-600 text-white shadow-lg"
                   : "text-gray-700"
               }`}
               onClick={() => {
@@ -353,7 +353,7 @@ export default function AuthPatientModal({ visible, onClose, onSuccess }) {
                     </button>
                     <button
                       onClick={handleLoginStart}
-                      className="px-5 py-2 bg-blue-600 text-white rounded-xl shadow-lg disabled:opacity-50"
+                      className="px-5 py-2 bg-emerald-600 text-white rounded-xl shadow-xl disabled:opacity-50"
                       disabled={loading}
                     >
                       {loading ? "Đang gửi..." : "Gửi OTP"}
@@ -388,7 +388,7 @@ export default function AuthPatientModal({ visible, onClose, onSuccess }) {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={handleLoginComplete}
-                        className="px-5 py-2 bg-blue-600 text-white rounded-xl shadow-lg disabled:opacity-50"
+                        className="px-5 py-2 bg-emerald-600 text-white rounded-xl shadow-xl disabled:opacity-50"
                         disabled={loading || otp.length < 6}
                       >
                         {loading ? "Xử lý..." : "Xác thực"}
@@ -396,7 +396,7 @@ export default function AuthPatientModal({ visible, onClose, onSuccess }) {
 
                       <button
                         onClick={handleResend}
-                        className="text-blue-600"
+                        className="text-emerald-600"
                         disabled={timer > 0}
                       >
                         {timer > 0 ? `Gửi lại sau ${timer}s` : "Gửi lại mã"}
@@ -482,7 +482,7 @@ export default function AuthPatientModal({ visible, onClose, onSuccess }) {
 
                     <button
                       onClick={handleRegisterStart}
-                      className="px-5 py-2 bg-blue-600 text-white rounded-xl shadow-lg disabled:opacity-50"
+                      className="px-5 py-2 bg-emerald-600 text-white rounded-xl shadow-xl disabled:opacity-50"
                       disabled={loading}
                     >
                       {loading ? "Đang gửi..." : "Đăng ký & gửi OTP"}
@@ -518,7 +518,7 @@ export default function AuthPatientModal({ visible, onClose, onSuccess }) {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={handleRegisterComplete}
-                        className="px-5 py-2 bg-blue-600 text-white rounded-xl shadow-lg disabled:opacity-50"
+                        className="px-5 py-2 bg-emerald-600 text-white rounded-xl shadow-xl disabled:opacity-50"
                         disabled={loading || otp.length < 6}
                       >
                         {loading ? "Xử lý..." : "Xác thực & Hoàn tất"}
@@ -526,7 +526,7 @@ export default function AuthPatientModal({ visible, onClose, onSuccess }) {
 
                       <button
                         onClick={handleResend}
-                        className="text-blue-600"
+                        className="text-emerald-600"
                         disabled={timer > 0}
                       >
                         {timer > 0 ? `Gửi lại sau ${timer}s` : "Gửi lại mã"}
@@ -537,8 +537,8 @@ export default function AuthPatientModal({ visible, onClose, onSuccess }) {
               )}
             </div>
 
-            <div className="hidden md:flex flex-col justify-center text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl shadow-inner">
-              <h3 className="text-2xl font-bold mb-4 text-blue-700">
+            <div className="hidden md:flex flex-col justify-center text-center p-6 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl shadow-inner">
+              <h3 className="text-2xl font-bold mb-4 text-emerald-500">
                 Chăm sóc sức khoẻ chuyên nghiệp
               </h3>
 
@@ -546,7 +546,7 @@ export default function AuthPatientModal({ visible, onClose, onSuccess }) {
                 Quy trình đặt lịch nhanh — bảo mật — thông tin cá nhân an toàn.
               </p>
 
-              <div className="w-full h-48 bg-blue-200 rounded-2xl animate-pulse mb-6" />
+              <div className="w-full h-48 bg-emerald-200 rounded-2xl animate-pulse mb-6" />
 
               <p className="mt-2 font-medium text-gray-700">
                 {activeTab === "login"

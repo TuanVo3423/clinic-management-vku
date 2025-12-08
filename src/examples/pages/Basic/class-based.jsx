@@ -52,10 +52,9 @@ class Basic extends Component {
       }
     );
 
-    // schedulerData.setSchedulerLocale(dayjsLocale);
-    // schedulerData.setCalendarPopoverLocale(antdLocale);
-    // schedulerData.setResources(DemoData.resources);
-    // schedulerData.setEvents(DemoData.events);
+    const storedInfo = localStorage.getItem("patientInfo");
+    const parsedInfo = storedInfo ? JSON.parse(storedInfo) : null;
+    const safePatientInfo = parsedInfo?.data?.patient || null;
 
     this.state = {
       viewModel: schedulerData,
@@ -70,7 +69,7 @@ class Basic extends Component {
       editModalVisible: false,
       selectedEvent: null,
       showAuthModal: false,
-      patientInfo: JSON.parse(localStorage.getItem("patientInfo")).data.patient || null,
+      patientInfo: safePatientInfo,
       isEmergency: false,
       availableServices: [],
       selectedServices: [],
