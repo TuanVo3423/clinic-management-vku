@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button, Tag, Divider } from "antd";

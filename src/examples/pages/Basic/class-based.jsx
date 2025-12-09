@@ -337,7 +337,7 @@ class Basic extends Component {
               },
             }}
           >
-            <Form layout="vertical" style={{ marginTop: "8px" }}>
+            <Form layout="vertical" style={{ marginTop: "8px", overflowY: "scroll", maxHeight: "60vh" }}>
               {/* Patient Info Section */}
               <div
                 style={{
@@ -998,7 +998,7 @@ class Basic extends Component {
             width={680}
             style={{ top: 20 }}
           >
-            <Form layout="vertical" style={{ marginTop: "8px" }}>
+            <Form layout="vertical" style={{ marginTop: "8px", overflowY: "scroll", maxHeight: "60vh" }}>
               {/* Note Section */}
               <Form.Item
                 label={

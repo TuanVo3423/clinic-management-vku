@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import React, { useState } from "react";
 import { Input, Card, Tag, Pagination, Select } from "antd";
 import SiteLayout from "../SiteLayout.jsx";
