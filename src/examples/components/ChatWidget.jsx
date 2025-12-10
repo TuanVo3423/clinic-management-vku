@@ -1,5 +1,47 @@
 /* eslint-disable */
 import React, { useState, useRef, useEffect } from "react";
+import { Modal } from "antd";
+import SchedulerComponent from "../pages/Basic/class-based";
+import dayjs from "dayjs";
+
+const BOOKING_STEPS = [
+  {
+    key: "name",
+    label: "Họ và tên",
+    question: "Trước tiên, bạn hãy nhập Tên của mình nhé:",
+    skipIfLoggedIn: true,
+  },
+  {
+    key: "phone",
+    label: "Số điện thoại",
+    question: "Tiếp theo, vui lòng nhập Số điện thoại liên hệ:",
+    skipIfLoggedIn: true,
+  },
+  {
+    key: "note",
+    label: "Ghi chú",
+    question:
+      "Bạn có ghi chú gì thêm về tình trạng bệnh cho bác sĩ không? (Hoặc gõ 'Không')",
+  },
+  {
+    key: "isEmergency",
+    label: "Khẩn cấp",
+    question: "Tình trạng này có cần cấp cứu khẩn cấp không?",
+    type: "yesno",
+  },
+  {
+    key: "time",
+    label: "Thời gian khám",
+    question: "Bạn muốn đặt lịch khám vào thời gian nào?",
+    type: "scheduler",
+  },
+  {
+    key: "confirm",
+    label: "Xác nhận",
+    question: "Dưới đây là thông tin đặt lịch của bạn. Bạn kiểm tra lại nhé:",
+    type: "preview",
+  },
+];
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
@@ -33,6 +75,17 @@ export default function ChatWidget() {
   const inputRef = useRef(null);
   const typingTimers = useRef({});
 
+  // --- BOOKING STATE ---
+  const [isBooking, setIsBooking] = useState(false);
+  const [bookingStep, setBookingStep] = useState(0);
+  const [bookingData, setBookingData] = useState({});
+  const [showSchedulerModal, setShowSchedulerModal] = useState(false);
+
+  // DEBUG
+  useEffect(() => {
+    if (isBooking) console.log("🔄 [DEBUG] BookingData Updated:", bookingData);
+  }, [bookingData, isBooking]);
+
   useEffect(() => {
     try {
       localStorage.setItem("chatMessages", JSON.stringify(messages));
@@ -40,9 +93,8 @@ export default function ChatWidget() {
   }, [messages]);
 
   useEffect(() => {
-    if (messagesRef.current) {
+    if (messagesRef.current)
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
-    }
   }, [messages, open]);
 
   const scrollToBottom = () => {
@@ -54,50 +106,312 @@ export default function ChatWidget() {
     new Promise((resolve) => {
       if (typingTimers.current[id]) clearInterval(typingTimers.current[id]);
       if (inputRef.current) inputRef.current.blur();
-
       let i = 0;
-
       setMessages((prev) =>
         prev.map((m) =>
           m.id === id ? { ...m, text: "", status: "typing" } : m
         )
       );
-
       typingTimers.current[id] = setInterval(() => {
         i += 1;
-
         setMessages((prev) =>
           prev.map((m) =>
             m.id === id ? { ...m, text: fullText.slice(0, i) } : m
           )
         );
-
         scrollToBottom();
-
         if (i >= fullText.length) {
           clearInterval(typingTimers.current[id]);
           typingTimers.current[id] = null;
-
           setMessages((prev) =>
             prev.map((m) => (m.id === id ? { ...m, status: "sent" } : m))
           );
-
           resolve();
         }
       }, speed);
     });
 
+  const addBotMessage = (text, type = "text", payload = null) => {
+    setMessages((prev) => [
+      ...prev,
+      { id: Date.now(), from: "bot", text, status: "sent", type, payload },
+    ]);
+    scrollToBottom();
+  };
+
+  const fetchServiceIdByName = async (serviceName) => {
+    try {
+      console.log(`📡 [DEBUG] Đang tìm service tên: "${serviceName}"`);
+      const res = await fetch("http://localhost:3000/services");
+      const data = await res.json();
+
+      let list = [];
+      if (Array.isArray(data)) list = data;
+      else if (data.data) list = data.data;
+
+      const found = list.find((s) =>
+        s.name?.toLowerCase().includes(serviceName.toLowerCase())
+      );
+
+      if (found) return found;
+      else return { name: serviceName, _id: null };
+    } catch (e) {
+      console.error(e);
+      return { name: serviceName, _id: null };
+    }
+  };
+
+  const getInitialBookingState = (services) => {
+    let initialData = { services };
+    let startStep = 0;
+    try {
+      const rawInfo = localStorage.getItem("patientInfo");
+      if (rawInfo) {
+        const parsedInfo = JSON.parse(rawInfo);
+        console.log("📂 [DEBUG] Dữ liệu gốc trong LocalStorage:", parsedInfo);
+
+        const realPatient =
+          parsedInfo?.data?.patient ||
+          parsedInfo?.patient ||
+          parsedInfo?.data ||
+          parsedInfo;
+
+        const name =
+          realPatient?.fullName || realPatient?.name || realPatient?.username;
+        const phone = realPatient?.phoneNumber || realPatient?.phone;
+
+        const patientId =
+          realPatient?._id || realPatient?.id || parsedInfo?._id;
+
+        console.log(`👤 [DEBUG] Đã trích xuất: ID=${patientId}, Name=${name}`);
+
+        if (name || phone) {
+          initialData.name = name || "Khách hàng";
+          initialData.phone = phone || "";
+          initialData.patientId = patientId; // <--- QUAN TRỌNG: Lưu ID vào state
+          initialData.isLoggedIn = true;
+          startStep = BOOKING_STEPS.findIndex((step) => !step.skipIfLoggedIn);
+        }
+      }
+    } catch (e) {
+      console.log("Guest booking", e);
+    }
+    return { initialData, startStep };
+  };
+
+  const startBookingProcess = async (servicesInput) => {
+    const userId = Date.now();
+    let selectedServices = [];
+
+    const inputArray = Array.isArray(servicesInput)
+      ? servicesInput
+      : [servicesInput];
+
+    const serviceNamesDisplay = inputArray
+      .map((s) => (typeof s === "string" ? s : s.serviceName || s.name))
+      .join(", ");
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: userId,
+        from: "user",
+        text: `Tôi muốn đặt: ${serviceNamesDisplay}`,
+        status: "sent",
+      },
+    ]);
+
+    for (let item of inputArray) {
+      let serviceObj = null;
+
+      if (typeof item === "object" && item !== null) {
+        serviceObj = { ...item };
+        if (!serviceObj._id && serviceObj.id) serviceObj._id = serviceObj.id;
+
+        if (!serviceObj._id) {
+          const nameToFetch = serviceObj.serviceName || serviceObj.name;
+          const fetched = await fetchServiceIdByName(nameToFetch);
+          serviceObj = { ...serviceObj, ...fetched };
+        }
+      } else {
+        serviceObj = await fetchServiceIdByName(item);
+      }
+      selectedServices.push(serviceObj);
+    }
+
+    const { initialData, startStep } = getInitialBookingState(selectedServices);
+
+    setIsBooking(true);
+    setBookingStep(startStep);
+    setBookingData(initialData);
+
+    setTimeout(() => {
+      const greeting = initialData.isLoggedIn
+        ? `Chào ${initialData.name}, mình đã nhận diện được thông tin.`
+        : `Để đặt lịch cho ${selectedServices.length} dịch vụ này, mình cần một vài thông tin.`;
+      addBotMessage(greeting);
+      setTimeout(
+        () =>
+          addBotMessage(
+            BOOKING_STEPS[startStep].question,
+            BOOKING_STEPS[startStep].type
+          ),
+        500
+      );
+    }, 500);
+  };
+
+  const handleBookingInput = (userInput) => {
+    const currentConfig = BOOKING_STEPS[bookingStep];
+
+    if (["back", "quay lại"].includes(String(userInput).toLowerCase())) {
+      if (bookingStep > 0) {
+        let prevIndex = bookingStep - 1;
+        if (bookingData.isLoggedIn) {
+          while (prevIndex >= 0 && BOOKING_STEPS[prevIndex].skipIfLoggedIn)
+            prevIndex--;
+        }
+        if (prevIndex >= 0) {
+          setBookingStep(prevIndex);
+          const prevConfig = BOOKING_STEPS[prevIndex];
+          addBotMessage(`Đã quay lại. ${prevConfig.question}`, prevConfig.type);
+        } else {
+          setIsBooking(false);
+          addBotMessage("Đã hủy đặt lịch.");
+        }
+      } else {
+        setIsBooking(false);
+        addBotMessage("Đã hủy đặt lịch.");
+      }
+      return;
+    }
+
+    const newData = { ...bookingData, [currentConfig.key]: userInput };
+    setBookingData(newData);
+
+    let nextStep = bookingStep + 1;
+    if (bookingData.isLoggedIn) {
+      while (
+        nextStep < BOOKING_STEPS.length &&
+        BOOKING_STEPS[nextStep].skipIfLoggedIn
+      )
+        nextStep++;
+    }
+
+    if (nextStep < BOOKING_STEPS.length) {
+      setBookingStep(nextStep);
+      const nextConfig = BOOKING_STEPS[nextStep];
+
+      if (nextConfig.type === "scheduler")
+        addBotMessage(nextConfig.question, "scheduler-trigger");
+      else if (nextConfig.type === "preview")
+        addBotMessage(nextConfig.question, "preview", newData);
+      else if (nextConfig.type === "yesno")
+        addBotMessage(nextConfig.question, "yesno");
+      else addBotMessage(nextConfig.question);
+    }
+  };
+
+  const handleSchedulerSelect = (slotData) => {
+    setShowSchedulerModal(false);
+    const timeDisplay = `${dayjs(slotData.start).format(
+      "HH:mm DD/MM"
+    )} - ${dayjs(slotData.end).format("HH:mm DD/MM")}`;
+
+    const updatedData = {
+      ...bookingData,
+      time: timeDisplay,
+      rawTime: slotData,
+      doctorName: slotData.resourceName,
+    };
+
+    setBookingData(updatedData);
+    addBotMessage(`Đã chọn: ${timeDisplay}`);
+
+    const confirmIndex = BOOKING_STEPS.findIndex((s) => s.key === "confirm");
+    setBookingStep(confirmIndex);
+    addBotMessage(BOOKING_STEPS[confirmIndex].question, "preview", updatedData);
+  };
+
+  const handleFinalSubmit = async () => {
+    addBotMessage("Đang tạo lịch hẹn...", "thinking");
+    try {
+      const primaryService = bookingData.services?.[0];
+
+      if (!bookingData.patientId) {
+        console.warn("⚠️ CẢNH BÁO: Không tìm thấy ID bệnh nhân (Guest mode?)");
+      }
+
+      const payload = {
+        patientId: bookingData.patientId,
+
+        guestName: bookingData.name,
+        guestPhone: bookingData.phone,
+
+        serviceId: primaryService?._id || primaryService?.id,
+        services: bookingData.services?.map((s) => ({
+          serviceId: s._id || s.id,
+          serviceName: s.name || s.serviceName,
+          price: s.price,
+        })),
+        resourceId: bookingData.rawTime?.resourceId,
+        start: bookingData.rawTime?.start,
+        end: bookingData.rawTime?.end,
+
+        note: bookingData.note,
+        isEmergency:
+          bookingData.isEmergency === true || bookingData.isEmergency === "Có",
+        isFromChatbot: true,
+      };
+
+      console.log("🚀 [DEBUG] FINAL PAYLOAD GỬI ĐI:", payload);
+
+      const res = await fetch("http://localhost:3000/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Server Error (${res.status}): ${errorText}`);
+      }
+
+      const responseData = await res.json();
+      console.log("✅ [DEBUG] THÀNH CÔNG:", responseData);
+
+      setTimeout(() => {
+        addBotMessage("✅ Đặt lịch thành công! Cảm ơn bạn.");
+        setIsBooking(false);
+        setBookingData({});
+        setBookingStep(0);
+      }, 1500);
+    } catch (e) {
+      console.error("❌ LỖI:", e);
+      // Hiển thị lỗi rõ hơn cho user
+      let cleanError = e.message;
+      if (cleanError.includes("Patient not found")) {
+        cleanError =
+          "Không tìm thấy thông tin bệnh nhân trên hệ thống. Bạn đã đăng nhập chưa?";
+      }
+      addBotMessage(`Lỗi: ${cleanError}`);
+    }
+  };
+
   const send = async () => {
     const raw = text.trim();
     if (!raw) return;
-
     const userId = Date.now();
-
     setMessages((m) => [
       ...m,
       { id: userId, from: "user", text: raw, status: "sent" },
     ]);
     setText("");
+
+    if (isBooking) {
+      handleBookingInput(raw);
+      return;
+    }
 
     const botId = Date.now() + 1;
     setMessages((m) => [
@@ -120,12 +434,10 @@ export default function ChatWidget() {
       });
 
       if (!res.ok) {
-        const msg =
-          res.status === 404
-            ? "Chatbot service không tìm thấy (404)"
-            : `Lỗi server: ${res.status}`;
         setMessages((p) =>
-          p.map((m) => (m.id === botId ? { ...m, text: msg } : m))
+          p.map((m) =>
+            m.id === botId ? { ...m, text: "Lỗi Server", status: "sent" } : m
+          )
         );
         return;
       }
@@ -134,10 +446,7 @@ export default function ChatWidget() {
       const botMessage =
         data.data?.response?.message || "Xin lỗi, tôi không hiểu yêu cầu.";
       const services =
-        data.data?.response?.services ||
-        data.service ||
-        data.services ||
-        [];
+        data.data?.response?.services || data.service || data.services || [];
 
       await typeText(botId, botMessage, 24);
 
@@ -149,50 +458,30 @@ export default function ChatWidget() {
     } catch {
       setMessages((p) =>
         p.map((m) =>
-          m.id === botId ? { ...m, text: "Lỗi mạng. Vui lòng thử lại." } : m
+          m.id === botId ? { ...m, text: "Lỗi mạng.", status: "sent" } : m
         )
       );
     }
   };
 
   const handleKey = (e) => e.key === "Enter" && send();
-  const handleSuggestionClick = (svc) => {
-    localStorage.setItem("selectedServiceFromChat", JSON.stringify(svc));
-    window.location.href = "/scheduler";
+
+  const handleBookAll = (services) => {
+    startBookingProcess(services);
   };
 
   return (
     <>
-      {/* Floating Button */}
       <button
         onClick={() => setOpen(true)}
-        className="
-          fixed bottom-6 right-6 w-16 h-16 rounded-full
-          bg-gradient-to-br from-emerald-400 to-emerald-600
-          text-white shadow-xl flex items-center justify-center
-          text-4xl hover:scale-110 transition-transform z-50
-        "
+        className="fixed bottom-6 right-6 w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-xl flex items-center justify-center text-4xl hover:scale-110 transition-transform z-50"
       >
         🤖
       </button>
 
-      {/* Chat Panel */}
       {open && (
-        <div
-          className="
-            fixed bottom-6 right-6 w-[410px] h-[600px]
-            bg-emerald-50/90 backdrop-blur-xl shadow-2xl rounded-3xl
-            overflow-hidden flex flex-col border border-emerald-200
-            animate-[fadeInUp_.25s_ease] z-50
-          "
-        >
-          {/* Header */}
-          <div
-            className="
-            bg-gradient-to-r from-emerald-500 to-emerald-600
-            text-white px-5 py-4 flex justify-between items-center shadow
-          "
-          >
+        <div className="fixed bottom-6 right-6 w-[410px] h-[600px] bg-emerald-50/90 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden flex flex-col border border-emerald-200 animate-[fadeInUp_.25s_ease] z-50">
+          <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-5 py-4 flex justify-between items-center shadow">
             <div className="font-semibold text-xl flex gap-3 items-center">
               <img
                 src="https://cdn-icons-png.flaticon.com/512/4712/4712106.png"
@@ -209,13 +498,9 @@ export default function ChatWidget() {
             </button>
           </div>
 
-          {/* Messages */}
           <div
             ref={messagesRef}
-            className="
-              flex-1 overflow-y-auto p-5 space-y-4
-              bg-gradient-to-b from-emerald-50/70 to-white
-            "
+            className="flex-1 overflow-y-auto p-5 space-y-4 bg-gradient-to-b from-emerald-50/70 to-white"
           >
             {messages.map((m) => (
               <div
@@ -234,14 +519,11 @@ export default function ChatWidget() {
                   )}
 
                   <div
-                    className={`
-                      rounded-2xl px-4 py-3 shadow
-                      ${
-                        m.from === "user"
-                          ? "bg-emerald-500 text-white rounded-br-none"
-                          : "bg-white text-gray-800 rounded-bl-none border border-emerald-100"
-                      }
-                    `}
+                    className={`rounded-2xl px-4 py-3 shadow ${
+                      m.from === "user"
+                        ? "bg-emerald-500 text-white rounded-br-none"
+                        : "bg-white text-gray-800 rounded-bl-none border border-emerald-100"
+                    }`}
                   >
                     {m.status === "thinking" ? (
                       <div className="flex gap-1">
@@ -253,31 +535,108 @@ export default function ChatWidget() {
                       <span className="leading-relaxed">{m.text}</span>
                     )}
 
-                    {/* Suggestions */}
                     {m.suggestions?.length > 0 && (
                       <div className="mt-3 space-y-2">
-                        {m.suggestions.map((s, i) => (
-                          <button
-                            key={i}
-                            onClick={() => handleSuggestionClick(s)}
-                            className="
-                              block w-full text-left bg-emerald-100 hover:bg-emerald-200
-                              px-3 py-2 rounded-lg text-sm font-medium transition
-                            "
-                          >
-                            {s.serviceName || s.name || "Dịch vụ"}
-                          </button>
-                        ))}
+                        <div className="flex flex-col gap-1 mb-2">
+                          {m.suggestions.map((s, i) => (
+                            <div
+                              key={i}
+                              className="bg-emerald-50 text-emerald-800 text-xs px-2 py-1.5 rounded border border-emerald-100 flex items-center"
+                            >
+                              <span className="mr-1">🔹</span>{" "}
+                              {s.serviceName || s.name || "Dịch vụ"}
+                            </div>
+                          ))}
+                        </div>
 
                         <button
-                          onClick={() => handleSuggestionClick({})}
-                          className="
-                            block w-full bg-emerald-600 text-white px-4 py-2
-                            rounded-lg text-sm font-semibold hover:bg-emerald-700
-                          "
+                          onClick={() => handleBookAll(m.suggestions)}
+                          className="block w-full bg-emerald-600 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-emerald-700 transition shadow-sm"
                         >
-                          Đặt lịch ngay
+                          📅 Đặt lịch ngay ({m.suggestions.length} dịch vụ)
                         </button>
+                      </div>
+                    )}
+
+                    {m.type === "scheduler-trigger" && (
+                      <div className="mt-3">
+                        <button
+                          onClick={() => setShowSchedulerModal(true)}
+                          className="block w-full bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-emerald-700 transition"
+                        >
+                          📅 Chọn lịch ngay
+                        </button>
+                      </div>
+                    )}
+                    {m.type === "yesno" && (
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          onClick={() => handleBookingInput("Có")}
+                          className="flex-1 bg-red-100 text-red-700 px-3 py-2 rounded-lg text-sm font-bold hover:bg-red-200 border border-red-200"
+                        >
+                          🚨 Có
+                        </button>
+                        <button
+                          onClick={() => handleBookingInput("Không")}
+                          className="flex-1 bg-emerald-100 text-emerald-700 px-3 py-2 rounded-lg text-sm font-medium hover:bg-emerald-200 border border-emerald-200"
+                        >
+                          Bình thường
+                        </button>
+                      </div>
+                    )}
+                    {m.type === "preview" && m.payload && (
+                      <div className="mt-3 p-3 bg-emerald-50 rounded-lg border border-emerald-200 text-sm space-y-1">
+                        <div>
+                          <strong className="text-emerald-700">
+                            Dịch vụ ({m.payload.services?.length}):
+                          </strong>
+                          <ul className="list-disc pl-4 mt-1 text-gray-700 text-xs">
+                            {m.payload.services?.map((s, i) => (
+                              <li key={i}>{s.name || s.serviceName}</li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <p>
+                          <strong className="text-emerald-700">Khách:</strong>{" "}
+                          {m.payload.name}
+                        </p>
+                        <p>
+                          <strong className="text-emerald-700">SĐT:</strong>{" "}
+                          {m.payload.phone}
+                        </p>
+                        <p>
+                          <strong className="text-emerald-700">Ghi chú:</strong>{" "}
+                          {m.payload.note || "Không"}
+                        </p>
+                        <p>
+                          <strong className="text-emerald-700">
+                            Khẩn cấp:
+                          </strong>{" "}
+                          {m.payload.isEmergency ? "🚨 CÓ" : "Không"}
+                        </p>
+                        <p>
+                          <strong className="text-emerald-700">Bác sĩ:</strong>{" "}
+                          {m.payload.doctorName}
+                        </p>
+                        <p>
+                          <strong className="text-emerald-700">Giờ:</strong>{" "}
+                          {m.payload.time}
+                        </p>
+                        <div className="flex gap-2 mt-3">
+                          <button
+                            onClick={handleFinalSubmit}
+                            className="flex-1 bg-emerald-600 text-white py-2 rounded-lg font-bold hover:bg-emerald-700 shadow"
+                          >
+                            Chốt đơn
+                          </button>
+                          <button
+                            onClick={() => handleBookingInput("back")}
+                            className="px-4 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300"
+                          >
+                            Sửa
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -286,33 +645,63 @@ export default function ChatWidget() {
             ))}
           </div>
 
-          {/* Input */}
-          <div className="p-4 bg-white border-t flex items-center gap-3">
-            <input
-              ref={inputRef}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={handleKey}
-              className="
-                flex-1 px-4 py-3 bg-emerald-50 rounded-xl 
-                focus:outline-none focus:ring-2 focus:ring-emerald-500
-                text-sm border border-emerald-200
-              "
-              placeholder="Nhập tin nhắn..."
-            />
-            <button
-              onClick={send}
-              className="
-                px-5 py-3 bg-emerald-600 text-white rounded-xl
-                font-semibold hover:bg-emerald-700 shadow-sm
-                transition
-              "
-            >
-              Gửi
-            </button>
+          <div className="p-4 bg-white border-t relative">
+            {isBooking && bookingStep > 0 && (
+              <button
+                onClick={() => handleBookingInput("back")}
+                className="absolute -top-8 left-6 bg-gray-600/80 backdrop-blur text-white px-3 py-1 rounded-full text-xs hover:bg-gray-700 transition flex items-center gap-1 shadow-sm"
+              >
+                ⬅ Quay lại
+              </button>
+            )}
+            <div className="flex items-center gap-3">
+              <input
+                ref={inputRef}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={handleKey}
+                disabled={
+                  isBooking &&
+                  (BOOKING_STEPS[bookingStep]?.type === "scheduler" ||
+                    BOOKING_STEPS[bookingStep]?.type === "yesno")
+                }
+                className="flex-1 px-4 py-3 bg-emerald-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm border border-emerald-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                placeholder={
+                  isBooking ? "Nhập thông tin..." : "Nhập tin nhắn..."
+                }
+              />
+              <button
+                onClick={send}
+                className="px-5 py-3 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 shadow-sm transition"
+              >
+                Gửi
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      <Modal
+        title={
+          <div className="text-emerald-700 font-bold text-lg">
+            📅 Chọn khung giờ khám
+          </div>
+        }
+        open={showSchedulerModal}
+        onCancel={() => setShowSchedulerModal(false)}
+        width={1100}
+        footer={null}
+        style={{ top: 20 }}
+        zIndex={1000}
+        destroyOnClose={true}
+      >
+        <div className="h-[600px] overflow-hidden rounded-lg border border-gray-200">
+          <SchedulerComponent
+            isPickerMode={true}
+            onSlotSelect={handleSchedulerSelect}
+          />
+        </div>
+      </Modal>
     </>
   );
 }
