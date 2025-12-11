@@ -43,27 +43,50 @@ const BOOKING_STEPS = [
     type: "preview",
   },
 ];
+const generateId = () =>
+  Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+const getPatientInfoFromStorage = () => {
+  try {
+    const raw = localStorage.getItem("patientInfo");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    const patient =
+      parsed?.data?.patient || parsed?.patient || parsed?.data || parsed;
+    return {
+      id: patient?._id || patient?.id,
+      name: patient?.fullName || patient?.name,
+      phone: patient?.phoneNumber || patient?.phone,
+    };
+  } catch (e) {
+    return null;
+  }
+};
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
+
   const [messages, setMessages] = useState(() => {
     try {
       const saved = localStorage.getItem("chatMessages");
-      return saved
-        ? JSON.parse(saved)
-        : [
-            {
-              id: Date.now(),
-              from: "bot",
-              text: "Chào bạn! Tôi có thể giúp gì hôm nay?",
-              status: "sent",
-            },
-          ];
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return Array.from(
+          new Map(parsed.map((item) => [item.id, item])).values()
+        );
+      }
+      return [
+        {
+          id: generateId(),
+          from: "bot",
+          text: "Chào bạn! Tôi có thể giúp gì hôm nay?",
+          status: "sent",
+        },
+      ];
     } catch {
       return [
         {
-          id: Date.now(),
+          id: generateId(),
           from: "bot",
           text: "Chào bạn! Tôi có thể giúp gì hôm nay?",
           status: "sent",
@@ -139,9 +162,9 @@ export default function ChatWidget() {
   const addBotMessage = (text, type = "text", payload = null) => {
     setMessages((prev) => [
       ...prev,
-      { id: Date.now(), from: "bot", text, status: "sent", type, payload },
+      { id: generateId(), from: "bot", text, status: "sent", type, payload },
     ]);
-    scrollToBottom();
+    setTimeout(() => scrollToBottom(), 100);
   };
 
   const fetchAllServices = async () => {
@@ -153,7 +176,6 @@ export default function ChatWidget() {
       if (Array.isArray(data)) list = data;
       else if (data.data) list = data.data;
       else if (data.services) list = data.services;
-
       setAllServices(list);
       return list;
     } catch (e) {
@@ -168,7 +190,6 @@ export default function ChatWidget() {
     const suggestions = Array.isArray(suggestedServices)
       ? suggestedServices
       : [suggestedServices];
-
     const servicesFromApi = await fetchAllServices();
 
     const initialIds = [];
@@ -195,10 +216,9 @@ export default function ChatWidget() {
     const finalSelectedServices = allServices.filter((s) =>
       selectedServiceIds.includes(s._id || s.id)
     );
-
     setShowServiceModal(false);
 
-    const userId = Date.now();
+    const userId = generateId();
     const serviceNames = finalSelectedServices.map((s) => s.name).join(", ");
     setMessages((prev) => [
       ...prev,
@@ -213,23 +233,14 @@ export default function ChatWidget() {
     let initialData = { services: finalSelectedServices };
     let startStep = 0;
 
-    try {
-      const rawInfo = localStorage.getItem("patientInfo");
-      if (rawInfo) {
-        const parsedInfo = JSON.parse(rawInfo);
-        const realPatient =
-          parsedInfo?.data?.patient || parsedInfo?.patient || parsedInfo;
-        if (realPatient) {
-          initialData.name =
-            realPatient.fullName || realPatient.name || "Khách hàng";
-          initialData.phone =
-            realPatient.phoneNumber || realPatient.phone || "";
-          initialData.patientId = realPatient._id || realPatient.id;
-          initialData.isLoggedIn = true;
-          startStep = BOOKING_STEPS.findIndex((step) => !step.skipIfLoggedIn);
-        }
-      }
-    } catch {}
+    const patientInfo = getPatientInfoFromStorage();
+    if (patientInfo && patientInfo.id) {
+      initialData.name = patientInfo.name || "Khách hàng";
+      initialData.phone = patientInfo.phone || "";
+      initialData.patientId = patientInfo.id;
+      initialData.isLoggedIn = true;
+      startStep = BOOKING_STEPS.findIndex((step) => !step.skipIfLoggedIn);
+    }
 
     setIsBooking(true);
     setBookingStep(startStep);
@@ -308,12 +319,21 @@ export default function ChatWidget() {
     const timeDisplay = `${dayjs(slotData.start).format(
       "HH:mm DD/MM"
     )} - ${dayjs(slotData.end).format("HH:mm DD/MM")}`;
+
+    let pid = bookingData.patientId;
+    if (!pid) {
+      const info = getPatientInfoFromStorage();
+      if (info) pid = info.id;
+    }
+
     const updatedData = {
       ...bookingData,
       time: timeDisplay,
       rawTime: slotData,
       doctorName: slotData.resourceName,
+      patientId: pid,
     };
+
     setBookingData(updatedData);
     addBotMessage(`Đã chọn: ${timeDisplay}`);
 
@@ -322,7 +342,7 @@ export default function ChatWidget() {
     addBotMessage(BOOKING_STEPS[confirmIndex].question, "preview", updatedData);
   };
 
-  const handleFinalSubmit = async (payloadFromMessage) => {
+  const handleFinalSubmit = async (payloadFromMessage, messageId) => {
     addBotMessage("Đang tạo lịch hẹn...", "thinking");
     const data = payloadFromMessage || bookingData;
 
@@ -334,15 +354,12 @@ export default function ChatWidget() {
 
       let pid = data.patientId;
       if (!pid) {
-        try {
-          const local = JSON.parse(localStorage.getItem("patientInfo"));
-          const realPatient = local?.data?.patient || local?.patient || local;
-          pid = realPatient?._id || realPatient?.id;
-        } catch {}
+        const info = getPatientInfoFromStorage();
+        if (info) pid = info.id;
       }
 
       if (!pid) {
-        throw new Error("Bạn cần đăng nhập để đặt lịch (Thiếu Patient ID).");
+        throw new Error("Bạn cần đăng nhập hệ thống để xác nhận đặt lịch.");
       }
 
       const payload = {
@@ -370,6 +387,12 @@ export default function ChatWidget() {
       );
       console.log("✅ [DEBUG] SUCCESS:", res.data);
 
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg.id === messageId ? { ...msg, isBooked: true } : msg
+        )
+      );
+
       setTimeout(() => {
         addBotMessage("✅ Đặt lịch thành công! Cảm ơn bạn.");
         setIsBooking(false);
@@ -378,7 +401,10 @@ export default function ChatWidget() {
       }, 1500);
     } catch (e) {
       console.error("❌ Lỗi submit:", e);
-      const msg = e.response?.data?.message || e.message;
+      let msg = e.response?.data?.message || e.message;
+      if (msg.includes("Patient not found")) {
+        msg = "Không tìm thấy hồ sơ của bạn. Vui lòng đăng nhập lại.";
+      }
       addBotMessage(`Lỗi: ${msg}`);
     }
   };
@@ -386,7 +412,7 @@ export default function ChatWidget() {
   const send = async () => {
     const raw = text.trim();
     if (!raw) return;
-    const userId = Date.now();
+    const userId = generateId();
     setMessages((m) => [
       ...m,
       { id: userId, from: "user", text: raw, status: "sent" },
@@ -398,7 +424,7 @@ export default function ChatWidget() {
       return;
     }
 
-    const botId = Date.now() + 1;
+    const botId = generateId();
     setMessages((m) => [
       ...m,
       {
@@ -409,7 +435,8 @@ export default function ChatWidget() {
         suggestions: [],
       },
     ]);
-    scrollToBottom();
+
+    setTimeout(() => scrollToBottom(), 50);
 
     try {
       const res = await axios.post("http://localhost:3000/chatbot/chat", {
@@ -516,7 +543,6 @@ export default function ChatWidget() {
                             </div>
                           ))}
                         </div>
-
                         <button
                           onClick={() => startBookingFlow(m.suggestions)}
                           className="block w-full bg-emerald-600 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-emerald-700 transition shadow-sm"
@@ -536,6 +562,7 @@ export default function ChatWidget() {
                         </button>
                       </div>
                     )}
+
                     {m.type === "yesno" && (
                       <div className="mt-3 flex gap-2">
                         <button
@@ -552,6 +579,7 @@ export default function ChatWidget() {
                         </button>
                       </div>
                     )}
+
                     {m.type === "preview" && m.payload && (
                       <div className="mt-3 p-3 bg-emerald-50 rounded-lg border border-emerald-200 text-sm space-y-1">
                         <div>
@@ -586,20 +614,27 @@ export default function ChatWidget() {
                           <strong className="text-emerald-700">Giờ:</strong>{" "}
                           {m.payload.time}
                         </p>
-                        <div className="flex gap-2 mt-3">
-                          <button
-                            onClick={() => handleFinalSubmit(m.payload)}
-                            className="flex-1 bg-emerald-600 text-white py-2 rounded-lg font-bold hover:bg-emerald-700 shadow"
-                          >
-                            Chốt đơn
-                          </button>
-                          <button
-                            onClick={() => handleBookingInput("back")}
-                            className="px-4 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300"
-                          >
-                            Sửa
-                          </button>
-                        </div>
+
+                        {m.isBooked ? (
+                          <div className="mt-3 p-2 bg-green-100 text-green-700 font-bold text-center rounded border border-green-200">
+                            ✅ Đã đặt lịch thành công
+                          </div>
+                        ) : (
+                          <div className="flex gap-2 mt-3">
+                            <button
+                              onClick={() => handleFinalSubmit(m.payload, m.id)}
+                              className="flex-1 bg-emerald-600 text-white py-2 rounded-lg font-bold hover:bg-emerald-700 shadow"
+                            >
+                              Chốt đơn
+                            </button>
+                            <button
+                              onClick={() => handleBookingInput("back")}
+                              className="px-4 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300"
+                            >
+                              Sửa
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -644,7 +679,6 @@ export default function ChatWidget() {
         </div>
       )}
 
-      {/* --- MODAL SCHEDULER --- */}
       <Modal
         title={
           <div className="text-emerald-700 font-bold text-lg">
@@ -657,14 +691,15 @@ export default function ChatWidget() {
         footer={null}
         style={{ top: 20 }}
         zIndex={1000}
-        destroyOnClose={true}
       >
-        <div className="h-[600px] rounded-lg border border-gray-200">
-          <SchedulerComponent
-            isPickerMode={true}
-            onSlotSelect={handleSchedulerSelect}
-          />
-        </div>
+        {showSchedulerModal && (
+          <div className="h-[600px] overflow-hidden rounded-lg border border-gray-200">
+            <SchedulerComponent
+              isPickerMode={true}
+              onSlotSelect={handleSchedulerSelect}
+            />
+          </div>
+        )}
       </Modal>
 
       <Modal
