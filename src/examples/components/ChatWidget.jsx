@@ -1,8 +1,9 @@
 /* eslint-disable */
 import React, { useState, useRef, useEffect } from "react";
-import { Modal } from "antd";
+import { Modal, Checkbox, Row, Col, Spin, message } from "antd";
 import SchedulerComponent from "../pages/Basic/class-based";
 import dayjs from "dayjs";
+import axios from "axios";
 
 const BOOKING_STEPS = [
   {
@@ -75,15 +76,19 @@ export default function ChatWidget() {
   const inputRef = useRef(null);
   const typingTimers = useRef({});
 
-  // --- BOOKING STATE ---
   const [isBooking, setIsBooking] = useState(false);
   const [bookingStep, setBookingStep] = useState(0);
   const [bookingData, setBookingData] = useState({});
+
   const [showSchedulerModal, setShowSchedulerModal] = useState(false);
 
-  // DEBUG
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [allServices, setAllServices] = useState([]);
+  const [selectedServiceIds, setSelectedServiceIds] = useState([]);
+  const [loadingServices, setLoadingServices] = useState(false);
+
   useEffect(() => {
-    if (isBooking) console.log("🔄 [DEBUG] BookingData Updated:", bookingData);
+    if (isBooking) console.log("🔄 [DEBUG] BookingData:", bookingData);
   }, [bookingData, isBooking]);
 
   useEffect(() => {
@@ -139,107 +144,92 @@ export default function ChatWidget() {
     scrollToBottom();
   };
 
-  const fetchServiceIdByName = async (serviceName) => {
+  const fetchAllServices = async () => {
     try {
-      console.log(`📡 [DEBUG] Đang tìm service tên: "${serviceName}"`);
-      const res = await fetch("http://localhost:3000/services");
-      const data = await res.json();
-
+      setLoadingServices(true);
+      const res = await axios.get("http://localhost:3000/services");
+      const data = res.data;
       let list = [];
       if (Array.isArray(data)) list = data;
       else if (data.data) list = data.data;
+      else if (data.services) list = data.services;
 
-      const found = list.find((s) =>
-        s.name?.toLowerCase().includes(serviceName.toLowerCase())
+      setAllServices(list);
+      return list;
+    } catch (e) {
+      console.error("Lỗi lấy services:", e);
+      return [];
+    } finally {
+      setLoadingServices(false);
+    }
+  };
+
+  const startBookingFlow = async (suggestedServices) => {
+    const suggestions = Array.isArray(suggestedServices)
+      ? suggestedServices
+      : [suggestedServices];
+
+    const servicesFromApi = await fetchAllServices();
+
+    const initialIds = [];
+    suggestions.forEach((s) => {
+      const sName = (
+        typeof s === "string" ? s : s.serviceName || s.name
+      ).toLowerCase();
+      const found = servicesFromApi.find((apiS) =>
+        apiS.name.toLowerCase().includes(sName)
       );
+      if (found) initialIds.push(found._id || found.id);
+    });
 
-      if (found) return found;
-      else return { name: serviceName, _id: null };
-    } catch (e) {
-      console.error(e);
-      return { name: serviceName, _id: null };
-    }
+    setSelectedServiceIds(initialIds);
+    setShowServiceModal(true);
   };
 
-  const getInitialBookingState = (services) => {
-    let initialData = { services };
-    let startStep = 0;
-    try {
-      const rawInfo = localStorage.getItem("patientInfo");
-      if (rawInfo) {
-        const parsedInfo = JSON.parse(rawInfo);
-        console.log("📂 [DEBUG] Dữ liệu gốc trong LocalStorage:", parsedInfo);
-
-        const realPatient =
-          parsedInfo?.data?.patient ||
-          parsedInfo?.patient ||
-          parsedInfo?.data ||
-          parsedInfo;
-
-        const name =
-          realPatient?.fullName || realPatient?.name || realPatient?.username;
-        const phone = realPatient?.phoneNumber || realPatient?.phone;
-
-        const patientId =
-          realPatient?._id || realPatient?.id || parsedInfo?._id;
-
-        console.log(`👤 [DEBUG] Đã trích xuất: ID=${patientId}, Name=${name}`);
-
-        if (name || phone) {
-          initialData.name = name || "Khách hàng";
-          initialData.phone = phone || "";
-          initialData.patientId = patientId; // <--- QUAN TRỌNG: Lưu ID vào state
-          initialData.isLoggedIn = true;
-          startStep = BOOKING_STEPS.findIndex((step) => !step.skipIfLoggedIn);
-        }
-      }
-    } catch (e) {
-      console.log("Guest booking", e);
+  const handleConfirmServices = () => {
+    if (selectedServiceIds.length === 0) {
+      message.warning("Vui lòng chọn ít nhất 1 dịch vụ!");
+      return;
     }
-    return { initialData, startStep };
-  };
 
-  const startBookingProcess = async (servicesInput) => {
+    const finalSelectedServices = allServices.filter((s) =>
+      selectedServiceIds.includes(s._id || s.id)
+    );
+
+    setShowServiceModal(false);
+
     const userId = Date.now();
-    let selectedServices = [];
-
-    const inputArray = Array.isArray(servicesInput)
-      ? servicesInput
-      : [servicesInput];
-
-    const serviceNamesDisplay = inputArray
-      .map((s) => (typeof s === "string" ? s : s.serviceName || s.name))
-      .join(", ");
-
+    const serviceNames = finalSelectedServices.map((s) => s.name).join(", ");
     setMessages((prev) => [
       ...prev,
       {
         id: userId,
         from: "user",
-        text: `Tôi muốn đặt: ${serviceNamesDisplay}`,
+        text: `Tôi chốt đặt: ${serviceNames}`,
         status: "sent",
       },
     ]);
 
-    for (let item of inputArray) {
-      let serviceObj = null;
+    let initialData = { services: finalSelectedServices };
+    let startStep = 0;
 
-      if (typeof item === "object" && item !== null) {
-        serviceObj = { ...item };
-        if (!serviceObj._id && serviceObj.id) serviceObj._id = serviceObj.id;
-
-        if (!serviceObj._id) {
-          const nameToFetch = serviceObj.serviceName || serviceObj.name;
-          const fetched = await fetchServiceIdByName(nameToFetch);
-          serviceObj = { ...serviceObj, ...fetched };
+    try {
+      const rawInfo = localStorage.getItem("patientInfo");
+      if (rawInfo) {
+        const parsedInfo = JSON.parse(rawInfo);
+        const realPatient =
+          parsedInfo?.data?.patient || parsedInfo?.patient || parsedInfo;
+        if (realPatient) {
+          initialData.name =
+            realPatient.fullName || realPatient.name || "Khách hàng";
+          initialData.phone =
+            realPatient.phoneNumber || realPatient.phone || "";
+          initialData.patientId = realPatient._id || realPatient.id;
+          initialData.isLoggedIn = true;
+          startStep = BOOKING_STEPS.findIndex((step) => !step.skipIfLoggedIn);
         }
-      } else {
-        serviceObj = await fetchServiceIdByName(item);
       }
-      selectedServices.push(serviceObj);
-    }
-
-    const { initialData, startStep } = getInitialBookingState(selectedServices);
+    } catch {}
 
     setIsBooking(true);
     setBookingStep(startStep);
@@ -247,8 +237,8 @@ export default function ChatWidget() {
 
     setTimeout(() => {
       const greeting = initialData.isLoggedIn
-        ? `Chào ${initialData.name}, mình đã nhận diện được thông tin.`
-        : `Để đặt lịch cho ${selectedServices.length} dịch vụ này, mình cần một vài thông tin.`;
+        ? `Chào ${initialData.name}, mời bạn cung cấp thêm thông tin.`
+        : `Để đặt lịch, mình cần thêm vài thông tin.`;
       addBotMessage(greeting);
       setTimeout(
         () =>
@@ -263,7 +253,6 @@ export default function ChatWidget() {
 
   const handleBookingInput = (userInput) => {
     const currentConfig = BOOKING_STEPS[bookingStep];
-
     if (["back", "quay lại"].includes(String(userInput).toLowerCase())) {
       if (bookingStep > 0) {
         let prevIndex = bookingStep - 1;
@@ -273,8 +262,10 @@ export default function ChatWidget() {
         }
         if (prevIndex >= 0) {
           setBookingStep(prevIndex);
-          const prevConfig = BOOKING_STEPS[prevIndex];
-          addBotMessage(`Đã quay lại. ${prevConfig.question}`, prevConfig.type);
+          addBotMessage(
+            `Đã quay lại. ${BOOKING_STEPS[prevIndex].question}`,
+            BOOKING_STEPS[prevIndex].type
+          );
         } else {
           setIsBooking(false);
           addBotMessage("Đã hủy đặt lịch.");
@@ -317,14 +308,12 @@ export default function ChatWidget() {
     const timeDisplay = `${dayjs(slotData.start).format(
       "HH:mm DD/MM"
     )} - ${dayjs(slotData.end).format("HH:mm DD/MM")}`;
-
     const updatedData = {
       ...bookingData,
       time: timeDisplay,
       rawTime: slotData,
       doctorName: slotData.resourceName,
     };
-
     setBookingData(updatedData);
     addBotMessage(`Đã chọn: ${timeDisplay}`);
 
@@ -333,52 +322,53 @@ export default function ChatWidget() {
     addBotMessage(BOOKING_STEPS[confirmIndex].question, "preview", updatedData);
   };
 
-  const handleFinalSubmit = async () => {
+  const handleFinalSubmit = async (payloadFromMessage) => {
     addBotMessage("Đang tạo lịch hẹn...", "thinking");
-    try {
-      const primaryService = bookingData.services?.[0];
+    const data = payloadFromMessage || bookingData;
 
-      if (!bookingData.patientId) {
-        console.warn("⚠️ CẢNH BÁO: Không tìm thấy ID bệnh nhân (Guest mode?)");
+    try {
+      const selectedServices = Array.isArray(data.services)
+        ? data.services
+        : [];
+      const serviceIds = selectedServices.map((s) => s._id || s.id);
+
+      let pid = data.patientId;
+      if (!pid) {
+        try {
+          const local = JSON.parse(localStorage.getItem("patientInfo"));
+          const realPatient = local?.data?.patient || local?.patient || local;
+          pid = realPatient?._id || realPatient?.id;
+        } catch {}
+      }
+
+      if (!pid) {
+        throw new Error("Bạn cần đăng nhập để đặt lịch (Thiếu Patient ID).");
       }
 
       const payload = {
-        patientId: bookingData.patientId,
-
-        guestName: bookingData.name,
-        guestPhone: bookingData.phone,
-
-        serviceId: primaryService?._id || primaryService?.id,
-        services: bookingData.services?.map((s) => ({
-          serviceId: s._id || s.id,
-          serviceName: s.name || s.serviceName,
-          price: s.price,
-        })),
-        resourceId: bookingData.rawTime?.resourceId,
-        start: bookingData.rawTime?.start,
-        end: bookingData.rawTime?.end,
-
-        note: bookingData.note,
-        isEmergency:
-          bookingData.isEmergency === true || bookingData.isEmergency === "Có",
-        isFromChatbot: true,
+        bedId: data.rawTime?.resourceId,
+        patientId: pid,
+        doctorId: "655f8c123456789012345679",
+        serviceIds: serviceIds,
+        appointmentDate: dayjs(data.rawTime?.start).format("YYYY-MM-DD"),
+        appointmentStartTime: dayjs(data.rawTime?.start).format(
+          "YYYY-MM-DD HH:mm:ss"
+        ),
+        appointmentEndTime: dayjs(data.rawTime?.end).format(
+          "YYYY-MM-DD HH:mm:ss"
+        ),
+        note: data.note || "",
+        isEmergency: data.isEmergency === true || data.isEmergency === "Có",
+        createdBy: "patient",
       };
 
-      console.log("🚀 [DEBUG] FINAL PAYLOAD GỬI ĐI:", payload);
+      console.log("🚀 [DEBUG] FINAL PAYLOAD:", payload);
 
-      const res = await fetch("http://localhost:3000/appointments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`Server Error (${res.status}): ${errorText}`);
-      }
-
-      const responseData = await res.json();
-      console.log("✅ [DEBUG] THÀNH CÔNG:", responseData);
+      const res = await axios.post(
+        "http://localhost:3000/appointments",
+        payload
+      );
+      console.log("✅ [DEBUG] SUCCESS:", res.data);
 
       setTimeout(() => {
         addBotMessage("✅ Đặt lịch thành công! Cảm ơn bạn.");
@@ -387,14 +377,9 @@ export default function ChatWidget() {
         setBookingStep(0);
       }, 1500);
     } catch (e) {
-      console.error("❌ LỖI:", e);
-      // Hiển thị lỗi rõ hơn cho user
-      let cleanError = e.message;
-      if (cleanError.includes("Patient not found")) {
-        cleanError =
-          "Không tìm thấy thông tin bệnh nhân trên hệ thống. Bạn đã đăng nhập chưa?";
-      }
-      addBotMessage(`Lỗi: ${cleanError}`);
+      console.error("❌ Lỗi submit:", e);
+      const msg = e.response?.data?.message || e.message;
+      addBotMessage(`Lỗi: ${msg}`);
     }
   };
 
@@ -427,22 +412,10 @@ export default function ChatWidget() {
     scrollToBottom();
 
     try {
-      const res = await fetch("http://localhost:3000/chatbot/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: raw }),
+      const res = await axios.post("http://localhost:3000/chatbot/chat", {
+        message: raw,
       });
-
-      if (!res.ok) {
-        setMessages((p) =>
-          p.map((m) =>
-            m.id === botId ? { ...m, text: "Lỗi Server", status: "sent" } : m
-          )
-        );
-        return;
-      }
-
-      const data = await res.json();
+      const data = res.data;
       const botMessage =
         data.data?.response?.message || "Xin lỗi, tôi không hiểu yêu cầu.";
       const services =
@@ -466,10 +439,6 @@ export default function ChatWidget() {
 
   const handleKey = (e) => e.key === "Enter" && send();
 
-  const handleBookAll = (services) => {
-    startBookingProcess(services);
-  };
-
   return (
     <>
       <button
@@ -487,7 +456,7 @@ export default function ChatWidget() {
                 src="https://cdn-icons-png.flaticon.com/512/4712/4712106.png"
                 className="w-10 h-10 rounded-full shadow"
                 alt="bot"
-              />
+              />{" "}
               Trợ lý ảo
             </div>
             <button
@@ -517,7 +486,6 @@ export default function ChatWidget() {
                       alt="bot"
                     />
                   )}
-
                   <div
                     className={`rounded-2xl px-4 py-3 shadow ${
                       m.from === "user"
@@ -550,10 +518,10 @@ export default function ChatWidget() {
                         </div>
 
                         <button
-                          onClick={() => handleBookAll(m.suggestions)}
+                          onClick={() => startBookingFlow(m.suggestions)}
                           className="block w-full bg-emerald-600 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-emerald-700 transition shadow-sm"
                         >
-                          📅 Đặt lịch ngay ({m.suggestions.length} dịch vụ)
+                          📅 Đặt lịch ngay
                         </button>
                       </div>
                     )}
@@ -591,12 +559,11 @@ export default function ChatWidget() {
                             Dịch vụ ({m.payload.services?.length}):
                           </strong>
                           <ul className="list-disc pl-4 mt-1 text-gray-700 text-xs">
-                            {m.payload.services?.map((s, i) => (
+                            {(m.payload.services || []).map((s, i) => (
                               <li key={i}>{s.name || s.serviceName}</li>
                             ))}
                           </ul>
                         </div>
-
                         <p>
                           <strong className="text-emerald-700">Khách:</strong>{" "}
                           {m.payload.name}
@@ -616,16 +583,12 @@ export default function ChatWidget() {
                           {m.payload.isEmergency ? "🚨 CÓ" : "Không"}
                         </p>
                         <p>
-                          <strong className="text-emerald-700">Bác sĩ:</strong>{" "}
-                          {m.payload.doctorName}
-                        </p>
-                        <p>
                           <strong className="text-emerald-700">Giờ:</strong>{" "}
                           {m.payload.time}
                         </p>
                         <div className="flex gap-2 mt-3">
                           <button
-                            onClick={handleFinalSubmit}
+                            onClick={() => handleFinalSubmit(m.payload)}
                             className="flex-1 bg-emerald-600 text-white py-2 rounded-lg font-bold hover:bg-emerald-700 shadow"
                           >
                             Chốt đơn
@@ -681,6 +644,7 @@ export default function ChatWidget() {
         </div>
       )}
 
+      {/* --- MODAL SCHEDULER --- */}
       <Modal
         title={
           <div className="text-emerald-700 font-bold text-lg">
@@ -695,12 +659,49 @@ export default function ChatWidget() {
         zIndex={1000}
         destroyOnClose={true}
       >
-        <div className="h-[600px] overflow-hidden rounded-lg border border-gray-200">
+        <div className="h-[600px] rounded-lg border border-gray-200">
           <SchedulerComponent
             isPickerMode={true}
             onSlotSelect={handleSchedulerSelect}
           />
         </div>
+      </Modal>
+
+      <Modal
+        title="Chọn dịch vụ khám"
+        open={showServiceModal}
+        onCancel={() => setShowServiceModal(false)}
+        onOk={handleConfirmServices}
+        okText="Tiếp tục"
+        cancelText="Hủy"
+        centered
+      >
+        {loadingServices ? (
+          <div className="text-center py-5">
+            <Spin />
+          </div>
+        ) : (
+          <div className="max-h-[400px] overflow-y-auto">
+            <Checkbox.Group
+              style={{ width: "100%" }}
+              value={selectedServiceIds}
+              onChange={(vals) => setSelectedServiceIds(vals)}
+            >
+              <Row gutter={[0, 10]}>
+                {allServices.map((s) => (
+                  <Col span={24} key={s._id}>
+                    <Checkbox value={s._id} className="text-base">
+                      {s.name}{" "}
+                      <span className="text-gray-500 text-xs">
+                        ({s.price?.toLocaleString()}đ)
+                      </span>
+                    </Checkbox>
+                  </Col>
+                ))}
+              </Row>
+            </Checkbox.Group>
+          </div>
+        )}
       </Modal>
     </>
   );

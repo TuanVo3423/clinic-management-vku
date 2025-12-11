@@ -232,6 +232,8 @@ class Basic extends Component {
   render() {
     const { viewModel, loading } = this.state;
     const isPicker = this.props.isPickerMode;
+    const { isShowModal, selectedEvent } = this.state;
+    const canDelete = selectedEvent ? this.isOwnerOf(selectedEvent) : false;
 
     const schedulerContent = (
       <div style={{ background: "white", padding: isPicker ? "0" : "20px" }}>
