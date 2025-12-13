@@ -245,7 +245,7 @@ function Basic() {
       <ClassBased />
 
       {/* Basic Example Guide Popup */}
-      <BasicGuidePopup isVisible={showGuide} onClose={handleCloseGuide} />
+      {/* <BasicGuidePopup isVisible={showGuide} onClose={handleCloseGuide} /> */}
     </>
   );
 }

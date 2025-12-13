@@ -366,7 +366,7 @@ export default function AuthPatientModal({ visible, onClose, onSuccess }) {
                 <div>
                   <h3 className="text-xl font-bold mb-2">Xác thực OTP</h3>
                   <p className="text-gray-600">
-                    Nhập mã 6 chữ số được gửi tới {tempPayload?.phone}
+                    Nhập mã 6 chữ số được gửi tới {tempPayload?.email}
                   </p>
 
                   <OtpInput length={6} value={otp} onChange={setOtp} />

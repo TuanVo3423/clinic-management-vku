@@ -43,8 +43,10 @@ const BOOKING_STEPS = [
     type: "preview",
   },
 ];
+
 const generateId = () =>
   Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+
 const getPatientInfoFromStorage = () => {
   try {
     const raw = localStorage.getItem("patientInfo");
@@ -52,10 +54,12 @@ const getPatientInfoFromStorage = () => {
     const parsed = JSON.parse(raw);
     const patient =
       parsed?.data?.patient || parsed?.patient || parsed?.data || parsed;
+    if (!patient || (!patient._id && !patient.id)) return null;
+
     return {
-      id: patient?._id || patient?.id,
-      name: patient?.fullName || patient?.name,
-      phone: patient?.phoneNumber || patient?.phone,
+      id: patient._id || patient.id,
+      name: patient.fullName || patient.name,
+      phone: patient.phoneNumber || patient.phone,
     };
   } catch (e) {
     return null;
@@ -63,37 +67,11 @@ const getPatientInfoFromStorage = () => {
 };
 
 export default function ChatWidget() {
+  const [currentUser, setCurrentUser] = useState(getPatientInfoFromStorage());
+
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
-
-  const [messages, setMessages] = useState(() => {
-    try {
-      const saved = localStorage.getItem("chatMessages");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return Array.from(
-          new Map(parsed.map((item) => [item.id, item])).values()
-        );
-      }
-      return [
-        {
-          id: generateId(),
-          from: "bot",
-          text: "Chào bạn! Tôi có thể giúp gì hôm nay?",
-          status: "sent",
-        },
-      ];
-    } catch {
-      return [
-        {
-          id: generateId(),
-          from: "bot",
-          text: "Chào bạn! Tôi có thể giúp gì hôm nay?",
-          status: "sent",
-        },
-      ];
-    }
-  });
+  const [messages, setMessages] = useState([]);
 
   const messagesRef = useRef(null);
   const inputRef = useRef(null);
@@ -104,21 +82,68 @@ export default function ChatWidget() {
   const [bookingData, setBookingData] = useState({});
 
   const [showSchedulerModal, setShowSchedulerModal] = useState(false);
-
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [allServices, setAllServices] = useState([]);
   const [selectedServiceIds, setSelectedServiceIds] = useState([]);
   const [loadingServices, setLoadingServices] = useState(false);
 
   useEffect(() => {
-    if (isBooking) console.log("🔄 [DEBUG] BookingData:", bookingData);
-  }, [bookingData, isBooking]);
+    if (!currentUser) return;
+
+    const userKey = `chatMessages_${currentUser.id}`;
+    try {
+      const saved = localStorage.getItem(userKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setMessages(
+          Array.from(new Map(parsed.map((item) => [item.id, item])).values())
+        );
+      } else {
+        setMessages([
+          {
+            id: generateId(),
+            from: "bot",
+            text: `Chào ${currentUser.name}! Tôi có thể giúp gì cho bạn hôm nay?`,
+            status: "sent",
+          },
+        ]);
+      }
+    } catch {
+      setMessages([
+        {
+          id: generateId(),
+          from: "bot",
+          text: "Chào bạn! Tôi có thể giúp gì hôm nay?",
+          status: "sent",
+        },
+      ]);
+    }
+  }, [currentUser]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem("chatMessages", JSON.stringify(messages));
-    } catch {}
-  }, [messages]);
+    if (currentUser && messages.length > 0) {
+      const userKey = `chatMessages_${currentUser.id}`;
+      try {
+        localStorage.setItem(userKey, JSON.stringify(messages));
+      } catch {}
+    }
+  }, [messages, currentUser]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+        const user = getPatientInfoFromStorage();
+        if (user?.id !== currentUser?.id) {
+            setCurrentUser(user);
+            if (!user) setOpen(false);
+        }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [currentUser]);
+
+
+  useEffect(() => {
+    if (isBooking) console.log("🔄 [DEBUG] BookingData:", bookingData);
+  }, [bookingData, isBooking]);
 
   useEffect(() => {
     if (messagesRef.current)
@@ -129,6 +154,10 @@ export default function ChatWidget() {
     if (messagesRef.current)
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
   };
+
+  if (!currentUser) {
+    return null;
+  }
 
   const typeText = (id, fullText, speed = 24) =>
     new Promise((resolve) => {
@@ -230,26 +259,22 @@ export default function ChatWidget() {
       },
     ]);
 
-    let initialData = { services: finalSelectedServices };
-    let startStep = 0;
-
-    const patientInfo = getPatientInfoFromStorage();
-    if (patientInfo && patientInfo.id) {
-      initialData.name = patientInfo.name || "Khách hàng";
-      initialData.phone = patientInfo.phone || "";
-      initialData.patientId = patientInfo.id;
-      initialData.isLoggedIn = true;
-      startStep = BOOKING_STEPS.findIndex((step) => !step.skipIfLoggedIn);
-    }
+    let initialData = { 
+        services: finalSelectedServices,
+        name: currentUser.name || "Khách hàng",
+        phone: currentUser.phone || "",
+        patientId: currentUser.id,
+        isLoggedIn: true
+    };
+    
+    let startStep = BOOKING_STEPS.findIndex((step) => !step.skipIfLoggedIn);
 
     setIsBooking(true);
     setBookingStep(startStep);
     setBookingData(initialData);
 
     setTimeout(() => {
-      const greeting = initialData.isLoggedIn
-        ? `Chào ${initialData.name}, mời bạn cung cấp thêm thông tin.`
-        : `Để đặt lịch, mình cần thêm vài thông tin.`;
+      const greeting = `Chào ${initialData.name}, mời bạn cung cấp thêm thông tin.`;
       addBotMessage(greeting);
       setTimeout(
         () =>
@@ -320,11 +345,7 @@ export default function ChatWidget() {
       "HH:mm DD/MM"
     )} - ${dayjs(slotData.end).format("HH:mm DD/MM")}`;
 
-    let pid = bookingData.patientId;
-    if (!pid) {
-      const info = getPatientInfoFromStorage();
-      if (info) pid = info.id;
-    }
+    let pid = bookingData.patientId || currentUser?.id;
 
     const updatedData = {
       ...bookingData,
@@ -352,17 +373,12 @@ export default function ChatWidget() {
         : [];
       const serviceIds = selectedServices.map((s) => s._id || s.id);
 
-      let pid = data.patientId;
-      if (!pid) {
-        const info = getPatientInfoFromStorage();
-        if (info) pid = info.id;
-      }
+      let pid = data.patientId || currentUser?.id;
 
       if (!pid) {
-        throw new Error("Bạn cần đăng nhập hệ thống để xác nhận đặt lịch.");
+        throw new Error("Vui lòng đăng nhập lại để xác nhận.");
       }
       
-
       const payload = {
         bedId: data.rawTime?.resourceId,
         patientId: pid,
@@ -403,7 +419,7 @@ export default function ChatWidget() {
       console.error("❌ Lỗi submit:", e);
       let msg = e.response?.data?.message || e.message;
       if (msg.includes("Patient not found")) {
-        msg = "Không tìm thấy hồ sơ của bạn. Vui lòng đăng nhập lại.";
+        msg = "Không tìm thấy hồ sơ. Vui lòng đăng xuất và đăng nhập lại.";
       }
       addBotMessage(`Lỗi: ${msg}`);
     }
@@ -536,7 +552,7 @@ export default function ChatWidget() {
                           {m.suggestions.map((s, i) => (
                             <div
                               key={i}
-                              className="bg-emerald-50 text-emerald-800 text-xs px-2 py-1.5 rounded border border-emerald-100 flex items-center"
+                              className="bg-emerald-5 text-emerald-800 text-xs px-2 py-1.5 rounded border border-emerald-100 flex items-center"
                             >
                               <span className="mr-1">🔹</span>{" "}
                               {s.serviceName || s.name || "Dịch vụ"}

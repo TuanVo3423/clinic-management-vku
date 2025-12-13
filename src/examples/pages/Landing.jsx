@@ -16,228 +16,204 @@ import doc2 from "./assets/doctor-2.jpg";
 import doc3 from "./assets/doctor-3.jpg";
 import ChatWidget from "../components/ChatWidget";
 import SiteLayout from "./SiteLayout";
+
 export default function Landing() {
   const patient = JSON.parse(localStorage.getItem("patientInfo")) || null;
+  
   return (
     <>
-    <SiteLayout className={patient ? "header-side" : "header-main"}>
-    
-
-      <section className="section__container service__container">
-        <div className="service__header">
-          <div className="service__header__content">
-            <h2 className="section__header">Our Special service</h2>
-            <p>
-              Beyond simply providing medical care, our commitment lies in
-              delivering unparalleled service tailored to your unique needs.
-            </p>
-          </div>
-          <button type="button" className="service__btn">Ask A Service</button>
-        </div>
-
-        <div className="service__grid">
-          <div className="service__card">
-            <span>
-              <i className="ri-microscope-line" />
-            </span>
-            <h4>Laboratory Test</h4>
-            <p>
-              Accurate Diagnostics, Swift Results: Experience top-notch
-              Laboratory Testing at our facility.
-            </p>
-            <a href="/service/lab">Learn More</a>
-          </div>
-
-          <div className="service__card">
-            <span>
-              <i className="ri-mental-health-line" />
-            </span>
-            <h4>Health Check</h4>
-            <p>
-              Our thorough assessments and expert evaluations help you stay
-              proactive about your health.
-            </p>
-            <a href="/service/checkup">Learn More</a>
-          </div>
-
-          <div className="service__card">
-            <span>
-              <i className="ri-hospital-line" />
-            </span>
-            <h4>General Dentistry</h4>
-            <p>
-              Experience comprehensive oral care with Dentistry. Trust us to
-              keep your smile healthy and bright.
-            </p>
-            <a href="/service/dentistry">Learn More</a>
-          </div>
-        </div>
-      </section>
-
-      <section className="section__container about__container">
-        <div className="about__content">
-          <h2 className="section__header">About Us</h2>
-          <p>
-            Welcome to our healthcare website, your one-stop destination for
-            reliable and comprehensive health care information. We are committed
-            to promoting wellness and providing valuable resources to empower
-            you on your health journey.
-          </p>
-          <p>
-            Explore our extensive collection of expertly written articles and
-            guides covering a wide range of health topics. From understanding
-            common medical conditions to tips for maintaining a healthy
-            lifestyle, our content educates, inspires, and supports you in making
-            informed choices.
-          </p>
-        </div>
-
-        <div className="about__image">
-          <img src={aboutImg} alt="about" />
-        </div>
-      </section>
-
-      <section className="section__container why__container">
-        <div className="why__image">
-          <img src={chooseImg} alt="why choose us" />
-        </div>
-
-        <div className="why__content">
-          <h2 className="section__header">Why Choose Us</h2>
-          <p>
-            With a steadfast commitment to your well-being, our team of highly
-            trained healthcare professionals ensures that you receive exceptional
-            patient experiences.
-          </p>
-
-          <div className="why__grid">
-            <span>
-              <i className="ri-hand-heart-line" />
-            </span>
-            <div>
-              <h4>Intensive Care</h4>
+      <SiteLayout className={patient ? "header-side" : "header-main"}>
+        
+        {/* SERVICE SECTION */}
+        <section className="section__container service__container">
+          <div className="service__header">
+            <div className="service__header__content">
+              <h2 className="section__header">Dịch vụ Chuyên khoa</h2>
               <p>
-                Our Intensive Care Unit is equipped with advanced technology and
-                staffed by a team of professionals.
+                Không chỉ đơn thuần là cung cấp dịch vụ y tế, cam kết của chúng tôi nằm ở việc 
+                mang đến sự chăm sóc tận tâm, phù hợp với nhu cầu riêng biệt của bạn.
+              </p>
+            </div>
+            <button type="button" className="service__btn">Tư vấn Dịch vụ</button>
+          </div>
+
+          <div className="service__grid">
+            <div className="service__card">
+              <span>
+                <i className="ri-microscope-line" />
+              </span>
+              <h4>Xét nghiệm Y khoa</h4>
+              <p>
+                Chẩn đoán chính xác, kết quả nhanh chóng: Trải nghiệm dịch vụ 
+                xét nghiệm hàng đầu tại cơ sở vật chất hiện đại của chúng tôi.
+              </p>
+              <a href="/service/lab">Xem thêm</a>
+            </div>
+
+            <div className="service__card">
+              <span>
+                <i className="ri-mental-health-line" />
+              </span>
+              <h4>Khám Sức khỏe</h4>
+              <p>
+                Các đánh giá kỹ lưỡng và chuyên môn của chúng tôi giúp bạn 
+                chủ động hơn trong việc bảo vệ và duy trì sức khỏe của mình.
+              </p>
+              <a href="/service/checkup">Xem thêm</a>
+            </div>
+
+            <div className="service__card">
+              <span>
+                <i className="ri-hospital-line" />
+              </span>
+              <h4>Nha khoa Tổng quát</h4>
+              <p>
+                Trải nghiệm chăm sóc răng miệng toàn diện. Hãy tin tưởng để chúng tôi 
+                giữ cho nụ cười của bạn luôn khỏe mạnh và rạng rỡ.
+              </p>
+              <a href="/service/dentistry">Xem thêm</a>
+            </div>
+          </div>
+        </section>
+
+        {/* ABOUT US SECTION */}
+        <section className="section__container about__container">
+          <div className="about__content">
+            <h2 className="section__header">Về Chúng tôi</h2>
+            <p>
+              Chào mừng bạn đến với trang web của chúng tôi, điểm đến tin cậy cho 
+              thông tin chăm sóc sức khỏe toàn diện. Chúng tôi cam kết thúc đẩy 
+              lối sống khỏe mạnh và cung cấp các nguồn lực giá trị để hỗ trợ hành trình sức khỏe của bạn.
+            </p>
+            <p>
+              Khám phá kho tàng bài viết và hướng dẫn chuyên sâu về nhiều chủ đề sức khỏe. 
+              Từ việc tìm hiểu các bệnh lý thường gặp đến mẹo duy trì lối sống lành mạnh, 
+              nội dung của chúng tôi nhằm giáo dục, truyền cảm hứng và hỗ trợ bạn đưa ra những lựa chọn sáng suốt.
+            </p>
+          </div>
+
+          <div className="about__image">
+            <img src={aboutImg} alt="about" />
+          </div>
+        </section>
+
+        {/* WHY CHOOSE US SECTION */}
+        <section className="section__container why__container">
+          <div className="why__image">
+            <img src={chooseImg} alt="why choose us" />
+          </div>
+
+          <div className="why__content">
+            <h2 className="section__header">Tại sao chọn chúng tôi?</h2>
+            <p>
+              Với cam kết kiên định về sức khỏe của bạn, đội ngũ chuyên gia y tế 
+              được đào tạo bài bản của chúng tôi đảm bảo mang lại trải nghiệm bệnh nhân tuyệt vời nhất.
+            </p>
+
+            <div className="why__grid">
+              <span>
+                <i className="ri-hand-heart-line" />
+              </span>
+              <div>
+                <h4>Chăm sóc Tích cực (ICU)</h4>
+                <p>
+                  Đơn vị Chăm sóc Tích cực của chúng tôi được trang bị công nghệ tiên tiến 
+                  và vận hành bởi đội ngũ chuyên gia giàu kinh nghiệm.
+                </p>
+              </div>
+
+              <span>
+                <i className="ri-truck-line" />
+              </span>
+              <div>
+                <h4>Xe Cấp cứu Miễn phí</h4>
+                <p>
+                  Một sáng kiến nhân văn nhằm ưu tiên sức khỏe của bạn mà không 
+                  phải lo lắng về gánh nặng tài chính.
+                </p>
+              </div>
+
+              <span>
+                <i className="ri-hospital-line" />
+              </span>
+              <div>
+                <h4>Nội khoa & Phẫu thuật</h4>
+                <p>
+                  Chúng tôi cung cấp các giải pháp chăm sóc sức khỏe tiên tiến 
+                  và các phương pháp điều trị y tế hiện đại nhất.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* DOCTORS SECTION */}
+        <section className="section__container doctors__container">
+          <div className="doctors__header">
+            <div className="doctors__header__content">
+              <h2 className="section__header">Đội ngũ Bác sĩ Ưu tú</h2>
+              <p>
+                Chúng tôi tự hào về đội ngũ bác sĩ xuất sắc, mỗi người là một 
+                chuyên gia hàng đầu trong lĩnh vực của mình.
               </p>
             </div>
 
-            <span>
-              <i className="ri-truck-line" />
-            </span>
-            <div>
-              <h4>Free Ambulance Car</h4>
-              <p>
-                A compassionate initiative to prioritize your health without
-                financial burden.
-              </p>
-            </div>
-
-            <span>
-              <i className="ri-hospital-line" />
-            </span>
-            <div>
-              <h4>Medical & Surgical</h4>
-              <p>
-                We offer advanced healthcare solutions and medical treatments.
-              </p>
+            <div className="doctors__nav">
+              <span>
+                <i className="ri-arrow-left-line" />
+              </span>
+              <span>
+                <i className="ri-arrow-right-line" />
+              </span>
             </div>
           </div>
-        </div>
-      </section>
 
-      <section className="section__container doctors__container">
-        <div className="doctors__header">
-          <div className="doctors__header__content">
-            <h2 className="section__header">Our Special Doctors</h2>
-            <p>
-              We take pride in our exceptional team of doctors, each a
-              specialist in their field.
-            </p>
-          </div>
-
-          <div className="doctors__nav">
-            <span>
-              <i className="ri-arrow-left-line" />
-            </span>
-            <span>
-              <i className="ri-arrow-right-line" />
-            </span>
-          </div>
-        </div>
-
-        <div className="doctors__grid">
-          <div className="doctors__card">
-            <div className="doctors__card__image">
-+              <img src={doc1} alt="doctor" />
-              <div className="doctors__socials">
-                <span>
-                  <i className="ri-instagram-line" />
-                </span>
-                <span>
-                  <i className="ri-facebook-fill" />
-                </span>
-                <span>
-                  <i className="ri-heart-fill" />
-                </span>
-                <span>
-                  <i className="ri-twitter-fill" />
-                </span>
+          <div className="doctors__grid">
+            <div className="doctors__card">
+              <div className="doctors__card__image">
+                <img src={doc1} alt="doctor" />
+                <div className="doctors__socials">
+                  <span><i className="ri-instagram-line" /></span>
+                  <span><i className="ri-facebook-fill" /></span>
+                  <span><i className="ri-heart-fill" /></span>
+                  <span><i className="ri-twitter-fill" /></span>
+                </div>
               </div>
+              <h4>BS. Soni Bharti</h4>
+              <p>Bác sĩ Khớp</p>
             </div>
-            <h4>Dr. Soni Bharti</h4>
-            <p>Cardiologist</p>
-          </div>
 
-          <div className="doctors__card">
-            <div className="doctors__card__image">
-+              <img src={doc2} alt="doctor" />
-              <div className="doctors__socials">
-                <span>
-                  <i className="ri-instagram-line" />
-                </span>
-                <span>
-                  <i className="ri-facebook-fill" />
-                </span>
-                <span>
-                  <i className="ri-heart-fill" />
-                </span>
-                <span>
-                  <i className="ri-twitter-fill" />
-                </span>
+            <div className="doctors__card">
+              <div className="doctors__card__image">
+                <img src={doc2} alt="doctor" />
+                <div className="doctors__socials">
+                  <span><i className="ri-instagram-line" /></span>
+                  <span><i className="ri-facebook-fill" /></span>
+                  <span><i className="ri-heart-fill" /></span>
+                  <span><i className="ri-twitter-fill" /></span>
+                </div>
               </div>
+              <h4>BS. Paresh Rawal</h4>
+              <p>Bác sĩ Xương</p>
             </div>
-            <h4>Dr. Paresh Rawal</h4>
-            <p>Neurosurgeon</p>
-          </div>
 
-          <div className="doctors__card">
-            <div className="doctors__card__image">
-+              <img src={doc3} alt="doctor" />
-              <div className="doctors__socials">
-                <span>
-                  <i className="ri-instagram-line" />
-                </span>
-                <span>
-                  <i className="ri-facebook-fill" />
-                </span>
-                <span>
-                  <i className="ri-heart-fill" />
-                </span>
-                <span>
-                  <i className="ri-twitter-fill" />
-                </span>
+            <div className="doctors__card">
+              <div className="doctors__card__image">
+                <img src={doc3} alt="doctor" />
+                <div className="doctors__socials">
+                  <span><i className="ri-instagram-line" /></span>
+                  <span><i className="ri-facebook-fill" /></span>
+                  <span><i className="ri-heart-fill" /></span>
+                  <span><i className="ri-twitter-fill" /></span>
+                </div>
               </div>
+              <h4>BS. Munna Bhai</h4>
+              <p>Bác sĩ Cơ</p>
             </div>
-            <h4>Dr. Munna Bhai</h4>
-            <p>Dermatologist</p>
           </div>
-        </div>
-      </section>
+        </section>
 
       </SiteLayout>
-
-    
     </>
   );
 }

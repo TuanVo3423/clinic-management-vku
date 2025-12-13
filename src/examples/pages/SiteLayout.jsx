@@ -29,6 +29,7 @@ export default function SiteLayout({ children, headerClassName }) {
     setPatient(null);
     window.location.reload();
   };
+
   return (
     <div
       className="site-layout"
@@ -45,11 +46,11 @@ export default function SiteLayout({ children, headerClassName }) {
           <div className="hidden md:block absolute left-1/2 transform -translate-x-1/2">
             <ul className="flex items-center gap-2 text-emerald-800 font-medium">
               {[
-                { label: "Home", href: "/" },
-                { label: "About Us", href: "/about" },
-                { label: "Services", href: "/scheduler" },
-                { label: "Pages", href: "/pages" },
-                { label: "Blog", href: "/blog" },
+                { label: "Trang chủ", href: "/" },
+                { label: "Giới thiệu", href: "/about" },
+                { label: "Dịch vụ", href: "/scheduler" },
+                { label: "Trang khác", href: "/pages" },
+                { label: "Tin tức", href: "/blog" },
               ].map((item, i) => (
                 <li key={i}>
                   <a
@@ -109,19 +110,19 @@ export default function SiteLayout({ children, headerClassName }) {
       bg-emerald-100/90 backdrop-blur-xl border-t border-emerald-200/60 transition-all"
         >
           <a href="/" className="py-2 text-emerald-900">
-            Home
+            Trang chủ
           </a>
           <a href="/about" className="py-2 text-emerald-900">
-            About Us
+            Giới thiệu
           </a>
           <a href="/scheduler" className="py-2 text-emerald-900">
-            Services
+            Dịch vụ
           </a>
           <a href="/pages" className="py-2 text-emerald-900">
-            Pages
+            Trang khác
           </a>
           <a href="/blog" className="py-2 text-emerald-900">
-            Blog
+            Tin tức
           </a>
 
           <div className="h-px bg-emerald-300/40 my-1" />
@@ -163,23 +164,26 @@ export default function SiteLayout({ children, headerClassName }) {
               Health <span className="text-emerald-600">Care</span>
             </h3>
             <p className="mt-4 leading-relaxed text-emerald-700">
-              We are honored to be a part of your healthcare journey and
-              committed to delivering compassionate and top-notch care.
+              Chúng tôi vinh dự được đồng hành cùng bạn trên hành trình chăm sóc
+              sức khỏe, cam kết mang đến sự tận tâm và chất lượng dịch vụ hàng
+              đầu.
             </p>
           </div>
 
           {/* About */}
           <div>
             <h4 className="text-xl font-semibold mb-4 text-emerald-800">
-              About Us
+              Về chúng tôi
             </h4>
             <ul className="space-y-2 text-emerald-700">
-              <li className="hover:text-emerald-900 cursor-pointer">Home</li>
               <li className="hover:text-emerald-900 cursor-pointer">
-                About Us
+                Trang chủ
               </li>
               <li className="hover:text-emerald-900 cursor-pointer">
-                Work With Us
+                Giới thiệu
+              </li>
+              <li className="hover:text-emerald-900 cursor-pointer">
+                Tuyển dụng
               </li>
             </ul>
           </div>
@@ -187,17 +191,17 @@ export default function SiteLayout({ children, headerClassName }) {
           {/* Services */}
           <div>
             <h4 className="text-xl font-semibold mb-4 text-emerald-800">
-              Services
+              Dịch vụ & Hỗ trợ
             </h4>
             <ul className="space-y-2 text-emerald-700">
               <li className="hover:text-emerald-900 cursor-pointer">
-                Search Terms
+                Điều khoản tìm kiếm
               </li>
               <li className="hover:text-emerald-900 cursor-pointer">
-                Advanced Search
+                Tìm kiếm nâng cao
               </li>
               <li className="hover:text-emerald-900 cursor-pointer">
-                Privacy Policy
+                Chính sách bảo mật
               </li>
             </ul>
           </div>
@@ -205,12 +209,12 @@ export default function SiteLayout({ children, headerClassName }) {
           {/* Contact */}
           <div>
             <h4 className="text-xl font-semibold mb-4 text-emerald-800">
-              Contact Us
+              Liên hệ
             </h4>
 
             <p className="flex items-start gap-3 text-emerald-700 hover:text-emerald-900 cursor-pointer">
               <i className="ri-map-pin-2-fill text-xl" />
-              Redfort Bridge Street, Delhi
+              Đà Nẵng, Việt Nam
             </p>
 
             <p className="flex items-start gap-3 text-emerald-700 hover:text-emerald-900 cursor-pointer mt-2">
@@ -220,7 +224,7 @@ export default function SiteLayout({ children, headerClassName }) {
 
             <p className="flex items-start gap-3 text-emerald-700 hover:text-emerald-900 cursor-pointer mt-2">
               <i className="ri-phone-fill text-xl" />
-              (+91) 93456 87989
+              (+84) 934 568 789
             </p>
           </div>
         </div>
@@ -228,7 +232,9 @@ export default function SiteLayout({ children, headerClassName }) {
         {/* Bottom bar */}
         <div className="border-t border-emerald-200/60">
           <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center text-emerald-800">
-            <p className="text-sm">© 2024 HealthCare. All rights reserved.</p>
+            <p className="text-sm">
+              © 2024 HealthCare. Bảo lưu mọi quyền.
+            </p>
 
             <div className="flex gap-4 mt-3 md:mt-0">
               <span className="w-9 h-9 flex items-center justify-center rounded-full bg-emerald-200 text-emerald-800 hover:bg-emerald-300 cursor-pointer transition">
