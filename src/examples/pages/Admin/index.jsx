@@ -7,11 +7,13 @@ import {
   UserOutlined,
   LogoutOutlined,
   MedicineBoxOutlined,
+  RobotOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import ClassBased from "./class-based";
 import ListView from "./ListView";
 import Statistics from "./Statistics";
+import AdminChatbot from "../../components/AdminChatbot";
 import NotificationBell from "../../components/NotificationBell";
 import "./admin.css";
 import axios from "axios";
@@ -189,6 +191,20 @@ function Admin() {
             >
               <div className="tab-content">
                 <Statistics />
+              </div>
+            </TabPane>
+
+            <TabPane
+              tab={
+                <span className="tab-label">
+                  <RobotOutlined className="tab-icon" />
+                  <span>AI Assistant</span>
+                </span>
+              }
+              key="chatbot"
+            >
+              <div className="tab-content">
+                <AdminChatbot />
               </div>
             </TabPane>
           </Tabs>

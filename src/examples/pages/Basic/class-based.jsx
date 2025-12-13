@@ -231,26 +231,53 @@ class Basic extends Component {
 
   render() {
     const { viewModel, loading } = this.state;
-    const canDelete = !!(
-      this.state.selectedEvent && this.isOwnerOf(this.state.selectedEvent)
+    const isPicker = this.props.isPickerMode;
+    const { isShowModal, selectedEvent } = this.state;
+    const canDelete = selectedEvent ? this.isOwnerOf(selectedEvent) : false;
+
+    const schedulerContent = (
+      <div style={{ background: "white", padding: isPicker ? "0" : "20px" }}>
+        <Spin spinning={loading}>
+          <Scheduler
+            schedulerData={viewModel}
+            prevClick={this.prevClick}
+            nextClick={this.nextClick}
+            onSelectDate={this.onSelectDate}
+            onViewChange={this.onViewChange}
+            eventItemClick={this.eventClicked}
+            viewEventClick={this.ops1}
+            viewEventText="Edit"
+            viewEvent2Text="Delete"
+            viewEvent2Click={this.ops2}
+            updateEventStart={this.updateEventStart}
+            updateEventEnd={this.updateEventEnd}
+            moveEvent={this.moveEvent}
+            newEvent={this.newEvent}
+            conflictOccurred={this.conflictOccurred}
+            toggleExpandFunc={this.toggleExpandFunc}
+          />
+        </Spin>
+      </div>
     );
-    if (loading) {
+
+    if (isPicker) {
       return (
         <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "rgba(255,255,255,0.8)",
-            zIndex: 9999,
-          }}
+          className="scheduler-picker-container"
+          style={{ height: "100%", overflow: "hidden" }}
         >
-          <Spin size="large" tip="Đang tải dữ liệu..." />
+          <div
+            style={{
+              padding: "10px 10px 0",
+              color: "#047857",
+              fontSize: "13px",
+              background: "#ecfdf5",
+            }}
+          >
+            💡 <strong>Hướng dẫn:</strong> Kéo chuột vào vùng trống trên lịch để
+            chọn giờ.
+          </div>
+          {schedulerContent}
         </div>
       );
     }
@@ -337,7 +364,14 @@ class Basic extends Component {
               },
             }}
           >
-            <Form layout="vertical" style={{ marginTop: "8px", overflowY: "scroll", maxHeight: "60vh" }}>
+            <Form
+              layout="vertical"
+              style={{
+                marginTop: "8px",
+                overflowY: "scroll",
+                maxHeight: "60vh",
+              }}
+            >
               {/* Patient Info Section */}
               <div
                 style={{
@@ -998,7 +1032,14 @@ class Basic extends Component {
             width={680}
             style={{ top: 20 }}
           >
-            <Form layout="vertical" style={{ marginTop: "8px", overflowY: "scroll", maxHeight: "60vh" }}>
+            <Form
+              layout="vertical"
+              style={{
+                marginTop: "8px",
+                overflowY: "scroll",
+                maxHeight: "60vh",
+              }}
+            >
               {/* Note Section */}
               <Form.Item
                 label={
@@ -1503,6 +1544,17 @@ class Basic extends Component {
   };
 
   newEvent = (schedulerData, slotId, slotName, start, end) => {
+    if (this.props.isPickerMode) {
+      if (this.props.onSlotSelect) {
+        this.props.onSlotSelect({
+          start: start,
+          end: end,
+          resourceId: slotId,
+          resourceName: slotName,
+        });
+      }
+      return;
+    }
     const { patientInfo } = this.state;
     if (!patientInfo) {
       this.setState({ showAuthModal: true });
@@ -1556,7 +1608,6 @@ class Basic extends Component {
       const payload = {
         bedId: slotId,
         patientId: patientInfo._id,
-        doctorId: "655f8c123456789012345679",
         serviceIds: this.state.selectedServices.map((s) => s._id),
         appointmentDate: startTime.format("YYYY-MM-DD"),
         appointmentStartTime: startTime.format("YYYY-MM-DD HH:mm:ss"),
