@@ -361,11 +361,11 @@ export default function ChatWidget() {
       if (!pid) {
         throw new Error("Bạn cần đăng nhập hệ thống để xác nhận đặt lịch.");
       }
+      
 
       const payload = {
         bedId: data.rawTime?.resourceId,
         patientId: pid,
-        doctorId: "655f8c123456789012345679",
         serviceIds: serviceIds,
         appointmentDate: dayjs(data.rawTime?.start).format("YYYY-MM-DD"),
         appointmentStartTime: dayjs(data.rawTime?.start).format(

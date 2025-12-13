@@ -243,7 +243,6 @@ const ListView = () => {
       const payload = {
         bedId: values.bedId,
         patientId: patientId,
-        doctorId: "655f8c123456789012345679", // Default doctor
         serviceIds: values.serviceIds || [],
         appointmentStartTime: values.appointmentStartTime.format(
           "YYYY-MM-DD HH:mm:ss"

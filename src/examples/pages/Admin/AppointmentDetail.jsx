@@ -159,7 +159,6 @@ const AppointmentDetail = () => {
       const payload = {
         bedId: values.bedId,
         patientId: appointment.patientId,
-        doctorId: appointment.doctorId || "655f8c123456789012345679",
         serviceIds: values.serviceIds || [],
         appointmentStartTime: values.appointmentStartTime.format(
           "YYYY-MM-DD HH:mm:ss"

@@ -59,7 +59,11 @@
     "react/jsx-closing-tag-location": "off",
     "no-return-assign": "off",
     "react/no-unescaped-entities": "off",
-    "react/no-array-index-key": "off"
+    "react/no-array-index-key": "off",
+    "prefer-template": "off",
+    "new-cap": "off",
+     "react/jsx-indent": "off",
+    "no-case-declarations": "off"
 
   }
 }

@@ -567,7 +567,6 @@ class Basic extends Component {
       const payload = {
         bedId: slotId,
         patientId: patientId,
-        doctorId: "655f8c123456789012345679",
         serviceIds: selectedServices.map((s) => s._id),
         appointmentDate: startTime.format("YYYY-MM-DD"),
         appointmentStartTime: startTime.format("YYYY-MM-DD HH:mm:ss"),
