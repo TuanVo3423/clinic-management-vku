@@ -496,7 +496,19 @@ class ResourceEvents extends Component {
       maxBottom,
       config.eventItemLineHeight + 20
     );
+    const slotId = resourceEvents.slotId;
+    const renderData = schedulerData.renderData;
 
+    if (Array.isArray(renderData)) {
+      renderData.forEach((item) => {
+        if (item.slotId === slotId) {
+          item.rowHeight = resourceEvents.rowHeight;
+        }
+      });
+    }
+    schedulerData._createRenderData();
+    schedulerData._tableHeaders = null;
+    schedulerData._contentTable = null;
     const eventContainer = (
       <div
         ref={this.eventContainerRef}

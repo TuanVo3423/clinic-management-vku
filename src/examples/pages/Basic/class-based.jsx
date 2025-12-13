@@ -49,6 +49,7 @@ class Basic extends Component {
         schedulerContentWidth: "100%",
         nonWorkingTimeHeadStyle: { backgroundColor: "#fff" },
         nonWorkingTimeBodyBgColor: "#fff",
+        responsiveByParent: true,
       }
     );
 
@@ -236,7 +237,16 @@ class Basic extends Component {
     const canDelete = selectedEvent ? this.isOwnerOf(selectedEvent) : false;
 
     const schedulerContent = (
-      <div style={{ background: "white", padding: isPicker ? "0" : "20px" }}>
+      <div
+        className="scheduler-scroll-wrapper"
+        style={{
+          background: "white",
+          padding: isPicker ? 0 : 20,
+          height: "100%",
+          overflowX: "auto",
+          overflowY: "hidden",
+        }}
+      >
         <Spin spinning={loading}>
           <Scheduler
             schedulerData={viewModel}
@@ -264,20 +274,18 @@ class Basic extends Component {
       return (
         <div
           className="scheduler-picker-container"
-          style={{ height: "100%", overflow: "hidden" }}
+          style={{
+            height: "100%",
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+          }}
         >
-          <div
-            style={{
-              padding: "10px 10px 0",
-              color: "#047857",
-              fontSize: "13px",
-              background: "#ecfdf5",
-            }}
-          >
+          <div style={{ flexShrink: 0 }}>
             💡 <strong>Hướng dẫn:</strong> Kéo chuột vào vùng trống trên lịch để
             chọn giờ.
           </div>
-          {schedulerContent}
+          <div style={{ flex: 1, minHeight: 0 }}>{schedulerContent}</div>
         </div>
       );
     }

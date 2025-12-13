@@ -131,15 +131,14 @@ export default function ChatWidget() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-        const user = getPatientInfoFromStorage();
-        if (user?.id !== currentUser?.id) {
-            setCurrentUser(user);
-            if (!user) setOpen(false);
-        }
+      const user = getPatientInfoFromStorage();
+      if (user?.id !== currentUser?.id) {
+        setCurrentUser(user);
+        if (!user) setOpen(false);
+      }
     }, 1000);
     return () => clearInterval(interval);
   }, [currentUser]);
-
 
   useEffect(() => {
     if (isBooking) console.log("🔄 [DEBUG] BookingData:", bookingData);
@@ -259,14 +258,14 @@ export default function ChatWidget() {
       },
     ]);
 
-    let initialData = { 
-        services: finalSelectedServices,
-        name: currentUser.name || "Khách hàng",
-        phone: currentUser.phone || "",
-        patientId: currentUser.id,
-        isLoggedIn: true
+    let initialData = {
+      services: finalSelectedServices,
+      name: currentUser.name || "Khách hàng",
+      phone: currentUser.phone || "",
+      patientId: currentUser.id,
+      isLoggedIn: true,
     };
-    
+
     let startStep = BOOKING_STEPS.findIndex((step) => !step.skipIfLoggedIn);
 
     setIsBooking(true);
@@ -378,7 +377,7 @@ export default function ChatWidget() {
       if (!pid) {
         throw new Error("Vui lòng đăng nhập lại để xác nhận.");
       }
-      
+
       const payload = {
         bedId: data.rawTime?.resourceId,
         patientId: pid,
@@ -481,6 +480,25 @@ export default function ChatWidget() {
   };
 
   const handleKey = (e) => e.key === "Enter" && send();
+  const schedulerRef = useRef(null);
+  const schedulerWrapperRef = useRef(null);
+
+  useEffect(() => {
+    if (!showSchedulerModal) return;
+
+    const timer = setTimeout(() => {
+      window.dispatchEvent(new Event("resize"));
+
+      const scheduler = schedulerRef.current;
+
+      if (scheduler && scheduler.schedulerData) {
+        scheduler.schedulerData._createRenderData();
+        scheduler.forceUpdate();
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [showSchedulerModal]);
 
   return (
     <>
@@ -703,14 +721,25 @@ export default function ChatWidget() {
         }
         open={showSchedulerModal}
         onCancel={() => setShowSchedulerModal(false)}
-        width={1100}
+        width="95%"
+        style={{ top: 20, maxWidth: "100vw" }}
+        bodyStyle={{
+          height: "85vh",
+          padding: 0,
+          overflow: "hidden",
+        }}
         footer={null}
-        style={{ top: 20 }}
         zIndex={1000}
+        centered
       >
         {showSchedulerModal && (
-          <div className="h-[600px] overflow-hidden rounded-lg border border-gray-200">
+          <div
+            ref={schedulerWrapperRef}
+            className="w-full h-full bg-white relative overflow-x-auto overflow-y-hidden"
+          >
             <SchedulerComponent
+              ref={schedulerRef}
+              parentRef={schedulerWrapperRef}
               isPickerMode={true}
               onSlotSelect={handleSchedulerSelect}
             />
