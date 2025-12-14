@@ -47,7 +47,7 @@ export default function Landing() {
                 Chẩn đoán chính xác, kết quả nhanh chóng: Trải nghiệm dịch vụ 
                 xét nghiệm hàng đầu tại cơ sở vật chất hiện đại của chúng tôi.
               </p>
-              <a href="/service/lab">Xem thêm</a>
+              <a>Xem thêm</a>
             </div>
 
             <div className="service__card">
@@ -59,7 +59,7 @@ export default function Landing() {
                 Các đánh giá kỹ lưỡng và chuyên môn của chúng tôi giúp bạn 
                 chủ động hơn trong việc bảo vệ và duy trì sức khỏe của mình.
               </p>
-              <a href="/service/checkup">Xem thêm</a>
+              <a>Xem thêm</a>
             </div>
 
             <div className="service__card">
@@ -71,7 +71,7 @@ export default function Landing() {
                 Trải nghiệm chăm sóc răng miệng toàn diện. Hãy tin tưởng để chúng tôi 
                 giữ cho nụ cười của bạn luôn khỏe mạnh và rạng rỡ.
               </p>
-              <a href="/service/dentistry">Xem thêm</a>
+              <a>Xem thêm</a>
             </div>
           </div>
         </section>

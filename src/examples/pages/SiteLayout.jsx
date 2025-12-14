@@ -49,7 +49,6 @@ export default function SiteLayout({ children, headerClassName }) {
                 { label: "Trang chủ", href: "/" },
                 { label: "Giới thiệu", href: "/about" },
                 { label: "Dịch vụ", href: "/scheduler" },
-                { label: "Trang khác", href: "/pages" },
                 { label: "Tin tức", href: "/blog" },
               ].map((item, i) => (
                 <li key={i}>
@@ -117,9 +116,6 @@ export default function SiteLayout({ children, headerClassName }) {
           </a>
           <a href="/scheduler" className="py-2 text-emerald-900">
             Dịch vụ
-          </a>
-          <a href="/pages" className="py-2 text-emerald-900">
-            Trang khác
           </a>
           <a href="/blog" className="py-2 text-emerald-900">
             Tin tức
@@ -232,9 +228,7 @@ export default function SiteLayout({ children, headerClassName }) {
         {/* Bottom bar */}
         <div className="border-t border-emerald-200/60">
           <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center text-emerald-800">
-            <p className="text-sm">
-              © 2024 HealthCare. Bảo lưu mọi quyền.
-            </p>
+            <p className="text-sm">© 2024 HealthCare. Bảo lưu mọi quyền.</p>
 
             <div className="flex gap-4 mt-3 md:mt-0">
               <span className="w-9 h-9 flex items-center justify-center rounded-full bg-emerald-200 text-emerald-800 hover:bg-emerald-300 cursor-pointer transition">
