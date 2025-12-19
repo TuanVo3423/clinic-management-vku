@@ -1,5 +1,6 @@
 /* eslint-disable */
 import React, { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 const images = [
   "https://cdn.tienphong.vn/images/bdfc554ea35983ad68a96e0050b6e2cb46c52704ed73e29298714a74cdf2e4e79f587cdfd08b5f139a6da8b69c824580fe8991d03646e7f1ea1969aa327abce947ddaea4c215f0280b7a08da4f92e15e/img-20231124-075439-2414.jpg.webp",
@@ -10,6 +11,7 @@ const images = [
 export default function HeroSlider() {
   const [index, setIndex] = useState(0);
   const sliderRef = useRef(null);
+  const navigate = useNavigate();
 
   // Auto slide
   useEffect(() => {
@@ -58,6 +60,7 @@ export default function HeroSlider() {
         </p>
 
         <button
+          onClick={() => navigate("/scheduler")}
           className="mt-6 px-6 md:px-8 py-3 text-white font-medium rounded-full 
           bg-emerald-600 hover:bg-emerald-700 transition shadow-lg"
         >
