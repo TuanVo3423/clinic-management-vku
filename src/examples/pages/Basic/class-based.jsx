@@ -297,25 +297,27 @@ class Basic extends Component {
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
         <SiteLayout>
-          <Scheduler
-            schedulerData={viewModel}
-            prevClick={this.prevClick}
-            nextClick={this.nextClick}
-            onSelectDate={this.onSelectDate}
-            onViewChange={this.onViewChange}
-            eventItemClick={this.eventClicked}
-            viewEventText=""
-            viewEvent2Text=""
-            updateEventStart={this.updateEventStart}
-            updateEventEnd={this.updateEventEnd}
-            moveEvent={this.moveEvent}
-            newEvent={this.newEvent}
-            onScrollLeft={this.onScrollLeft}
-            onScrollRight={this.onScrollRight}
-            onScrollTop={this.onScrollTop}
-            onScrollBottom={this.onScrollBottom}
-            toggleExpandFunc={this.toggleExpandFunc}
-          />
+          <Spin spinning={this.state.loading} tip="Đang xử lý...">
+            <Scheduler
+              schedulerData={viewModel}
+              prevClick={this.prevClick}
+              nextClick={this.nextClick}
+              onSelectDate={this.onSelectDate}
+              onViewChange={this.onViewChange}
+              eventItemClick={this.eventClicked}
+              viewEventText=""
+              viewEvent2Text=""
+              updateEventStart={this.updateEventStart}
+              updateEventEnd={this.updateEventEnd}
+              moveEvent={this.moveEvent}
+              newEvent={this.newEvent}
+              onScrollLeft={this.onScrollLeft}
+              onScrollRight={this.onScrollRight}
+              onScrollTop={this.onScrollTop}
+              onScrollBottom={this.onScrollBottom}
+              toggleExpandFunc={this.toggleExpandFunc}
+            />
+          </Spin>
           <Modal
             title={
               <div
@@ -1421,7 +1423,6 @@ class Basic extends Component {
               </div>
             </Form>
           </Modal>
-
           {/* Delete Confirmation Modal */}
           <Modal
             open={this.state.showDeleteConfirm}
