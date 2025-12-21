@@ -8,6 +8,8 @@ import {
   LogoutOutlined,
   MedicineBoxOutlined,
   RobotOutlined,
+  DollarOutlined,
+  HomeOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import ClassBased from "./class-based";
@@ -15,6 +17,8 @@ import ListView from "./ListView";
 import Statistics from "./Statistics";
 import AdminChatbot from "../../components/AdminChatbot";
 import NotificationBell from "../../components/NotificationBell";
+import ServiceManagement from "./ServiceManagement";
+import BedManagement from "./BedManagement";
 import "./admin.css";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -194,6 +198,33 @@ function Admin() {
               </div>
             </TabPane>
 
+            <TabPane
+              tab={
+                <span className="tab-label">
+                  <DollarOutlined className="tab-icon" />
+                  <span>Dịch vụ</span>
+                </span>
+              }
+              key="services"
+            >
+              <div className="tab-content">
+                <ServiceManagement />
+              </div>
+            </TabPane>
+
+            <TabPane
+              tab={
+                <span className="tab-label">
+                  <HomeOutlined className="tab-icon" />
+                  <span>Giường bệnh</span>
+                </span>
+              }
+              key="beds"
+            >
+              <div className="tab-content">
+                <BedManagement />
+              </div>
+            </TabPane>
             <TabPane
               tab={
                 <span className="tab-label">
