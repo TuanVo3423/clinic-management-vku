@@ -49,6 +49,7 @@ class Basic extends Component {
         schedulerContentWidth: "100%",
         nonWorkingTimeHeadStyle: { backgroundColor: "#fff" },
         nonWorkingTimeBodyBgColor: "#fff",
+        eventItemLineHeight: 40,
         // responsiveByParent: true,
       }
     );
