@@ -101,6 +101,9 @@ class Basic extends Component {
   };
 
   async componentDidMount() {
+    setTimeout(() => {
+      window.dispatchEvent(new Event("resize"));
+    }, 500);
     const { viewModel } = this.state;
     await this.fetchAppointmentsByRange(viewModel.startDate, viewModel.endDate);
   }
