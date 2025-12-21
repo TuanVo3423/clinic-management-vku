@@ -75,6 +75,7 @@ class Basic extends Component {
       availableServices: [],
       selectedServices: [],
       totalPrice: 0,
+      showDeleteConfirm: false,
     };
   }
   isLoggedIn = () => {
@@ -1416,6 +1417,145 @@ class Basic extends Component {
               </div>
             </Form>
           </Modal>
+          
+          {/* Delete Confirmation Modal */}
+          <Modal
+            open={this.state.showDeleteConfirm}
+            onCancel={() => this.setState({ showDeleteConfirm: false })}
+            footer={null}
+            width={480}
+            centered
+            closable={false}
+          >
+            <div style={{ textAlign: "center", padding: "20px 10px" }}>
+              {/* Warning Icon */}
+              <div
+                style={{
+                  width: "80px",
+                  height: "80px",
+                  margin: "0 auto 24px",
+                  background: "linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  animation: "pulse 2s infinite",
+                }}
+              >
+                <svg
+                  width="40"
+                  height="40"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#dc2626"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </div>
+
+              {/* Title */}
+              <h3
+                style={{
+                  fontSize: "22px",
+                  fontWeight: "700",
+                  color: "#1f2937",
+                  marginBottom: "12px",
+                }}
+              >
+                Xác nhận xóa lịch hẹn
+              </h3>
+
+              {/* Description */}
+              <p
+                style={{
+                  fontSize: "15px",
+                  color: "#6b7280",
+                  lineHeight: "1.6",
+                  marginBottom: "28px",
+                }}
+              >
+                Bạn có chắc chắn muốn xóa lịch hẹn này không?
+                <br />
+                <span style={{ color: "#dc2626", fontWeight: "600" }}>
+                  Hành động này không thể hoàn tác!
+                </span>
+              </p>
+
+              {/* Buttons */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: "12px",
+                  justifyContent: "center",
+                }}
+              >
+                <Button
+                  size="large"
+                  onClick={() => this.setState({ showDeleteConfirm: false })}
+                  style={{
+                    minWidth: "120px",
+                    height: "44px",
+                    fontSize: "15px",
+                    fontWeight: "600",
+                    borderRadius: "8px",
+                    border: "2px solid #e5e7eb",
+                  }}
+                >
+                  Hủy bỏ
+                </Button>
+                <Button
+                  type="primary"
+                  danger
+                  size="large"
+                  onClick={this.confirmDeleteAppointment}
+                  style={{
+                    minWidth: "120px",
+                    height: "44px",
+                    fontSize: "15px",
+                    fontWeight: "600",
+                    borderRadius: "8px",
+                    background: "linear-gradient(135deg, #dc2626 0%, #ef4444 100%)",
+                    border: "none",
+                    boxShadow: "0 4px 12px rgba(220, 38, 38, 0.3)",
+                  }}
+                  icon={
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      <line x1="10" y1="11" x2="10" y2="17" />
+                      <line x1="14" y1="11" x2="14" y2="17" />
+                    </svg>
+                  }
+                >
+                  Xóa ngay
+                </Button>
+              </div>
+            </div>
+
+            <style jsx>{`
+              @keyframes pulse {
+                0%, 100% {
+                  transform: scale(1);
+                }
+                50% {
+                  transform: scale(1.05);
+                }
+              }
+            `}</style>
+          </Modal>
+
           <AuthPatientModal
             visible={this.state.showAuthModal}
             onSuccess={(patientInfo) => {
@@ -1700,10 +1840,16 @@ class Basic extends Component {
       message.warning("Bạn không có quyền xóa lịch hẹn của người khác.");
       return;
     }
-    if (!window.confirm("Bạn có chắc muốn xóa lịch hẹn này không?")) return;
+    
+    // Show confirmation modal
+    this.setState({ showDeleteConfirm: true });
+  };
 
+  confirmDeleteAppointment = async () => {
+    const { selectedEvent } = this.state;
+    
     try {
-      this.setState({ loading: true });
+      this.setState({ loading: true, showDeleteConfirm: false });
       await axios.delete(
         `http://localhost:3000/appointments/${selectedEvent.id}`
       );
