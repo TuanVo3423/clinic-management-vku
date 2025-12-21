@@ -1421,7 +1421,7 @@ class Basic extends Component {
               </div>
             </Form>
           </Modal>
-          
+
           {/* Delete Confirmation Modal */}
           <Modal
             open={this.state.showDeleteConfirm}
@@ -1438,7 +1438,8 @@ class Basic extends Component {
                   width: "80px",
                   height: "80px",
                   margin: "0 auto 24px",
-                  background: "linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)",
+                  background:
+                    "linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)",
                   borderRadius: "50%",
                   display: "flex",
                   alignItems: "center",
@@ -1523,7 +1524,8 @@ class Basic extends Component {
                     fontSize: "15px",
                     fontWeight: "600",
                     borderRadius: "8px",
-                    background: "linear-gradient(135deg, #dc2626 0%, #ef4444 100%)",
+                    background:
+                      "linear-gradient(135deg, #dc2626 0%, #ef4444 100%)",
                     border: "none",
                     boxShadow: "0 4px 12px rgba(220, 38, 38, 0.3)",
                   }}
@@ -1550,7 +1552,8 @@ class Basic extends Component {
 
             <style jsx>{`
               @keyframes pulse {
-                0%, 100% {
+                0%,
+                100% {
                   transform: scale(1);
                 }
                 50% {
@@ -1844,14 +1847,14 @@ class Basic extends Component {
       message.warning("Bạn không có quyền xóa lịch hẹn của người khác.");
       return;
     }
-    
+
     // Show confirmation modal
     this.setState({ showDeleteConfirm: true });
   };
 
   confirmDeleteAppointment = async () => {
     const { selectedEvent } = this.state;
-    
+
     try {
       this.setState({ loading: true, showDeleteConfirm: false });
       await axios.delete(
