@@ -37,7 +37,9 @@ const BedManagement = () => {
   const fetchBeds = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:3000/beds");
+      const response = await axios.get(
+        `${process.env.REACT_APP_BASE_BE_URL}/beds`
+      );
       // Handle both array and object responses
       const data = Array.isArray(response.data)
         ? response.data
@@ -73,7 +75,7 @@ const BedManagement = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:3000/beds/${id}`);
+      await axios.delete(`${process.env.REACT_APP_BASE_BE_URL}/beds/${id}`);
       message.success("Xóa giường bệnh thành công");
       fetchBeds();
     } catch (error) {
@@ -86,11 +88,14 @@ const BedManagement = () => {
     try {
       if (editingBed) {
         // Update
-        await axios.put(`http://localhost:3000/beds/${editingBed._id}`, values);
+        await axios.put(
+          `${process.env.REACT_APP_BASE_BE_URL}/beds/${editingBed._id}`,
+          values
+        );
         message.success("Cập nhật giường bệnh thành công");
       } else {
         // Create
-        await axios.post("http://localhost:3000/beds", values);
+        await axios.post(`${process.env.REACT_APP_BASE_BE_URL}/beds`, values);
         message.success("Thêm giường bệnh thành công");
       }
       setModalVisible(false);

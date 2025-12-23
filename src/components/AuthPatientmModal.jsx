@@ -8,7 +8,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { message } from "antd";
-const API_BASE = "http://localhost:3000";
 
 function OtpInput({ length = 6, value = "", onChange }) {
   const refs = useRef([]);
@@ -125,7 +124,7 @@ export default function AuthPatientModal({ visible, onClose, onSuccess }) {
   const startTimer = (sec = 60) => setTimer(sec);
 
   const postJson = async (path, body) => {
-    const res = await fetch(API_BASE + path, {
+    const res = await fetch(process.env.REACT_APP_BASE_BE_URL + path, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),

@@ -107,7 +107,7 @@ class Basic extends Component {
   fetchServices = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:3000/services?minPrice=0&maxPrice=500000"
+        `${process.env.REACT_APP_BASE_BE_URL}/services?minPrice=0&maxPrice=500000`
       );
       this.setState({ availableServices: res.data.services });
     } catch (err) {
@@ -120,7 +120,9 @@ class Basic extends Component {
       this.setState({ loading: true });
       const { viewModel } = this.state;
 
-      const bedsRes = await axios.get("http://localhost:3000/beds");
+      const bedsRes = await axios.get(
+        `${process.env.REACT_APP_BASE_BE_URL}/beds`
+      );
       const beds = bedsRes.data.beds.map((bed) => ({
         id: bed._id,
         name: bed.bedName,
@@ -164,7 +166,9 @@ class Basic extends Component {
           .format("YYYY-MM-DDTHH:mm:ssZ");
       }
 
-      const url = `http://localhost:3000/appointments/by-time-range?startDate=${encodeURIComponent(
+      const url = `${
+        process.env.REACT_APP_BASE_BE_URL
+      }/appointments/by-time-range?startDate=${encodeURIComponent(
         startDate
       )}&endDate=${encodeURIComponent(endDate)}`;
       console.log("URL:", url);
@@ -1417,7 +1421,7 @@ class Basic extends Component {
               </div>
             </Form>
           </Modal>
-          
+
           {/* Delete Confirmation Modal */}
           <Modal
             open={this.state.showDeleteConfirm}
@@ -1434,7 +1438,8 @@ class Basic extends Component {
                   width: "80px",
                   height: "80px",
                   margin: "0 auto 24px",
-                  background: "linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)",
+                  background:
+                    "linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)",
                   borderRadius: "50%",
                   display: "flex",
                   alignItems: "center",
@@ -1519,7 +1524,8 @@ class Basic extends Component {
                     fontSize: "15px",
                     fontWeight: "600",
                     borderRadius: "8px",
-                    background: "linear-gradient(135deg, #dc2626 0%, #ef4444 100%)",
+                    background:
+                      "linear-gradient(135deg, #dc2626 0%, #ef4444 100%)",
                     border: "none",
                     boxShadow: "0 4px 12px rgba(220, 38, 38, 0.3)",
                   }}
@@ -1546,7 +1552,8 @@ class Basic extends Component {
 
             <style jsx>{`
               @keyframes pulse {
-                0%, 100% {
+                0%,
+                100% {
                   transform: scale(1);
                 }
                 50% {
@@ -1629,7 +1636,7 @@ class Basic extends Component {
     let appt;
     try {
       const res = await axios.get(
-        `http://localhost:3000/appointments/${event.id}`
+        `${process.env.REACT_APP_BASE_BE_URL}/appointments/${event.id}`
       );
       appt = res.data.appointment || res.data;
     } catch (err) {
@@ -1767,7 +1774,10 @@ class Basic extends Component {
         createdBy: "patient",
       };
 
-      await axios.post("http://localhost:3000/appointments", payload);
+      await axios.post(
+        `${process.env.REACT_APP_BASE_BE_URL}/appointments`,
+        payload
+      );
 
       await this.fetchAppointmentsByRange(
         schedulerData.startDate,
@@ -1810,7 +1820,7 @@ class Basic extends Component {
       console.log("Edit payload:", payload);
 
       await axios.patch(
-        `http://localhost:3000/appointments/patient/${selectedEvent.id}`,
+        `${process.env.REACT_APP_BASE_BE_URL}/appointments/patient/${selectedEvent.id}`,
         payload,
         { headers: { "Content-Type": "application/json" } }
       );
@@ -1840,18 +1850,18 @@ class Basic extends Component {
       message.warning("Bạn không có quyền xóa lịch hẹn của người khác.");
       return;
     }
-    
+
     // Show confirmation modal
     this.setState({ showDeleteConfirm: true });
   };
 
   confirmDeleteAppointment = async () => {
     const { selectedEvent } = this.state;
-    
+
     try {
       this.setState({ loading: true, showDeleteConfirm: false });
       await axios.delete(
-        `http://localhost:3000/appointments/${selectedEvent.id}`
+        `${process.env.REACT_APP_BASE_BE_URL}/appointments/${selectedEvent.id}`
       );
 
       await this.fetchAppointmentsByRange(
@@ -1915,7 +1925,7 @@ class Basic extends Component {
       };
 
       await axios.patch(
-        `http://localhost:3000/appointments/patient/${event.id}`,
+        `${process.env.REACT_APP_BASE_BE_URL}/appointments/patient/${event.id}`,
         payload,
         { headers: { "Content-Type": "application/json" } }
       );
@@ -1966,7 +1976,7 @@ class Basic extends Component {
       };
 
       await axios.patch(
-        `http://localhost:3000/appointments/patient/${event.id}`,
+        `${process.env.REACT_APP_BASE_BE_URL}/appointments/patient/${event.id}`,
         payload,
         { headers: { "Content-Type": "application/json" } }
       );
@@ -2019,7 +2029,7 @@ class Basic extends Component {
       };
 
       await axios.patch(
-        `http://localhost:3000/appointments/patient/${event.id}`,
+        `${process.env.REACT_APP_BASE_BE_URL}/appointments/patient/${event.id}`,
         payload,
         { headers: { "Content-Type": "application/json" } }
       );

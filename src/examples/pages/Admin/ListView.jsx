@@ -81,7 +81,9 @@ const ListView = () => {
 
   const fetchBeds = async () => {
     try {
-      const bedsRes = await axios.get("http://localhost:3000/beds");
+      const bedsRes = await axios.get(
+        `${process.env.REACT_APP_BASE_BE_URL}/beds`
+      );
       setBeds(bedsRes.data.beds);
     } catch (error) {
       message.error("Không thể tải danh sách giường!");
@@ -98,12 +100,16 @@ const ListView = () => {
 
       if (status === AppointmentStatus.All) {
         // Fetch all appointments with date range
-        url = `http://localhost:3000/appointments/by-time-range?startDate=${encodeURIComponent(
+        url = `${
+          process.env.REACT_APP_BASE_BE_URL
+        }/appointments/by-time-range?startDate=${encodeURIComponent(
           startDate
         )}&endDate=${encodeURIComponent(endDate)}`;
       } else {
         // Fetch by specific status with date range
-        url = `http://localhost:3000/appointments/by-status?status=${status}&startDate=${encodeURIComponent(
+        url = `${
+          process.env.REACT_APP_BASE_BE_URL
+        }/appointments/by-status?status=${status}&startDate=${encodeURIComponent(
           startDate
         )}&endDate=${encodeURIComponent(endDate)}`;
       }
@@ -120,7 +126,9 @@ const ListView = () => {
 
   const fetchExistingPatients = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/patients");
+      const response = await axios.get(
+        `${process.env.REACT_APP_BASE_BE_URL}/patients`
+      );
       setExistingPatients(response.data.patients || []);
     } catch (error) {
       console.error("Error fetching patients:", error);
@@ -131,7 +139,7 @@ const ListView = () => {
   const fetchServices = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:3000/services?minPrice=0&maxPrice=500000"
+        `${process.env.REACT_APP_BASE_BE_URL}/services?minPrice=0&maxPrice=500000`
       );
       setAvailableServices(res.data.services || []);
     } catch (err) {
@@ -173,7 +181,9 @@ const ListView = () => {
       cancelText: "Hủy",
       onOk: async () => {
         try {
-          await axios.delete(`http://localhost:3000/appointments/${id}`);
+          await axios.delete(
+            `${process.env.REACT_APP_BASE_BE_URL}/appointments/${id}`
+          );
           message.success("Đã xóa lịch khám!");
 
           // Lưu tab hiện tại và reload trang
@@ -216,7 +226,7 @@ const ListView = () => {
           // Create new patient first
           try {
             const createPatientResponse = await axios.post(
-              "http://localhost:3000/patients",
+              `${process.env.REACT_APP_BASE_BE_URL}/patients`,
               {
                 fullName: newPatientForm.fullName.trim(),
                 phone: newPatientForm.phone.trim(),
@@ -259,13 +269,16 @@ const ListView = () => {
       if (editingAppointment) {
         // Update
         await axios.patch(
-          `http://localhost:3000/appointments/${editingAppointment._id}`,
+          `${process.env.REACT_APP_BASE_BE_URL}/appointments/${editingAppointment._id}`,
           payload
         );
         message.success("Đã cập nhật lịch khám!");
       } else {
         // Create
-        await axios.post("http://localhost:3000/appointments", payload);
+        await axios.post(
+          `${process.env.REACT_APP_BASE_BE_URL}/appointments`,
+          payload
+        );
         message.success("Đã tạo lịch khám mới!");
       }
 

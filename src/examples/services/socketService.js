@@ -13,7 +13,7 @@ class SocketService {
       return this.socket;
     }
 
-    const socketUrl = "http://localhost:3000";
+    const socketUrl = process.env.SOCKET_IO_URL || "http://localhost:3000";
     console.log("connect to socket");
     this.socket = io(socketUrl, {
       withCredentials: true,

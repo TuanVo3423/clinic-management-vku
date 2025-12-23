@@ -25,7 +25,10 @@ function Register() {
         password: values.password,
         phone: values.phone,
       };
-      const response = await axios.post("http://localhost:3000/doctors/register", registerData);
+      const response = await axios.post(
+        `${process.env.REACT_APP_BASE_BE_URL}/doctors/register`,
+        registerData
+      );
 
       if (response.data && response.data.data) {
         const { accessToken, refreshToken, doctor } = response.data.data;

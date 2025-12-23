@@ -58,7 +58,9 @@ function Admin() {
         .subtract(7, "day")
         .format("YYYY-MM-DD HH:mm:ss");
       const endDate = dayjs().add(30, "day").format("YYYY-MM-DD HH:mm:ss");
-      const url = `http://localhost:3000/appointments/by-time-range?startDate=${encodeURIComponent(
+      const url = `${
+        process.env.REACT_APP_BASE_BE_URL
+      }/appointments/by-time-range?startDate=${encodeURIComponent(
         startDate
       )}&endDate=${encodeURIComponent(endDate)}`;
       const res = await axios.get(url);

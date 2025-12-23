@@ -57,7 +57,7 @@ const Notification = () => {
   const handleMaskReadNotification = async (notificationId) => {
     try {
       await axios.patch(
-        `http://localhost:3000/notifications/${notificationId}/read`,
+        `${process.env.REACT_APP_BASE_BE_URL}/notifications/${notificationId}/read`,
         null,
         {
           headers: {
@@ -74,7 +74,7 @@ const Notification = () => {
   const fetchNotificationUnread = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:3000/notifications/status/false`,
+        `${process.env.REACT_APP_BASE_BE_URL}/notifications/status/false`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -92,7 +92,7 @@ const Notification = () => {
   const fetchNotificationCountRead = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:3000/notifications/status/true`,
+        `${process.env.REACT_APP_BASE_BE_URL}/notifications/status/true`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,

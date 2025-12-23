@@ -51,7 +51,7 @@ const AppointmentDetail = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:3000/appointments/${id}`
+        `${process.env.REACT_APP_BASE_BE_URL}/appointments/${id}`
       );
 
       console.log("response 123", response.data.appointment);
@@ -66,7 +66,9 @@ const AppointmentDetail = () => {
 
   const fetchBeds = async () => {
     try {
-      const bedsRes = await axios.get("http://localhost:3000/beds");
+      const bedsRes = await axios.get(
+        `${process.env.REACT_APP_BASE_BE_URL}/beds`
+      );
       setBeds(bedsRes.data.beds);
     } catch (error) {
       console.error(error);
@@ -76,7 +78,7 @@ const AppointmentDetail = () => {
   const fetchServices = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:3000/services?minPrice=0&maxPrice=500000"
+        `${process.env.REACT_APP_BASE_BE_URL}/services?minPrice=0&maxPrice=500000`
       );
       setAvailableServices(res.data.services || []);
     } catch (err) {
@@ -88,7 +90,7 @@ const AppointmentDetail = () => {
     setVerifyLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:3000/appointments/${id}/verify`
+        `${process.env.REACT_APP_BASE_BE_URL}/appointments/${id}/verify`
       );
       console.log("response", response);
 
@@ -143,7 +145,9 @@ const AppointmentDetail = () => {
       cancelText: "Hủy",
       onOk: async () => {
         try {
-          await axios.delete(`http://localhost:3000/appointments/${id}`);
+          await axios.delete(
+            `${process.env.REACT_APP_BASE_BE_URL}/appointments/${id}`
+          );
           message.success("Đã xóa lịch khám!");
           navigate("/admin");
         } catch (error) {
@@ -171,7 +175,10 @@ const AppointmentDetail = () => {
         isCheckout: values.isCheckout,
       };
 
-      await axios.patch(`http://localhost:3000/appointments/${id}`, payload);
+      await axios.patch(
+        `${process.env.REACT_APP_BASE_BE_URL}/appointments/${id}`,
+        payload
+      );
       message.success("Đã cập nhật lịch khám!");
       setIsEditModalVisible(false);
 

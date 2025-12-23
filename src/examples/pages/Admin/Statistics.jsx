@@ -57,19 +57,23 @@ const Statistics = () => {
     setLoading(true);
     try {
       // Fetch beds
-      const bedsRes = await axios.get("http://localhost:3000/beds");
+      const bedsRes = await axios.get(
+        `${process.env.REACT_APP_BASE_BE_URL}/beds`
+      );
       setBeds(bedsRes.data.beds);
 
       // Fetch services
       const servicesRes = await axios.get(
-        "http://localhost:3000/services?minPrice=0&maxPrice=500000"
+        `${process.env.REACT_APP_BASE_BE_URL}/services?minPrice=0&maxPrice=500000`
       );
       setServices(servicesRes.data.services || []);
 
       // Fetch appointments
       const startDate = dateRange[0].format("YYYY-MM-DD HH:mm:ss");
       const endDate = dateRange[1].format("YYYY-MM-DD HH:mm:ss");
-      const url = `http://localhost:3000/appointments/by-time-range?startDate=${encodeURIComponent(
+      const url = `${
+        process.env.REACT_APP_BASE_BE_URL
+      }/appointments/by-time-range?startDate=${encodeURIComponent(
         startDate
       )}&endDate=${encodeURIComponent(endDate)}`;
 

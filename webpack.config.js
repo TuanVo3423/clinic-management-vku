@@ -2,6 +2,8 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const ESLintPlugin = require("eslint-webpack-plugin");
+const webpack = require("webpack");
+require("dotenv").config();
 
 module.exports = {
   entry: "./src/examples/index.jsx",
@@ -62,6 +64,11 @@ module.exports = {
       emitWarning: false,
       failOnError: true,
       extensions: ["js", "jsx"],
+    }),
+    new webpack.DefinePlugin({
+      "process.env.REACT_APP_BASE_BE_URL": JSON.stringify(
+        process.env.REACT_APP_BASE_BE_URL
+      ),
     }),
   ],
   devServer: {

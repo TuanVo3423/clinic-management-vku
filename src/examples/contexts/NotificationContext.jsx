@@ -30,7 +30,7 @@ export const NotificationProvider = ({ children }) => {
   const fetchNotificationCountUnread = useCallback(async () => {
     try {
       const res = await fetch(
-        "http://localhost:3000/notifications/count/unread",
+        process.env.REACT_APP_BASE_BE_URL + "/notifications/count/unread",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -110,7 +110,8 @@ export const NotificationProvider = ({ children }) => {
         <Button
           type="link"
           onClick={() =>
-            navigate(`/admin/appointment/${notification.appointmentId}`)}
+            navigate(`/admin/appointment/${notification.appointmentId}`)
+          }
         >
           Xem chi tiết
         </Button>
@@ -148,13 +149,16 @@ export const NotificationProvider = ({ children }) => {
   }, []);
 
   // minus notification unread count when mark as read
-  const minusUnreadCount = useCallback((value) => {
-    if (unreadCount - value < 0) {
-      setUnreadCount(0);
-      return;
-    }
-    setUnreadCount((prev) => prev - value);
-  }, [unreadCount]);
+  const minusUnreadCount = useCallback(
+    (value) => {
+      if (unreadCount - value < 0) {
+        setUnreadCount(0);
+        return;
+      }
+      setUnreadCount((prev) => prev - value);
+    },
+    [unreadCount]
+  );
 
   const getNotificationTitle = (type) => {
     switch (type) {

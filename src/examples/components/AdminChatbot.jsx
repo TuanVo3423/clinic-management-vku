@@ -197,7 +197,7 @@ const AdminChatbot = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/admin-chatbot/query",
+        process.env.REACT_APP_BASE_BE_URL + "/admin-chatbot/query",
         {
           message: messageText,
         }

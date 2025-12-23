@@ -33,7 +33,9 @@ const ServiceManagement = () => {
   const fetchServices = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:3000/services");
+      const response = await axios.get(
+        `${process.env.REACT_APP_BASE_BE_URL}/services`
+      );
       // Handle both array and object responses
       const data = Array.isArray(response.data)
         ? response.data
@@ -67,7 +69,7 @@ const ServiceManagement = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:3000/services/${id}`);
+      await axios.delete(`${process.env.REACT_APP_BASE_BE_URL}/services/${id}`);
       message.success("Xóa dịch vụ thành công");
       fetchServices();
     } catch (error) {
@@ -81,13 +83,16 @@ const ServiceManagement = () => {
       if (editingService) {
         // Update
         await axios.patch(
-          `http://localhost:3000/services/${editingService._id}`,
+          `${process.env.REACT_APP_BASE_BE_URL}/services/${editingService._id}`,
           values
         );
         message.success("Cập nhật dịch vụ thành công");
       } else {
         // Create
-        await axios.post("http://localhost:3000/services", values);
+        await axios.post(
+          `${process.env.REACT_APP_BASE_BE_URL}/services`,
+          values
+        );
         message.success("Thêm dịch vụ thành công");
       }
       setModalVisible(false);

@@ -11,13 +11,16 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const onFinish = async values => {
+  const onFinish = async (values) => {
     setLoading(true);
     try {
-        const response = await axios.post("http://localhost:3000/doctors/login", {
+      const response = await axios.post(
+        `${process.env.REACT_APP_BASE_BE_URL}/doctors/login`,
+        {
           email: values.email,
           password: values.password,
-        });
+        }
+      );
 
       if (response.data && response.data.data) {
         const { accessToken, refreshToken, doctor } = response.data.data;

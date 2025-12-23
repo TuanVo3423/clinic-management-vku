@@ -198,7 +198,9 @@ export default function ChatWidget() {
   const fetchAllServices = async () => {
     try {
       setLoadingServices(true);
-      const res = await axios.get("http://localhost:3000/services");
+      const res = await axios.get(
+        process.env.REACT_APP_BASE_BE_URL + "/services"
+      );
       const data = res.data;
       let list = [];
       if (Array.isArray(data)) list = data;
@@ -397,7 +399,7 @@ export default function ChatWidget() {
       console.log("🚀 [DEBUG] FINAL PAYLOAD:", payload);
 
       const res = await axios.post(
-        "http://localhost:3000/appointments",
+        process.env.REACT_APP_BASE_BE_URL + "/appointments",
         payload
       );
       console.log("✅ [DEBUG] SUCCESS:", res.data);
@@ -454,9 +456,12 @@ export default function ChatWidget() {
     setTimeout(() => scrollToBottom(), 50);
 
     try {
-      const res = await axios.post("http://localhost:3000/chatbot/chat", {
-        message: raw,
-      });
+      const res = await axios.post(
+        process.env.REACT_APP_BASE_BE_URL + "/chatbot/chat",
+        {
+          message: raw,
+        }
+      );
       const data = res.data;
       const botMessage =
         data.data?.response?.message || "Xin lỗi, tôi không hiểu yêu cầu.";

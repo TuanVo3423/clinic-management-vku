@@ -102,7 +102,9 @@ class Basic extends Component {
 
   fetchBeds = async () => {
     try {
-      const bedsRes = await axios.get("http://localhost:3000/beds");
+      const bedsRes = await axios.get(
+        `${process.env.REACT_APP_BASE_BE_URL}/beds`
+      );
       this.setState({ beds: bedsRes.data.beds });
     } catch (error) {
       console.error("Không thể tải danh sách giường!", error);
@@ -111,7 +113,9 @@ class Basic extends Component {
 
   fetchExistingPatients = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/patients");
+      const response = await axios.get(
+        `${process.env.REACT_APP_BASE_BE_URL}/patients`
+      );
       this.setState({ existingPatients: response.data.patients || [] });
     } catch (error) {
       console.error("Error fetching patients:", error);
@@ -120,7 +124,7 @@ class Basic extends Component {
   fetchServices = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:3000/services?minPrice=0&maxPrice=500000"
+        `${process.env.REACT_APP_BASE_BE_URL}/services?minPrice=0&maxPrice=500000`
       );
       this.setState({ availableServices: res.data.services });
     } catch (err) {
@@ -133,27 +137,53 @@ class Basic extends Component {
       this.setState({ loading: true });
       const { viewModel } = this.state;
 
-      const bedsRes = await axios.get("http://localhost:3000/beds");
+      const bedsRes = await axios.get(
+        `${process.env.REACT_APP_BASE_BE_URL}/beds`
+      );
       const beds = bedsRes.data.beds.map((bed) => ({
         id: bed._id,
         name: bed.bedName,
         department: bed.department,
       }));
 
-      let startDate = dayjs(start).tz("Asia/Ho_Chi_Minh").startOf("day").format("YYYY-MM-DDTHH:mm:ssZ");
-      let endDate = dayjs(start).tz("Asia/Ho_Chi_Minh").endOf("day").format("YYYY-MM-DDTHH:mm:ssZ");
+      let startDate = dayjs(start)
+        .tz("Asia/Ho_Chi_Minh")
+        .startOf("day")
+        .format("YYYY-MM-DDTHH:mm:ssZ");
+      let endDate = dayjs(start)
+        .tz("Asia/Ho_Chi_Minh")
+        .endOf("day")
+        .format("YYYY-MM-DDTHH:mm:ssZ");
       if (viewModel.viewType === ViewType.Day) {
-        startDate = dayjs(start).tz("Asia/Ho_Chi_Minh").startOf("day").format("YYYY-MM-DDTHH:mm:ssZ");
-        endDate = dayjs(start).tz("Asia/Ho_Chi_Minh").endOf("day").format("YYYY-MM-DDTHH:mm:ssZ");
+        startDate = dayjs(start)
+          .tz("Asia/Ho_Chi_Minh")
+          .startOf("day")
+          .format("YYYY-MM-DDTHH:mm:ssZ");
+        endDate = dayjs(start)
+          .tz("Asia/Ho_Chi_Minh")
+          .endOf("day")
+          .format("YYYY-MM-DDTHH:mm:ssZ");
       } else if (viewModel.viewType === ViewType.Week) {
-        startDate = dayjs(start).tz("Asia/Ho_Chi_Minh").startOf("week").format("YYYY-MM-DDTHH:mm:ssZ");
-        endDate = dayjs(end).tz("Asia/Ho_Chi_Minh").endOf("week").format("YYYY-MM-DDTHH:mm:ssZ");
+        startDate = dayjs(start)
+          .tz("Asia/Ho_Chi_Minh")
+          .startOf("week")
+          .format("YYYY-MM-DDTHH:mm:ssZ");
+        endDate = dayjs(end)
+          .tz("Asia/Ho_Chi_Minh")
+          .endOf("week")
+          .format("YYYY-MM-DDTHH:mm:ssZ");
       } else {
-        startDate = dayjs(start).tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm:ssZ");
-        endDate = dayjs(end).tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm:ssZ");
+        startDate = dayjs(start)
+          .tz("Asia/Ho_Chi_Minh")
+          .format("YYYY-MM-DDTHH:mm:ssZ");
+        endDate = dayjs(end)
+          .tz("Asia/Ho_Chi_Minh")
+          .format("YYYY-MM-DDTHH:mm:ssZ");
       }
 
-      const url = `http://localhost:3000/appointments/by-time-range?startDate=${encodeURIComponent(
+      const url = `${
+        process.env.REACT_APP_BASE_BE_URL
+      }/appointments/by-time-range?startDate=${encodeURIComponent(
         startDate
       )}&endDate=${encodeURIComponent(endDate)}`;
       console.log("URL:", url);
@@ -175,10 +205,12 @@ class Basic extends Component {
             bgColor = "#d9d9d9";
         }
 
-        const start = dayjs(a.appointmentStart || a.appointmentStartTime).format(
+        const start = dayjs(
+          a.appointmentStart || a.appointmentStartTime
+        ).format("YYYY-MM-DDTHH:mm:ss");
+        const end = dayjs(a.appointmentEnd || a.appointmentEndTime).format(
           "YYYY-MM-DDTHH:mm:ss"
         );
-        const end = dayjs(a.appointmentEnd || a.appointmentEndTime).format("YYYY-MM-DDTHH:mm:ss");
         console.log("start:", start, "| raw:", a.appointmentStartTime);
 
         return {
@@ -411,10 +443,9 @@ class Basic extends Component {
 
     try {
       const res = await axios.get(
-        `http://localhost:3000/appointments/${event.id}`
+        `${process.env.REACT_APP_BASE_BE_URL}/appointments/${event.id}`
       );
       const appt = res.data.appointment || res.data;
-
 
       let selectedServices = [];
       if (appt.services && appt.services.length > 0) {
@@ -436,7 +467,7 @@ class Basic extends Component {
         patientName: appt.patient?.[0]?.fullName || "Không rõ",
         phone: appt.patient?.[0]?.phone || "",
       };
-      console.log("appt.status", appt.status)
+      console.log("appt.status", appt.status);
       this.setState({
         isLoadingModal: false,
         selectedEvent: eventWithPatientInfo,
@@ -475,7 +506,13 @@ class Basic extends Component {
     this.setState({
       isModalVisible: true,
       tempEvent: { schedulerData, slotId, slotName, start, end },
-      formValues: { title: "", start, end, status: "pending", isCheckout: false },
+      formValues: {
+        title: "",
+        start,
+        end,
+        status: "pending",
+        isCheckout: false,
+      },
       patientMode: "existing",
       selectedPatientId: null,
       newPatientForm: { fullName: "", phone: "", gender: "male" },
@@ -519,7 +556,7 @@ class Basic extends Component {
         // Create new patient first
         try {
           const createPatientResponse = await axios.post(
-            "http://localhost:3000/patients",
+            `${process.env.REACT_APP_BASE_BE_URL}/patients`,
             {
               fullName: newPatientForm.fullName.trim(),
               phone: newPatientForm.phone.trim(),
@@ -574,10 +611,13 @@ class Basic extends Component {
         status: formValues.status || "pending",
         note: formValues.title || "",
         isCheckout: false,
-        createdBy : "doctor"
+        createdBy: "doctor",
       };
 
-      await axios.post("http://localhost:3000/appointments", payload);
+      await axios.post(
+        `${process.env.REACT_APP_BASE_BE_URL}/appointments`,
+        payload
+      );
 
       await this.fetchAppointmentsByRange(
         schedulerData.startDate,
@@ -627,7 +667,7 @@ class Basic extends Component {
       console.log("Edit payload:", payload);
 
       await axios.patch(
-        `http://localhost:3000/appointments/${selectedEvent.id}`,
+        `${process.env.REACT_APP_BASE_BE_URL}/appointments/${selectedEvent.id}`,
         payload,
         { headers: { "Content-Type": "application/json" } }
       );
@@ -657,7 +697,7 @@ class Basic extends Component {
 
     try {
       await axios.delete(
-        `http://localhost:3000/appointments/${selectedEvent.id}`
+        `${process.env.REACT_APP_BASE_BE_URL}/appointments/${selectedEvent.id}`
       );
 
       await this.fetchAppointmentsByRange(
@@ -711,7 +751,7 @@ class Basic extends Component {
       };
 
       await axios.patch(
-        `http://localhost:3000/appointments/${event.id}`,
+        `${process.env.REACT_APP_BASE_BE_URL}/appointments/${event.id}`,
         payload,
         { headers: { "Content-Type": "application/json" } }
       );
@@ -750,7 +790,7 @@ class Basic extends Component {
       };
 
       await axios.patch(
-        `http://localhost:3000/appointments/${event.id}`,
+        `${process.env.REACT_APP_BASE_BE_URL}/appointments/${event.id}`,
         payload,
         { headers: { "Content-Type": "application/json" } }
       );
@@ -789,7 +829,7 @@ class Basic extends Component {
       };
 
       await axios.patch(
-        `http://localhost:3000/appointments/${event.id}`,
+        `${process.env.REACT_APP_BASE_BE_URL}/appointments/${event.id}`,
         payload,
         { headers: { "Content-Type": "application/json" } }
       );
