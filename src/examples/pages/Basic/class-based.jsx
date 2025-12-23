@@ -49,7 +49,8 @@ class Basic extends Component {
         schedulerContentWidth: "100%",
         nonWorkingTimeHeadStyle: { backgroundColor: "#fff" },
         nonWorkingTimeBodyBgColor: "#fff",
-        responsiveByParent: true,
+        eventItemLineHeight: 40,
+        // responsiveByParent: true,
       }
     );
 
@@ -101,6 +102,9 @@ class Basic extends Component {
   };
 
   async componentDidMount() {
+    setTimeout(() => {
+      window.dispatchEvent(new Event("resize"));
+    }, 500);
     const { viewModel } = this.state;
     await this.fetchAppointmentsByRange(viewModel.startDate, viewModel.endDate);
   }
@@ -297,25 +301,27 @@ class Basic extends Component {
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
         <SiteLayout>
-          <Scheduler
-            schedulerData={viewModel}
-            prevClick={this.prevClick}
-            nextClick={this.nextClick}
-            onSelectDate={this.onSelectDate}
-            onViewChange={this.onViewChange}
-            eventItemClick={this.eventClicked}
-            viewEventText=""
-            viewEvent2Text=""
-            updateEventStart={this.updateEventStart}
-            updateEventEnd={this.updateEventEnd}
-            moveEvent={this.moveEvent}
-            newEvent={this.newEvent}
-            onScrollLeft={this.onScrollLeft}
-            onScrollRight={this.onScrollRight}
-            onScrollTop={this.onScrollTop}
-            onScrollBottom={this.onScrollBottom}
-            toggleExpandFunc={this.toggleExpandFunc}
-          />
+          <Spin spinning={this.state.loading} tip="Đang xử lý...">
+            <Scheduler
+              schedulerData={viewModel}
+              prevClick={this.prevClick}
+              nextClick={this.nextClick}
+              onSelectDate={this.onSelectDate}
+              onViewChange={this.onViewChange}
+              eventItemClick={this.eventClicked}
+              viewEventText=""
+              viewEvent2Text=""
+              updateEventStart={this.updateEventStart}
+              updateEventEnd={this.updateEventEnd}
+              moveEvent={this.moveEvent}
+              newEvent={this.newEvent}
+              onScrollLeft={this.onScrollLeft}
+              onScrollRight={this.onScrollRight}
+              onScrollTop={this.onScrollTop}
+              onScrollBottom={this.onScrollBottom}
+              toggleExpandFunc={this.toggleExpandFunc}
+            />
+          </Spin>
           <Modal
             title={
               <div

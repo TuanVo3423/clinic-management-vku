@@ -434,14 +434,14 @@ class ResourceEvents extends Component {
             const isStart = eventStart >= durationStart;
             const isEnd = eventEnd <= durationEnd;
 
-            const left = index * cellWidth + (index > 0 ? 2 : 3);
+            const left = index * cellWidth + (index > 0 ? 2 : 3) + 0.5;
             const width =
               evt.span * cellWidth - (index > 0 ? 5 : 6) > 0
                 ? evt.span * cellWidth - (index > 0 ? 5 : 6)
                 : 0;
 
             const gap = 20;
-            const top = marginTop + idx * (config.eventItemLineHeight + gap);
+            const top = marginTop + idx * (config.eventItemLineHeight + gap) + 8.5;
 
             const bottom = top + config.eventItemLineHeight + 20;
             if (bottom > maxBottom) maxBottom = bottom;
@@ -491,24 +491,6 @@ class ResourceEvents extends Component {
       }
     });
 
-    // SET ROW HEIGHT CHÍNH XÁC THEO EVENT CUỐI
-    resourceEvents.rowHeight = Math.max(
-      maxBottom,
-      config.eventItemLineHeight + 20
-    );
-    const slotId = resourceEvents.slotId;
-    const renderData = schedulerData.renderData;
-
-    if (Array.isArray(renderData)) {
-      renderData.forEach((item) => {
-        if (item.slotId === slotId) {
-          item.rowHeight = resourceEvents.rowHeight;
-        }
-      });
-    }
-    schedulerData._createRenderData();
-    schedulerData._tableHeaders = null;
-    schedulerData._contentTable = null;
     const eventContainer = (
       <div
         ref={this.eventContainerRef}
