@@ -67,7 +67,7 @@ export default function SiteLayout({ children, headerClassName }) {
             {patient ? (
               <>
                 <span className="hidden md:inline text-emerald-900 text-sm whitespace-nowrap mr-1">
-                  Xin chào, <b>{patient.data.patient.fullName}</b>
+                  Xin chào, <b>{patient.fullName}</b>
                 </span>
 
                 <button
@@ -127,7 +127,7 @@ export default function SiteLayout({ children, headerClassName }) {
           {patient ? (
             <>
               <div className="text-emerald-900">
-                {patient.data.patient.fullName}
+                {patient.fullName}
               </div>
 
               <button

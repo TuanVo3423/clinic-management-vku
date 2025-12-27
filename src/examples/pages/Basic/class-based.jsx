@@ -56,7 +56,9 @@ class Basic extends Component {
 
     const storedInfo = localStorage.getItem("patientInfo");
     const parsedInfo = storedInfo ? JSON.parse(storedInfo) : null;
-    const safePatientInfo = parsedInfo?.data?.patient || null;
+    const safePatientInfo = parsedInfo || null;
+        console.log("ABCDDDDD: ", safePatientInfo)
+
 
     this.state = {
       viewModel: schedulerData,
