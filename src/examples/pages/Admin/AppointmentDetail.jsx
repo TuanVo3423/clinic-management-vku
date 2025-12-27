@@ -20,7 +20,6 @@ import {
 import axios from "axios";
 import dayjs from "dayjs";
 import { useParams, useNavigate } from "react-router-dom";
-import VerificationCard from "./components/VerificationCard.jsx";
 import AppointmentInfoCard from "./components/AppointmentInfoCard.jsx";
 import AppointmentHistoryCard from "./components/AppointmentHistoryCard.jsx";
 import EditAppointmentDetailModal from "./components/EditAppointmentDetailModal.jsx";
@@ -35,15 +34,12 @@ const AppointmentDetail = () => {
   const [loading, setLoading] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [form] = Form.useForm();
-  const [verificationStatus, setVerificationStatus] = useState(null);
-  const [verifyLoading, setVerifyLoading] = useState(false);
 
   useEffect(() => {
     if (id) {
       fetchAppointmentDetail();
       fetchBeds();
       fetchServices();
-      verifyAppointment();
     }
   }, [id]);
 
@@ -83,41 +79,6 @@ const AppointmentDetail = () => {
       setAvailableServices(res.data.services || []);
     } catch (err) {
       console.error("❌ Lỗi khi lấy danh sách dịch vụ:", err);
-    }
-  };
-
-  const verifyAppointment = async () => {
-    setVerifyLoading(true);
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BASE_BE_URL}/appointments/${id}/verify`
-      );
-      console.log("response", response);
-
-      if (response.data.isPendingSavingToBlockchain) {
-        Modal.info({
-          title: "ℹ️ Thông tin",
-          content:
-            "Dữ liệu lịch khám đang được xử lý và lưu trữ lên Blockchain sau khi bạn tạo và cập nhật.",
-        });
-        return;
-      }
-      setVerificationStatus(response.data);
-
-      // Hiển thị cảnh báo nếu dữ liệu bị thay đổi trái phép
-      if (response.data.isValid === false) {
-        Modal.warning({
-          title: "⚠️ Cảnh báo bảo mật!",
-          content: "Dữ liệu lịch khám đã bị thay đổi trái phép!",
-          okText: "Đã hiểu",
-          width: 500,
-        });
-      }
-    } catch (error) {
-      console.error("Lỗi khi xác thực lịch khám:", error);
-      // Không hiển thị lỗi cho người dùng nếu API verify không khả dụng
-    } finally {
-      setVerifyLoading(false);
     }
   };
 
@@ -326,13 +287,6 @@ const AppointmentDetail = () => {
           {/* Left Column - Main Info */}
           <Col xs={24} lg={16}>
             <Space direction="vertical" size="large" style={{ width: "100%" }}>
-              {/* Verification Status Card */}
-              <VerificationCard
-                verificationStatus={verificationStatus}
-                verifyLoading={verifyLoading}
-                onVerify={verifyAppointment}
-              />
-
               {/* Main Info Card */}
               <AppointmentInfoCard
                 appointment={appointment}

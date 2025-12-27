@@ -42,7 +42,7 @@ const AppointmentStatus = {
   Completed: "completed",
 };
 
-const ListView = () => {
+const ListView = ({ dateRange, setDateRange }) => {
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [beds, setBeds] = useState([]);
@@ -53,10 +53,6 @@ const ListView = () => {
   const [activeTab, setActiveTab] = useState(AppointmentStatus.All);
   const [searchText, setSearchText] = useState("");
   const [availableServices, setAvailableServices] = useState([]);
-  const [dateRange, setDateRange] = useState([
-    dayjs().subtract(30, "day"),
-    dayjs().add(30, "day"),
-  ]);
   const [pageSize, setPageSize] = useState(10);
 
   // New patient mode states
