@@ -96,10 +96,10 @@ function Login() {
             </Button>
           </Form.Item>
 
-          <div className="login-footer">
+          {/* <div className="login-footer">
             <span>Chưa có tài khoản? </span>
             <Link to="/admin/register">Đăng ký ngay</Link>
-          </div>
+          </div> */}
         </Form>
       </Card>
     </div>
