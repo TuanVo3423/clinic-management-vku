@@ -32,24 +32,25 @@ class Basic extends Component {
     const todayVN = dayjs().tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DD");
     const schedulerData = new SchedulerData(
       todayVN,
-      ViewType.Day,
-      false,
-      false,
-      {
-        besidesWidth: 300,
-        schedulerContentHeight: "100%",
-        resourceName: "Bed No.",
-        dayMaxEvents: 99,
-        viewChangeEnabled: false,
-        eventItemPopoverTrigger: "none",
-        dayStartFrom: 16,
-        dayStopTo: 22,
-        minuteStep: 30,
-        nonAgendaDayCellHeaderFormat: "HH:mm",
-        dayCellWidth: 70,
-        schedulerContentWidth: "100%",
-        nonWorkingTimeHeadStyle: { backgroundColor: "#fff" },
-        nonWorkingTimeBodyBgColor: "#fff",
+            ViewType.Day,
+            false,
+            false,
+            {
+              besidesWidth: 50,
+              schedulerContentHeight: "100%",
+              resourceName: "Bed No.",
+              dayMaxEvents: 99,
+              viewChangeEnabled: false,
+              eventItemPopoverTrigger: "none",
+              dayStartFrom: 16,
+              dayStopTo: 22,
+              minuteStep: 30,
+              nonAgendaDayCellHeaderFormat: "HH:mm",
+              dayCellWidth: 90,
+              schedulerContentWidth: "100%",
+              nonWorkingTimeHeadStyle: { backgroundColor: "#fff" },
+              nonWorkingTimeBodyBgColor: "#fff",
+              eventItemLineHeight: 40,
       }
     );
 
