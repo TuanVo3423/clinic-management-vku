@@ -173,14 +173,16 @@ export default function SiteLayout({ children, headerClassName }) {
             </h4>
             <ul className="space-y-2 text-emerald-700">
               <li className="hover:text-emerald-900 cursor-pointer">
-                Trang chủ
+                <a href="/">
+                  Trang chủ
+                </a>
               </li>
               <li className="hover:text-emerald-900 cursor-pointer">
                 Giới thiệu
               </li>
-              <li className="hover:text-emerald-900 cursor-pointer">
+              {/* <li className="hover:text-emerald-900 cursor-pointer">
                 Tuyển dụng
-              </li>
+              </li> */}
             </ul>
           </div>
 
@@ -220,7 +222,7 @@ export default function SiteLayout({ children, headerClassName }) {
 
             <p className="flex items-start gap-3 text-emerald-700 hover:text-emerald-900 cursor-pointer mt-2">
               <i className="ri-phone-fill text-xl" />
-              (+84) 934 568 789
+              (+84) 984 253 413
             </p>
           </div>
         </div>

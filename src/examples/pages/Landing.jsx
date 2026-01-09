@@ -66,10 +66,10 @@ export default function Landing() {
               <span>
                 <i className="ri-hospital-line" />
               </span>
-              <h4>Nha khoa Tổng quát</h4>
+              <h4>Khám tổng quát</h4>
               <p>
-                Trải nghiệm chăm sóc răng miệng toàn diện. Hãy tin tưởng để chúng tôi 
-                giữ cho nụ cười của bạn luôn khỏe mạnh và rạng rỡ.
+                Trải nghiệm chăm sóc cơ thể toàn diện. Hãy tin tưởng để chúng tôi 
+                giữ cho cơ thể của bạn luôn khỏe mạnh và rạng rỡ.
               </p>
               <a>Xem thêm</a>
             </div>
@@ -115,7 +115,7 @@ export default function Landing() {
                 <i className="ri-hand-heart-line" />
               </span>
               <div>
-                <h4>Chăm sóc Tích cực (ICU)</h4>
+                <h4>Chăm sóc tích cực</h4>
                 <p>
                   Đơn vị Chăm sóc Tích cực của chúng tôi được trang bị công nghệ tiên tiến 
                   và vận hành bởi đội ngũ chuyên gia giàu kinh nghiệm.
@@ -126,7 +126,7 @@ export default function Landing() {
                 <i className="ri-truck-line" />
               </span>
               <div>
-                <h4>Xe Cấp cứu Miễn phí</h4>
+                <h4>Tư vấn miễn phí</h4>
                 <p>
                   Một sáng kiến nhân văn nhằm ưu tiên sức khỏe của bạn mà không 
                   phải lo lắng về gánh nặng tài chính.
@@ -137,10 +137,10 @@ export default function Landing() {
                 <i className="ri-hospital-line" />
               </span>
               <div>
-                <h4>Nội khoa & Phẫu thuật</h4>
+                <h4>Xoa bóp, bấm huyệt</h4>
                 <p>
                   Chúng tôi cung cấp các giải pháp chăm sóc sức khỏe tiên tiến 
-                  và các phương pháp điều trị y tế hiện đại nhất.
+                  và các phương pháp điều trị y học cổ truyền hiệu quả.
                 </p>
               </div>
             </div>
@@ -170,8 +170,8 @@ export default function Landing() {
 
           <div className="doctors__grid">
             <div className="doctors__card">
-              <div className="doctors__card__image">
-                <img src={doc1} alt="doctor" />
+              <div className="doctors__card__image lg:w-[300px] lg:h-[400px] object-contain">
+                <img src={"https://benhvienyhoccotruyendanang.vn/wp-content/uploads/2025/01/CAM06630-scaled.jpeg"} alt="doctor" />
                 <div className="doctors__socials">
                   <span><i className="ri-instagram-line" /></span>
                   <span><i className="ri-facebook-fill" /></span>
@@ -179,13 +179,13 @@ export default function Landing() {
                   <span><i className="ri-twitter-fill" /></span>
                 </div>
               </div>
-              <h4>BS. Soni Bharti</h4>
-              <p>Bác sĩ Khớp</p>
+              <h4>BS.CKI PHAN NGUYỄN NHƯ PHƯƠNG</h4>
+              <p>Bác sĩ</p>
             </div>
 
             <div className="doctors__card">
-              <div className="doctors__card__image">
-                <img src={doc2} alt="doctor" />
+              <div className="doctors__card__image lg:w-[300px] lg:h-[400px] object-contain">
+                <img src={"https://benhvienyhoccotruyendanang.vn/wp-content/uploads/2025/01/CAM06594-1024x1536.jpeg"} alt="doctor" />
                 <div className="doctors__socials">
                   <span><i className="ri-instagram-line" /></span>
                   <span><i className="ri-facebook-fill" /></span>
@@ -193,13 +193,13 @@ export default function Landing() {
                   <span><i className="ri-twitter-fill" /></span>
                 </div>
               </div>
-              <h4>BS. Paresh Rawal</h4>
-              <p>Bác sĩ Xương</p>
+              <h4>BS.CKI HOÀNG VIỆT DŨNG</h4>
+              <p>Bác sĩ</p>
             </div>
 
             <div className="doctors__card">
-              <div className="doctors__card__image">
-                <img src={doc3} alt="doctor" />
+              <div className="doctors__card__image lg:w-[300px] lg:h-[400px] object-contain">
+                <img src={"https://img.freepik.com/premium-vector/free-vector-cartoon-nurse-illustration_1060459-111.jpg"} alt="doctor" />
                 <div className="doctors__socials">
                   <span><i className="ri-instagram-line" /></span>
                   <span><i className="ri-facebook-fill" /></span>
@@ -207,8 +207,8 @@ export default function Landing() {
                   <span><i className="ri-twitter-fill" /></span>
                 </div>
               </div>
-              <h4>BS. Munna Bhai</h4>
-              <p>Bác sĩ Cơ</p>
+              <h4>Đội ngũ điều dưỡng</h4>
+              <p>Điều dưỡng</p>
             </div>
           </div>
         </section>

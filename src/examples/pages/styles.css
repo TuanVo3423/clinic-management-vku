@@ -751,6 +751,7 @@ header.fixed {
 }
 
 .doctors__card__image {
+
   position: relative;
   overflow: hidden;
   background: var(--primary-color-extra-light);

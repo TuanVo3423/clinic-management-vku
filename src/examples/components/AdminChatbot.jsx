@@ -176,10 +176,10 @@ const AdminChatbot = () => {
       text: "Xuất file Excel lịch hẹn tuần này",
       icon: <FileExcelOutlined />,
     },
-    {
-      text: "Tìm lịch hẹn pending",
-      icon: <ClockCircleOutlined />,
-    },
+    // {
+    //   text: "Tìm lịch hẹn pending",
+    //   icon: <ClockCircleOutlined />,
+    // },
   ];
 
   const sendMessage = async (messageText = input) => {
@@ -571,8 +571,8 @@ const BotResponseRenderer = ({
     case "export_appointments":
       const handleDownload = () => {
         const format = actionData?.format;
-        message.info(`Đang tải file ${format?.toUpperCase()}...`);
-
+        if(format?.toUpperCase()) {
+          message.info(`Đang tải file ${format?.toUpperCase()}...`);
         switch (format) {
           case "excel":
             exportToExcel(data);
@@ -586,6 +586,10 @@ const BotResponseRenderer = ({
           default:
             message.error("Định dạng file không được hỗ trợ");
         }
+          
+        }
+        message.info(`File không có dữ liệu để tải xuống!`);
+        
       };
 
       const getFileIcon = (format) => {
