@@ -168,9 +168,9 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="doctors__grid">
+            <div className="doctors__grid">
             <div className="doctors__card">
-              <div className="doctors__card__image lg:w-[300px] lg:h-[400px] object-contain">
+              <div className="doctors__card__image">
                 <img src={"https://benhvienyhoccotruyendanang.vn/wp-content/uploads/2025/01/CAM06630-scaled.jpeg"} alt="doctor" />
                 <div className="doctors__socials">
                   <span><i className="ri-instagram-line" /></span>
@@ -184,7 +184,7 @@ export default function Landing() {
             </div>
 
             <div className="doctors__card">
-              <div className="doctors__card__image lg:w-[300px] lg:h-[400px] object-contain">
+              <div className="doctors__card__image">
                 <img src={"https://benhvienyhoccotruyendanang.vn/wp-content/uploads/2025/01/CAM06594-1024x1536.jpeg"} alt="doctor" />
                 <div className="doctors__socials">
                   <span><i className="ri-instagram-line" /></span>
@@ -197,9 +197,9 @@ export default function Landing() {
               <p>Bác sĩ</p>
             </div>
 
-            <div className="doctors__card">
-              <div className="doctors__card__image lg:w-[300px] lg:h-[400px] object-contain">
-                <img src={"https://img.freepik.com/premium-vector/free-vector-cartoon-nurse-illustration_1060459-111.jpg"} alt="doctor" />
+            {/* <div className="doctors__card">
+              <div className="doctors__card__image">
+                <img className="h-full" src={"https://img.freepik.com/premium-vector/free-vector-cartoon-nurse-illustration_1060459-111.jpg"} alt="doctor" />
                 <div className="doctors__socials">
                   <span><i className="ri-instagram-line" /></span>
                   <span><i className="ri-facebook-fill" /></span>
@@ -209,7 +209,7 @@ export default function Landing() {
               </div>
               <h4>Đội ngũ điều dưỡng</h4>
               <p>Điều dưỡng</p>
-            </div>
+            </div> */}
           </div>
         </section>
 

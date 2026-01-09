@@ -434,155 +434,49 @@ const AboutPage = () => {
             >
               👨‍⚕️ Đội ngũ bác sĩ
             </h2>
-            <Row gutter={[24, 24]}>
-              {doctors.map((doctor) => (
-                <Col xs={24} sm={12} lg={6} key={doctor.id}>
-                  <Card
-                    style={{
-                      borderRadius: "16px",
-                      overflow: "hidden",
-                      border: "1px solid #e5e7eb",
-                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
-                      transition: "all 0.3s ease",
-                      height: "100%",
-                    }}
-                    bodyStyle={{ padding: 0 }}
-                    hoverable
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "translateY(-8px)";
-                      e.currentTarget.style.boxShadow =
-                        "0 12px 24px rgba(5, 150, 105, 0.15)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow =
-                        "0 4px 12px rgba(0, 0, 0, 0.08)";
-                    }}
-                  >
-                    <div
-                      style={{
-                        height: "280px",
-                        overflow: "hidden",
-                        position: "relative",
-                      }}
-                    >
-                      <img
-                        src={doctor.image}
-                        alt={doctor.name}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
-                      <div
-                        style={{
-                          position: "absolute",
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          background:
-                            "linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)",
-                          padding: "40px 20px 20px",
-                        }}
-                      >
-                        <div
-                          style={{
-                            color: "white",
-                            fontSize: "18px",
-                            fontWeight: "700",
-                            marginBottom: "4px",
-                          }}
-                        >
-                          {doctor.name}
-                        </div>
-                        <div
-                          style={{
-                            color: "#d1fae5",
-                            fontSize: "13px",
-                            fontWeight: "500",
-                          }}
-                        >
-                          {doctor.title}
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ padding: "20px" }}>
-                      <div style={{ marginBottom: "12px" }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                            marginBottom: "6px",
-                          }}
-                        >
-                          <span style={{ fontSize: "16px" }}>🎯</span>
-                          <span
-                            style={{
-                              fontSize: "13px",
-                              color: "#059669",
-                              fontWeight: "600",
-                            }}
-                          >
-                            {doctor.specialization}
-                          </span>
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                            marginBottom: "6px",
-                          }}
-                        >
-                          <span style={{ fontSize: "16px" }}>⭐</span>
-                          <span
-                            style={{
-                              fontSize: "13px",
-                              color: "#6b7280",
-                              fontWeight: "500",
-                            }}
-                          >
-                            {doctor.experience}
-                          </span>
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                          }}
-                        >
-                          <span style={{ fontSize: "16px" }}>🎓</span>
-                          <span
-                            style={{
-                              fontSize: "13px",
-                              color: "#6b7280",
-                              fontWeight: "500",
-                            }}
-                          >
-                            {doctor.education}
-                          </span>
-                        </div>
-                      </div>
-                      <p
-                        style={{
-                          fontSize: "13px",
-                          color: "#6b7280",
-                          lineHeight: "1.6",
-                          marginTop: "12px",
-                          paddingTop: "12px",
-                          borderTop: "1px solid #e5e7eb",
-                        }}
-                      >
-                        {doctor.description}
-                      </p>
-                    </div>
-                  </Card>
-                </Col>
-              ))}
-            </Row>
+            <div className="doctors__grid">
+            <div className="doctors__card">
+              <div className="doctors__card__image">
+                <img src={"https://benhvienyhoccotruyendanang.vn/wp-content/uploads/2025/01/CAM06630-scaled.jpeg"} alt="doctor" />
+                <div className="doctors__socials">
+                  <span><i className="ri-instagram-line" /></span>
+                  <span><i className="ri-facebook-fill" /></span>
+                  <span><i className="ri-heart-fill" /></span>
+                  <span><i className="ri-twitter-fill" /></span>
+                </div>
+              </div>
+              <h4>BS.CKI PHAN NGUYỄN NHƯ PHƯƠNG</h4>
+              <p>Bác sĩ</p>
+            </div>
+
+            <div className="doctors__card">
+              <div className="doctors__card__image">
+                <img src={"https://benhvienyhoccotruyendanang.vn/wp-content/uploads/2025/01/CAM06594-1024x1536.jpeg"} alt="doctor" />
+                <div className="doctors__socials">
+                  <span><i className="ri-instagram-line" /></span>
+                  <span><i className="ri-facebook-fill" /></span>
+                  <span><i className="ri-heart-fill" /></span>
+                  <span><i className="ri-twitter-fill" /></span>
+                </div>
+              </div>
+              <h4>BS.CKI HOÀNG VIỆT DŨNG</h4>
+              <p>Bác sĩ</p>
+            </div>
+
+            {/* <div className="doctors__card">
+              <div className="doctors__card__image">
+                <img className="h-full" src={"https://img.freepik.com/premium-vector/free-vector-cartoon-nurse-illustration_1060459-111.jpg"} alt="doctor" />
+                <div className="doctors__socials">
+                  <span><i className="ri-instagram-line" /></span>
+                  <span><i className="ri-facebook-fill" /></span>
+                  <span><i className="ri-heart-fill" /></span>
+                  <span><i className="ri-twitter-fill" /></span>
+                </div>
+              </div>
+              <h4>Đội ngũ điều dưỡng</h4>
+              <p>Điều dưỡng</p>
+            </div> */}
+          </div>
           </div>
 
           {/* Timeline Section */}
@@ -711,10 +605,10 @@ const AboutPage = () => {
                       opacity: 0.95,
                     }}
                   >
-                    123 Đường Nguyễn Văn Linh
+                    136 Võ Văn Ngân
                     <br />
-                    Phường Tân Phú, Quận 7<br />
-                    TP. Hồ Chí Minh
+                    Phường Hòa Xuân<br />
+                    TP. Đà Nẵng
                   </p>
                 </div>
               </Col>
@@ -748,11 +642,11 @@ const AboutPage = () => {
                       opacity: 0.95,
                     }}
                   >
-                    Hotline: 1900 xxxx
+                    Hotline: (84) 984 253 413
                     <br />
-                    Di động: 0909 xxx xxx
+                    Di động: (84) 984 253 413
                     <br />
-                    (7:00 - 21:00 hàng ngày)
+                    (16:30 - 20:00 hàng ngày)
                   </p>
                 </div>
               </Col>
@@ -786,11 +680,11 @@ const AboutPage = () => {
                       opacity: 0.95,
                     }}
                   >
-                    info@yhoccotruyenhcm.vn
+                    info@yhoccotruyendn.vn
                     <br />
-                    Facebook: /yhoccotruyenhcm
+                    Facebook: /yhoccotruyendn
                     <br />
-                    Zalo: 0909 xxx xxx
+                    Zalo: (84) 984 253 413
                   </p>
                 </div>
               </Col>
@@ -822,9 +716,7 @@ const AboutPage = () => {
                   opacity: 0.95,
                 }}
               >
-                <strong>Thứ 2 - Thứ 7:</strong> 7:00 - 20:00
-                <br />
-                <strong>Chủ nhật:</strong> 8:00 - 17:00
+                <strong>Thứ 2 - Chủ nhật:</strong> 16:30 - 20:00
                 <br />
                 <em style={{ fontSize: "14px" }}>(Nghỉ các ngày lễ, tết)</em>
               </p>

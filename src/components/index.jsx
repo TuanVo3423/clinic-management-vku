@@ -632,7 +632,7 @@ function Scheduler(props) {
     { color: "#faad14", label: "Chờ xác nhận" },
     { color: "#52c41a", label: "Đã xác nhận" },
     { color: "#ff4d4f", label: "Đã hủy" },
-    { color: "#d9d9d9", label: "Của bệnh nhân khác" },
+    { color: "#d9d9d9", label: "Hoàn thành" },
   ];
   const schedulerHeader = (
     <div ref={schedulerHeaderRef}>

@@ -178,7 +178,7 @@ export default function SiteLayout({ children, headerClassName }) {
                 </a>
               </li>
               <li className="hover:text-emerald-900 cursor-pointer">
-                Giới thiệu
+                <a href="/about">Giới thiệu</a>
               </li>
               {/* <li className="hover:text-emerald-900 cursor-pointer">
                 Tuyển dụng
