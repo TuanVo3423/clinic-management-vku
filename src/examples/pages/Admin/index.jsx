@@ -31,6 +31,10 @@ function Admin() {
   );
   const [appointmentCount, setAppointmentCount] = useState(0);
   const [doctorInfo, setDoctorInfo] = useState(null);
+  const [dateRange, setDateRange] = useState([
+    dayjs().subtract(30, "day"),
+    dayjs().add(30, "day"),
+  ]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,13 +43,15 @@ function Admin() {
     if (doctor) {
       setDoctorInfo(JSON.parse(doctor));
     }
+  }, []);
 
+  useEffect(() => {
     fetchAppointmentCount();
     console.log("re-render");
     // Refresh count every 30 seconds
     const interval = setInterval(fetchAppointmentCount, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [dateRange]);
 
   // Lưu activeTab vào localStorage mỗi khi thay đổi
   useEffect(() => {
@@ -54,16 +60,15 @@ function Admin() {
 
   const fetchAppointmentCount = async () => {
     try {
-      const startDate = dayjs()
-        .subtract(7, "day")
-        .format("YYYY-MM-DD HH:mm:ss");
-      const endDate = dayjs().add(30, "day").format("YYYY-MM-DD HH:mm:ss");
+      const startDate = dateRange[0].format("YYYY-MM-DD HH:mm:ss");
+      const endDate = dateRange[1].format("YYYY-MM-DD HH:mm:ss");
       const url = `${
         process.env.REACT_APP_BASE_BE_URL
       }/appointments/by-time-range?startDate=${encodeURIComponent(
         startDate
       )}&endDate=${encodeURIComponent(endDate)}`;
       const res = await axios.get(url);
+      console.log("res123", res);
       setAppointmentCount(res.data.appointments.length);
     } catch (error) {
       console.error("Error fetching appointment count:", error);
@@ -182,7 +187,7 @@ function Admin() {
               key="list"
             >
               <div className="tab-content">
-                <ListView />
+                <ListView dateRange={dateRange} setDateRange={setDateRange} />
               </div>
             </TabPane>
 
